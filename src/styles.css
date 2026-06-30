@@ -1,0 +1,522 @@
+:root {
+  color: #4f382d;
+  background: #fffaf3;
+  font-family:
+    "Hiragino Maru Gothic ProN", "Yu Gothic", "YuGothic", "Meiryo",
+    system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --paper: #fffdf8;
+  --cream: #fff4e5;
+  --cream-deep: #f7e2ca;
+  --orange: #e9a068;
+  --orange-deep: #a85f38;
+  --brown: #5a3d31;
+  --muted: #866b5b;
+  --pink: #efd2d0;
+  --pink-deep: #a76768;
+  --sage: #8ca18b;
+  --blue: #829eb2;
+  --line: #ead7c6;
+  --shadow: 0 14px 28px rgba(86, 56, 38, 0.13);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.55) 25%, transparent 25%) 0 0 / 22px 22px,
+    linear-gradient(180deg, #fffaf3 0%, #fff1e4 54%, #fff9f4 100%);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.screen {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 24px 16px 112px;
+}
+
+.intro-panel,
+.section-heading {
+  padding: 8px 2px 20px;
+}
+
+.before-heading,
+.unsent-heading {
+  border-bottom: 1px solid rgba(234, 215, 198, 0.86);
+  margin-bottom: 18px;
+}
+
+.app-name {
+  margin: 0 0 10px;
+  color: var(--orange-deep);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  max-width: 18em;
+  margin-bottom: 12px;
+  color: var(--brown);
+  font-size: 1.72rem;
+  line-height: 1.42;
+  letter-spacing: 0;
+}
+
+h2 {
+  color: var(--brown);
+  font-size: 1.04rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.intro-panel p:not(.app-name),
+.section-heading p:not(.app-name) {
+  max-width: 34em;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.9;
+}
+
+.card-list,
+.prep-list,
+.unsent-list {
+  display: grid;
+  gap: 14px;
+}
+
+.bookmark-card,
+.prep-card,
+.form-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(226, 202, 181, 0.95);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(232, 150, 102, 0.13) 0 10px, transparent 10px),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(255, 247, 236, 0.98));
+  box-shadow: var(--shadow);
+}
+
+.bookmark-card,
+.prep-body {
+  display: grid;
+  gap: 12px;
+  padding: 15px 14px 14px 20px;
+}
+
+.bookmark-notch {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 22px;
+  height: 38px;
+  background: var(--pink);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  opacity: 0.86;
+}
+
+.bookmark-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-left: 34px;
+}
+
+.bookmark-card-head > div {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.bookmark-card-head h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.tag,
+.status-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 28px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: 6px 10px;
+}
+
+.tag {
+  border: 1px solid rgba(168, 95, 56, 0.16);
+  background: #fff0dd;
+  color: var(--orange-deep);
+}
+
+.status-label {
+  flex: 0 0 auto;
+  background: #fff8ef;
+  color: var(--orange-deep);
+}
+
+.status-label.talked {
+  background: #edf5ee;
+  color: #4f7052;
+}
+
+.status-label.dismissed {
+  background: #f6e5e3;
+  color: var(--pink-deep);
+}
+
+.memo,
+.talk-box p {
+  overflow-wrap: anywhere;
+}
+
+.memo {
+  margin-bottom: 0;
+  color: #614638;
+  font-size: 0.96rem;
+  line-height: 1.75;
+}
+
+.talk-box {
+  border: 1px solid rgba(234, 215, 198, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 252, 246, 0.82);
+  padding: 11px 12px;
+}
+
+.talk-box span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--orange-deep);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.talk-box p {
+  margin-bottom: 0;
+  color: #563d31;
+  font-size: 0.93rem;
+  line-height: 1.8;
+}
+
+.question-box {
+  border-left: 4px solid var(--sage);
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+time {
+  color: #987562;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.empty {
+  border: 1px dashed #dab99b;
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.76);
+  color: #765a49;
+  line-height: 1.9;
+  margin: 0;
+  padding: 18px;
+}
+
+.compact-empty {
+  padding: 14px;
+}
+
+.form-card {
+  display: grid;
+  gap: 17px;
+  padding: 17px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span,
+.tag-field legend {
+  color: var(--brown);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdfa;
+  color: var(--brown);
+  outline: none;
+  padding: 13px 12px;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(233, 160, 104, 0.2);
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.tag-field {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.tag-options,
+.people-grid,
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.tag-options,
+.filter-bar {
+  margin-top: 9px;
+}
+
+.people-grid {
+  margin-bottom: 18px;
+}
+
+.tag-choice,
+.person-button,
+.filter-button,
+.primary-button,
+.secondary-button,
+.ghost-button,
+.icon-button {
+  min-height: 44px;
+  border: 1px solid rgba(168, 95, 56, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.tag-choice,
+.person-button,
+.filter-button {
+  background: #fff7ed;
+  color: #6f503f;
+  padding: 10px 12px;
+}
+
+.tag-choice.active,
+.person-button.active,
+.filter-button.active {
+  border-color: rgba(140, 161, 139, 0.65);
+  background: #edf5ee;
+  color: #4d6b51;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  width: 100%;
+  padding: 13px 16px;
+}
+
+.primary-button {
+  border-color: var(--orange-deep);
+  background: var(--orange-deep);
+  color: #fffaf3;
+  box-shadow: 0 12px 22px rgba(168, 95, 56, 0.22);
+}
+
+.secondary-button {
+  background: #fffdf8;
+  color: var(--brown);
+}
+
+.ghost-button {
+  background: #fff7f5;
+  color: var(--pink-deep);
+}
+
+.icon-button {
+  min-width: 58px;
+  min-height: 36px;
+  background: #fff7f5;
+  color: var(--pink-deep);
+  padding: 8px 10px;
+}
+
+.small-action {
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  font-size: 0.82rem;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.ghost-button:disabled,
+.small-action:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+
+.form-message {
+  margin: 0;
+  border-radius: 8px;
+  background: #edf5ee;
+  color: #4d6b51;
+  line-height: 1.7;
+  padding: 12px;
+}
+
+.form-message.error {
+  background: #fff0e6;
+  color: #9b502f;
+}
+
+.selected-section {
+  margin-top: 22px;
+}
+
+.selected-section h2,
+.prep-section h2 {
+  margin-bottom: 10px;
+}
+
+.prep-section {
+  display: grid;
+  gap: 10px;
+}
+
+.bookmark-card.talked,
+.bookmark-card.dismissed {
+  opacity: 0.67;
+}
+
+.bookmark-card.dismissed .status-label {
+  opacity: 1;
+}
+
+.bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  border-top: 1px solid rgba(224, 201, 180, 0.95);
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 0 -10px 28px rgba(86, 56, 38, 0.12);
+  padding: 9px 8px calc(9px + env(safe-area-inset-bottom));
+  backdrop-filter: blur(16px);
+}
+
+.nav-button {
+  display: grid;
+  min-width: 0;
+  min-height: 52px;
+  place-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #806451;
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.22;
+  padding: 6px 2px;
+}
+
+.nav-button.active {
+  background: #fff0dd;
+  color: var(--orange-deep);
+}
+
+.nav-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.42;
+}
+
+.nav-button.active .nav-dot {
+  opacity: 1;
+}
+
+@media (min-width: 560px) {
+  .action-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .screen {
+    padding-top: 36px;
+  }
+
+  .card-list,
+  .unsent-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bottom-nav {
+    right: 50%;
+    left: 50%;
+    width: min(100% - 28px, 680px);
+    transform: translateX(-50%);
+    border: 1px solid rgba(224, 201, 180, 0.95);
+    border-radius: 8px 8px 0 0;
+  }
+}

@@ -1,8 +1,0 @@
-node_modules/
-dist/
-.next/
-.wrangler/
-.pnpm-store/
-.agents/
-.config/
-.codex-vite.*.log

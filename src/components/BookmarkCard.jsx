@@ -62,7 +62,7 @@ export default function BookmarkCard({
             onClick={() => onUpdateStatus(bookmark.id, "checked")}
             type="button"
           >
-            確認済みにする
+            確認済み
           </button>
           <button
             className="primary-button small-action"

@@ -65,17 +65,11 @@ export const emotionTemplates = {
     openingLine: "今度一緒に行きたいところがあって",
     question: "予定の話ができそうなときに開く",
   },
-  ありがとう: {
-    category: "face",
-    shortLabel: "ありがとう",
-    openingLine: "この前のこと、ちゃんとありがとうって言いたくて",
-    question: "落ち着いて感謝を伝えたいときに開く",
-  },
-  ごめんね: {
-    category: "face",
-    shortLabel: "ごめんね",
-    openingLine: "ちょっと言いそびれてたことがあって",
-    question: "ちゃんと向き合えそうなときに開く",
+  報告: {
+    category: "talk",
+    shortLabel: "報告",
+    openingLine: "これ、ちょっと報告したくて残してた",
+    question: "近況を話せそうなときに開く",
   },
   なんとなく: {
     category: "talk",
@@ -109,12 +103,19 @@ export const bookmarkCategories = [
   {
     id: "talk",
     title: "話す",
-    emotions: ["笑ってほしい", "聞いてほしい", "共感してほしい", "なんとなく", "その他"],
+    emotions: [
+      "笑ってほしい",
+      "聞いてほしい",
+      "共感してほしい",
+      "報告",
+      "なんとなく",
+      "その他",
+    ],
   },
   {
     id: "face",
     title: "向き合う",
-    emotions: ["相談したい", "ありがとう", "ごめんね", "あとで考えたい", "家で思い出したい"],
+    emotions: ["相談したい", "あとで考えたい", "家で思い出したい"],
   },
   {
     id: "together",

@@ -1,9 +1,9 @@
 const tabs = [
-  { id: "home", label: "ホーム", icon: "⌂" },
-  { id: "save", label: "挟む", icon: "+" },
-  { id: "search", label: "探す", icon: "⌕" },
-  { id: "open", label: "ひらく", icon: "□" },
-  { id: "box", label: "しおり箱", icon: "▰" },
+  { id: "home", label: "ホーム", icon: "🏠" },
+  { id: "save", label: "挟む", icon: "📖" },
+  { id: "search", label: "探す", icon: "🔍" },
+  { id: "open", label: "ひらく", icon: "💡" },
+  { id: "box", label: "しおり箱", icon: "📦" },
 ];
 
 export default function BottomNav({ activeTab, onChange }) {

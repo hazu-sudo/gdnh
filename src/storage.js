@@ -1,43 +1,68 @@
 import {
   createSampleBookmarks,
+  getTemplate,
+  LEGACY_STORAGE_KEY,
   SELECTED_PERSON_KEY,
   STORAGE_KEY,
 } from "./data";
 
-const validStatuses = new Set(["unsent", "talked", "dismissed"]);
+const validStatuses = new Set(["unopened", "checked", "talked", "paused"]);
+const statusMigration = {
+  unsent: "unopened",
+  dismissed: "paused",
+  talked: "talked",
+};
+
+const emotionMigration = {
+  "ありがとうを言いたい": "ありがとう",
+  謝りたい: "ごめんね",
+  なんとなく話したい: "なんとなく",
+};
+
+function resolveDestinationType(bookmark, person) {
+  if (bookmark.destinationType === "someone" || person === "誰か") {
+    return "someone";
+  }
+
+  if (bookmark.destinationType === "self" || person === "自分") {
+    return "self";
+  }
+
+  return "specific";
+}
 
 function normalizeBookmark(bookmark) {
+  const rawPerson = String(bookmark.person || "").trim();
+  const person = rawPerson || "誰か";
+  const emotion = emotionMigration[bookmark.emotion] || bookmark.emotion || "その他";
+  const template = getTemplate(emotion);
+  const migratedStatus = statusMigration[bookmark.status] || bookmark.status;
+
   return {
     id: String(bookmark.id || globalThis.crypto?.randomUUID?.() || Date.now()),
-    person: String(bookmark.person || "").trim(),
-    emotion: String(bookmark.emotion || ""),
+    destinationType: resolveDestinationType(bookmark, person),
+    person,
+    emotion,
     memo: String(bookmark.memo || "").trim(),
-    openingLine: String(bookmark.openingLine || "").trim(),
-    question: String(bookmark.question || "").trim(),
+    openingLine: String(bookmark.openingLine || template.openingLine).trim(),
+    question: String(bookmark.question || template.question).trim(),
     createdAt: String(bookmark.createdAt || new Date().toLocaleDateString("sv-SE")),
-    status: validStatuses.has(bookmark.status)
-      ? bookmark.status
-      : bookmark.talked
-        ? "talked"
-        : "unsent",
+    status: validStatuses.has(migratedStatus) ? migratedStatus : "unopened",
   };
 }
 
 function normalizeBookmarks(bookmarks) {
   return bookmarks
     .map(normalizeBookmark)
-    .filter(
-      (bookmark) =>
-        bookmark.person &&
-        bookmark.emotion &&
-        bookmark.memo &&
-        bookmark.openingLine &&
-        bookmark.question,
-    );
+    .filter((bookmark) => bookmark.person && bookmark.emotion && bookmark.memo);
+}
+
+function readStoredBookmarks() {
+  return localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
 }
 
 export function loadBookmarks() {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = readStoredBookmarks();
 
   if (!stored) {
     const samples = normalizeBookmarks(createSampleBookmarks());

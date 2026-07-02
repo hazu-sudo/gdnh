@@ -1,9 +1,9 @@
-import { STATUS_LABELS } from "../data";
+import { getEmotionShortLabel, STATUS_LABELS } from "../data";
 
 export function StatusBadge({ status }) {
   return (
     <span className={`status-label ${status}`}>
-      {STATUS_LABELS[status] || STATUS_LABELS.unsent}
+      {STATUS_LABELS[status] || STATUS_LABELS.unopened}
     </span>
   );
 }
@@ -23,22 +23,22 @@ export default function BookmarkCard({
       <div className="bookmark-card-head">
         <div>
           {showPerson && <h2>{bookmark.person}</h2>}
-          <span className="tag">{bookmark.emotion}</span>
+          <span className="tag">{getEmotionShortLabel(bookmark.emotion)}</span>
         </div>
         <StatusBadge status={bookmark.status} />
       </div>
 
       <p className="memo">{bookmark.memo}</p>
-      <div className="talk-box">
-        <span>話し出し</span>
-        <p>{bookmark.openingLine}</p>
-      </div>
       {showQuestion && (
-        <div className="talk-box question-box">
-          <span>聞いてみたいこと</span>
+        <div className="talk-box hint-box">
+          <span>開くヒント</span>
           <p>{bookmark.question}</p>
         </div>
       )}
+      <div className="talk-box">
+        <span>話し出しの一言</span>
+        <p>{bookmark.openingLine}</p>
+      </div>
 
       <div className="card-foot">
         <time dateTime={bookmark.createdAt}>{bookmark.createdAt}</time>
@@ -54,23 +54,31 @@ export default function BookmarkCard({
         )}
       </div>
 
-      {showActions && (
+      {showActions && onUpdateStatus && (
         <div className="action-row">
           <button
             className="secondary-button small-action"
+            disabled={bookmark.status === "checked"}
+            onClick={() => onUpdateStatus(bookmark.id, "checked")}
+            type="button"
+          >
+            確認済みにする
+          </button>
+          <button
+            className="primary-button small-action"
             disabled={bookmark.status === "talked"}
             onClick={() => onUpdateStatus(bookmark.id, "talked")}
             type="button"
           >
-            話したことにする
+            話した
           </button>
           <button
             className="ghost-button small-action"
-            disabled={bookmark.status === "dismissed"}
-            onClick={() => onUpdateStatus(bookmark.id, "dismissed")}
+            disabled={bookmark.status === "paused"}
+            onClick={() => onUpdateStatus(bookmark.id, "paused")}
             type="button"
           >
-            もう話さなくていい
+            保留
           </button>
         </div>
       )}

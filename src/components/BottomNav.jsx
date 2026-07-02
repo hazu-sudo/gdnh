@@ -1,9 +1,9 @@
 const tabs = [
-  { id: "home", label: "ホーム" },
-  { id: "save", label: "しおりを挟む" },
-  { id: "before", label: "会う前" },
-  { id: "people", label: "相手" },
-  { id: "unsent", label: "未送信" },
+  { id: "home", label: "ホーム", icon: "⌂" },
+  { id: "save", label: "挟む", icon: "+" },
+  { id: "search", label: "探す", icon: "⌕" },
+  { id: "open", label: "ひらく", icon: "□" },
+  { id: "box", label: "しおり箱", icon: "▰" },
 ];
 
 export default function BottomNav({ activeTab, onChange }) {
@@ -17,7 +17,9 @@ export default function BottomNav({ activeTab, onChange }) {
           onClick={() => onChange(tab.id)}
           type="button"
         >
-          <span className="nav-dot" aria-hidden="true" />
+          <span className="nav-icon" aria-hidden="true">
+            {tab.icon}
+          </span>
           <span>{tab.label}</span>
         </button>
       ))}

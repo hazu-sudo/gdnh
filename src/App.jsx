@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import BottomNav from "./components/BottomNav";
-import BeforeMeetScreen from "./screens/BeforeMeetScreen";
+import BoxScreen from "./screens/BoxScreen";
 import HomeScreen from "./screens/HomeScreen";
-import PeopleScreen from "./screens/PeopleScreen";
+import OpenScreen from "./screens/OpenScreen";
 import SaveScreen from "./screens/SaveScreen";
-import UnsentScreen from "./screens/UnsentScreen";
+import SearchScreen from "./screens/SearchScreen";
 import {
   loadBookmarks,
   loadSelectedPerson,
@@ -72,28 +72,28 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {activeTab === "home" && <HomeScreen bookmarks={bookmarks} />}
+      {activeTab === "home" && (
+        <HomeScreen bookmarks={bookmarks} onOpenTab={() => setActiveTab("open")} />
+      )}
       {activeTab === "save" && <SaveScreen onSave={handleSave} />}
-      {activeTab === "before" && (
-        <BeforeMeetScreen
+      {activeTab === "search" && (
+        <SearchScreen
           bookmarks={bookmarks}
-          onSelect={handleSelectPerson}
+          onSelectPerson={handleSelectPerson}
           onUpdateStatus={handleUpdateStatus}
           people={people}
           selectedPerson={selectedPerson}
         />
       )}
-      {activeTab === "people" && (
-        <PeopleScreen
+      {activeTab === "open" && (
+        <OpenScreen bookmarks={bookmarks} onUpdateStatus={handleUpdateStatus} />
+      )}
+      {activeTab === "box" && (
+        <BoxScreen
           bookmarks={bookmarks}
           onDelete={handleDelete}
-          onSelect={handleSelectPerson}
-          people={people}
-          selectedPerson={selectedPerson}
+          onUpdateStatus={handleUpdateStatus}
         />
-      )}
-      {activeTab === "unsent" && (
-        <UnsentScreen bookmarks={bookmarks} onUpdateStatus={handleUpdateStatus} />
       )}
       <BottomNav activeTab={activeTab} onChange={setActiveTab} />
     </div>

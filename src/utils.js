@@ -22,3 +22,11 @@ export function pickRandom(items, currentId = "") {
 export function sortNewest(bookmarks) {
   return [...bookmarks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
+
+export function sortOldest(bookmarks) {
+  return [...bookmarks].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export function sortByDate(bookmarks, direction = "new") {
+  return direction === "old" ? sortOldest(bookmarks) : sortNewest(bookmarks);
+}

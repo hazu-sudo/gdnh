@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
 import {
+  classifiedStatusOptions,
   emotionOptions,
   getEmotionShortLabel,
-  statusOptions,
 } from "../data";
 import { sortByDate } from "../utils";
 
@@ -100,7 +100,7 @@ export default function SearchScreen({
   const [monthKey, setMonthKey] = useState(toMonthKey(new Date()));
   const [selectedDate, setSelectedDate] = useState(today);
   const [selectedTag, setSelectedTag] = useState(emotionOptions[0]);
-  const [selectedStatus, setSelectedStatus] = useState("unopened");
+  const [selectedStatus, setSelectedStatus] = useState("checked");
   const [sortDirection, setSortDirection] = useState("new");
 
   const bookmarksByDate = useMemo(() => {
@@ -260,7 +260,7 @@ export default function SearchScreen({
 
         {mode === "status" && (
           <div className="chip-scroll" aria-label="状態">
-            {statusOptions.map((status) => (
+            {classifiedStatusOptions.map((status) => (
               <button
                 className={selectedStatus === status.id ? "filter-button active" : "filter-button"}
                 key={status.id}

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
-import { bookmarkCategories, statusOptions } from "../data";
+import { bookmarkCategories, classifiedStatusOptions } from "../data";
 import { sortByDate } from "../utils";
 
-const filters = [{ id: "all", label: "すべて" }, ...statusOptions];
+const filters = [{ id: "all", label: "すべて" }, ...classifiedStatusOptions];
 
 function GroupedPausedList({ bookmarks, onDelete, onUpdateStatus }) {
   const groups = bookmarkCategories.map((category) => ({
@@ -47,7 +47,7 @@ function GroupedPausedList({ bookmarks, onDelete, onUpdateStatus }) {
 }
 
 export default function BoxScreen({ bookmarks, onDelete, onUpdateStatus }) {
-  const [activeFilter, setActiveFilter] = useState("unopened");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState("new");
 
   const filteredBookmarks = useMemo(() => {
@@ -62,7 +62,7 @@ export default function BoxScreen({ bookmarks, onDelete, onUpdateStatus }) {
     <main className="screen">
       <section className="section-heading">
         <p className="app-name">しおり箱</p>
-        <h1>未開封、確認済み、話した、保留をまとめて見る。</h1>
+        <h1>全部のしおりを見ながら、状態をつけたものだけ分けて見る。</h1>
       </section>
 
       <div className="chip-scroll" aria-label="しおりの状態">

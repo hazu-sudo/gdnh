@@ -16,6 +16,10 @@ export const statusOptions = [
   { id: "paused", label: STATUS_LABELS.paused },
 ];
 
+export const classifiedStatusOptions = statusOptions.filter(
+  (status) => status.id !== "unopened",
+);
+
 export const destinationOptions = [
   {
     id: "specific",

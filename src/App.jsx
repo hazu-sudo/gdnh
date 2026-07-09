@@ -1,36 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import BottomNav from "./components/BottomNav";
-import BoxScreen from "./screens/BoxScreen";
 import HomeScreen from "./screens/HomeScreen";
 import OpenScreen from "./screens/OpenScreen";
+import PendingScreen from "./screens/PendingScreen";
 import SaveScreen from "./screens/SaveScreen";
 import SearchScreen from "./screens/SearchScreen";
 import {
   loadBookmarks,
-  loadSelectedPerson,
+  loadSelectedTarget,
   saveBookmarks,
-  saveSelectedPerson,
+  saveSelectedTarget,
 } from "./storage";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [bookmarks, setBookmarks] = useState([]);
-  const [selectedPerson, setSelectedPerson] = useState("");
+  const [selectedTarget, setSelectedTarget] = useState("");
 
   useEffect(() => {
     const loadedBookmarks = loadBookmarks();
-    const storedPerson = loadSelectedPerson();
+    const storedTarget = loadSelectedTarget();
     setBookmarks(loadedBookmarks);
-    setSelectedPerson(
-      loadedBookmarks.some((bookmark) => bookmark.person === storedPerson)
-        ? storedPerson
+    setSelectedTarget(
+      loadedBookmarks.some((bookmark) => bookmark.targetName === storedTarget)
+        ? storedTarget
         : "",
     );
   }, []);
 
-  const people = useMemo(
+  const targets = useMemo(
     () =>
-      [...new Set(bookmarks.map((bookmark) => bookmark.person).filter(Boolean))].sort(
+      [...new Set(bookmarks.map((bookmark) => bookmark.targetName).filter(Boolean))].sort(
         (a, b) => a.localeCompare(b, "ja"),
       ),
     [bookmarks],
@@ -43,22 +43,22 @@ export default function App() {
 
   function handleSave(bookmark) {
     persistBookmarks([bookmark, ...bookmarks]);
-    setSelectedPerson(bookmark.person);
-    saveSelectedPerson(bookmark.person);
+    setSelectedTarget(bookmark.targetName);
+    saveSelectedTarget(bookmark.targetName);
   }
 
-  function handleSelectPerson(person) {
-    setSelectedPerson(person);
-    saveSelectedPerson(person);
+  function handleSelectTarget(targetName) {
+    setSelectedTarget(targetName);
+    saveSelectedTarget(targetName);
   }
 
   function handleDelete(id) {
     const nextBookmarks = bookmarks.filter((bookmark) => bookmark.id !== id);
     persistBookmarks(nextBookmarks);
 
-    if (!nextBookmarks.some((bookmark) => bookmark.person === selectedPerson)) {
-      setSelectedPerson("");
-      saveSelectedPerson("");
+    if (!nextBookmarks.some((bookmark) => bookmark.targetName === selectedTarget)) {
+      setSelectedTarget("");
+      saveSelectedTarget("");
     }
   }
 
@@ -79,17 +79,17 @@ export default function App() {
       {activeTab === "search" && (
         <SearchScreen
           bookmarks={bookmarks}
-          onSelectPerson={handleSelectPerson}
+          onSelectTarget={handleSelectTarget}
           onUpdateStatus={handleUpdateStatus}
-          people={people}
-          selectedPerson={selectedPerson}
+          selectedTarget={selectedTarget}
+          targets={targets}
         />
       )}
       {activeTab === "open" && (
         <OpenScreen bookmarks={bookmarks} onUpdateStatus={handleUpdateStatus} />
       )}
-      {activeTab === "box" && (
-        <BoxScreen
+      {activeTab === "pending" && (
+        <PendingScreen
           bookmarks={bookmarks}
           onDelete={handleDelete}
           onUpdateStatus={handleUpdateStatus}

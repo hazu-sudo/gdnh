@@ -1,66 +1,90 @@
 import {
   createSampleBookmarks,
-  getTemplate,
-  LEGACY_STORAGE_KEY,
-  SELECTED_PERSON_KEY,
+  generateOpenHint,
+  LEGACY_SELECTED_PERSON_KEY,
+  LEGACY_STORAGE_KEYS,
+  SELECTED_TARGET_KEY,
   STORAGE_KEY,
 } from "./data";
 
-const validStatuses = new Set(["unopened", "checked", "talked", "paused"]);
+const validStatuses = new Set(["unopened", "checked", "talked", "pending"]);
 const statusMigration = {
   unsent: "unopened",
-  dismissed: "paused",
-  talked: "talked",
+  dismissed: "pending",
+  paused: "pending",
 };
 
 const emotionMigration = {
-  "ありがとうを言いたい": "その他",
-  ありがとう: "その他",
-  謝りたい: "その他",
-  ごめんね: "その他",
+  "ありがとうを言いたい": "ありがとう",
+  謝りたい: "ごめんね",
+  報告: "その他",
   なんとなく話したい: "なんとなく",
 };
 
-function resolveDestinationType(bookmark, person) {
-  if (bookmark.destinationType === "someone" || person === "誰か") {
+const targetTypeMigration = {
+  specific: "person",
+  person: "person",
+  someone: "someone",
+  self: "self",
+};
+
+function resolveTargetType(bookmark, targetName) {
+  const rawType = bookmark.targetType || bookmark.destinationType;
+
+  if (targetName === "誰か") {
     return "someone";
   }
 
-  if (bookmark.destinationType === "self" || person === "自分") {
+  if (targetName === "自分") {
     return "self";
   }
 
-  return "specific";
+  return targetTypeMigration[rawType] || "person";
 }
 
 function normalizeBookmark(bookmark) {
-  const rawPerson = String(bookmark.person || "").trim();
-  const person = rawPerson || "誰か";
+  const targetName = String(bookmark.targetName || bookmark.person || "").trim() || "誰か";
+  const targetType = resolveTargetType(bookmark, targetName);
   const emotion = emotionMigration[bookmark.emotion] || bookmark.emotion || "その他";
-  const template = getTemplate(emotion);
-  const migratedStatus = statusMigration[bookmark.status] || bookmark.status;
+  const status = statusMigration[bookmark.status] || bookmark.status || "unopened";
+  const openHint =
+    String(bookmark.openHint || bookmark.openingLine || bookmark.question || "").trim() ||
+    generateOpenHint({ targetType, emotion });
 
   return {
     id: String(bookmark.id || globalThis.crypto?.randomUUID?.() || Date.now()),
-    destinationType: resolveDestinationType(bookmark, person),
-    person,
-    emotion,
+    targetType,
+    targetName,
+    emotion: String(emotion).trim() || "その他",
     memo: String(bookmark.memo || "").trim(),
-    openingLine: String(bookmark.openingLine || template.openingLine).trim(),
-    question: String(bookmark.question || template.question).trim(),
+    openHint,
+    status: validStatuses.has(status) ? status : "unopened",
     createdAt: String(bookmark.createdAt || new Date().toLocaleDateString("sv-SE")),
-    status: validStatuses.has(migratedStatus) ? migratedStatus : "unopened",
   };
 }
 
 function normalizeBookmarks(bookmarks) {
   return bookmarks
     .map(normalizeBookmark)
-    .filter((bookmark) => bookmark.person && bookmark.emotion && bookmark.memo);
+    .filter((bookmark) => bookmark.targetName && bookmark.emotion && bookmark.memo);
 }
 
 function readStoredBookmarks() {
-  return localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+  const current = localStorage.getItem(STORAGE_KEY);
+
+  if (current) {
+    return current;
+  }
+
+  for (const key of LEGACY_STORAGE_KEYS) {
+    const legacy = localStorage.getItem(key);
+
+    if (legacy) {
+      return legacy;
+    }
+  }
+
+  return "";
 }
 
 export function loadBookmarks() {
@@ -88,14 +112,18 @@ export function saveBookmarks(bookmarks) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks));
 }
 
-export function loadSelectedPerson() {
-  return localStorage.getItem(SELECTED_PERSON_KEY) || "";
+export function loadSelectedTarget() {
+  return (
+    localStorage.getItem(SELECTED_TARGET_KEY) ||
+    localStorage.getItem(LEGACY_SELECTED_PERSON_KEY) ||
+    ""
+  );
 }
 
-export function saveSelectedPerson(person) {
-  if (person) {
-    localStorage.setItem(SELECTED_PERSON_KEY, person);
+export function saveSelectedTarget(targetName) {
+  if (targetName) {
+    localStorage.setItem(SELECTED_TARGET_KEY, targetName);
   } else {
-    localStorage.removeItem(SELECTED_PERSON_KEY);
+    localStorage.removeItem(SELECTED_TARGET_KEY);
   }
 }

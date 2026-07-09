@@ -1,28 +1,29 @@
-export const STORAGE_KEY = "meeting-shiori-bookmarks-v2";
-export const LEGACY_STORAGE_KEY = "meeting-shiori-bookmarks-v1";
-export const SELECTED_PERSON_KEY = "meeting-shiori-selected-person-v1";
+export const APP_NAME = "あとで開くしおり";
+export const STORAGE_KEY = "later-open-shiori-bookmarks-v1";
+export const LEGACY_STORAGE_KEYS = [
+  "meeting-shiori-bookmarks-v2",
+  "meeting-shiori-bookmarks-v1",
+];
+export const SELECTED_TARGET_KEY = "later-open-shiori-selected-target-v1";
+export const LEGACY_SELECTED_PERSON_KEY = "meeting-shiori-selected-person-v1";
 
 export const STATUS_LABELS = {
   unopened: "未開封",
   checked: "確認済み",
   talked: "話した",
-  paused: "保留",
+  pending: "保留",
 };
 
 export const statusOptions = [
   { id: "unopened", label: STATUS_LABELS.unopened },
   { id: "checked", label: STATUS_LABELS.checked },
   { id: "talked", label: STATUS_LABELS.talked },
-  { id: "paused", label: STATUS_LABELS.paused },
+  { id: "pending", label: STATUS_LABELS.pending },
 ];
 
-export const classifiedStatusOptions = statusOptions.filter(
-  (status) => status.id !== "unopened",
-);
-
-export const destinationOptions = [
+export const targetOptions = [
   {
-    id: "specific",
+    id: "person",
     label: "特定の人へ",
     helper: "さき、お母さん、ゼミの子など",
   },
@@ -41,85 +42,73 @@ export const destinationOptions = [
 export const emotionTemplates = {
   笑ってほしい: {
     category: "talk",
-    shortLabel: "笑って",
-    openingLine: "これちょっと笑ってしまったんやけど、聞いて",
-    question: "気軽に話せるときに開く",
+    openHint: "これちょっと笑ってしまったんやけど、聞いて",
+    selfHint: "何が少しおもしろかったのか、もう一度思い出してみる",
   },
   聞いてほしい: {
     category: "talk",
-    shortLabel: "聞いて",
-    openingLine: "大したことじゃないんやけど、ちょっと聞いてほしくて",
-    question: "少しだけ話したいときに開く",
+    openHint: "大したことじゃないんやけど、ちょっと聞いてほしくて",
+    selfHint: "今の自分はどう感じているか、もう一度見てみる",
   },
   相談したい: {
     category: "face",
-    shortLabel: "相談",
-    openingLine: "ちょっと相談したいことがあるんやけど、今度話してもいい？",
-    question: "相手の考えを聞けそうなときに開く",
+    openHint: "ちょっと相談したいことがあるんやけど、話してもいい？",
+    selfHint: "これは何が気になっていたのか、少し考えてみる",
   },
   共感してほしい: {
     category: "talk",
-    shortLabel: "共感",
-    openingLine: "これ、なんか分かってほしくて残してた",
-    question: "気持ちを共有したいときに開く",
+    openHint: "これ、なんか分かってほしくて残してた",
+    selfHint: "どこに分かってほしさがあったのか、少し眺めてみる",
   },
   誘いたい: {
     category: "together",
-    shortLabel: "お誘い",
-    openingLine: "今度一緒に行きたいところがあって",
-    question: "予定の話ができそうなときに開く",
+    openHint: "今度一緒に行きたいところがあって",
+    selfHint: "これは誰と、どんな時間にしたかったのか考えてみる",
   },
-  報告: {
-    category: "talk",
-    shortLabel: "報告",
-    openingLine: "これ、ちょっと報告したくて残してた",
-    question: "近況を話せそうなときに開く",
+  ありがとう: {
+    category: "face",
+    openHint: "この前のこと、ちゃんとありがとうって言いたくて",
+    selfHint: "何に助けられたのか、言葉にする前に少し見てみる",
+  },
+  ごめんね: {
+    category: "face",
+    openHint: "ちょっと言いそびれてたことがあって",
+    selfHint: "何を引っかけたままにしているのか、少しだけ見てみる",
   },
   なんとなく: {
     category: "talk",
-    shortLabel: "なんとなく",
-    openingLine: "なんかこれ、ふと思い出して話したくなった",
-    question: "会話のすきまに開く",
+    openHint: "なんかこれ、ふと思い出して話したくなった",
+    selfHint: "まだ言葉にならない感じを、そのまま少し置いてみる",
   },
   あとで考えたい: {
     category: "face",
-    shortLabel: "後で考える",
-    openingLine: "まだまとまってないけど、あとで考えたいことがあって",
-    question: "急がず見返したいときに開く",
+    openHint: "何が引っかかったのか、少しだけ考えてみる",
+    selfHint: "これは何が気になっていたのか、少し考えてみる",
   },
   家で思い出したい: {
     category: "face",
-    shortLabel: "家で思い出す",
-    openingLine: "家に帰ったら、もう一回思い出したいことがあって",
-    question: "ひとりで落ち着けるときに開く",
+    openHint: "家に帰ったら、この気持ちをもう一度開く",
+    selfHint: "家に帰ったら、この続きを少しだけ開く",
   },
   その他: {
     category: "talk",
-    shortLabel: "その他",
-    openingLine: "これ、あとで話せたらいいなと思って残してた",
-    question: "なんとなく気になったときに開く",
+    openHint: "これ、あとで開けるように少しだけ残してた",
+    selfHint: "今の自分はどう感じているか、もう一度見てみる",
   },
 };
 
 export const emotionOptions = Object.keys(emotionTemplates);
 
-export const bookmarkCategories = [
+export const pendingCategories = [
   {
     id: "talk",
     title: "話す",
-    emotions: [
-      "笑ってほしい",
-      "聞いてほしい",
-      "共感してほしい",
-      "報告",
-      "なんとなく",
-      "その他",
-    ],
+    emotions: ["笑ってほしい", "聞いてほしい", "共感してほしい", "なんとなく"],
   },
   {
     id: "face",
     title: "向き合う",
-    emotions: ["相談したい", "あとで考えたい", "家で思い出したい"],
+    emotions: ["相談したい", "ありがとう", "ごめんね", "あとで考えたい", "家で思い出したい"],
   },
   {
     id: "together",
@@ -132,71 +121,72 @@ export function getTemplate(emotion) {
   return emotionTemplates[emotion] || emotionTemplates.その他;
 }
 
-export function getEmotionShortLabel(emotion) {
-  return getTemplate(emotion).shortLabel || emotion;
+export function getEmotionLabel(emotion) {
+  return emotion || "その他";
+}
+
+export function generateOpenHint({ targetType, emotion }) {
+  const template = getTemplate(emotion);
+  return targetType === "self" ? template.selfHint : template.openHint;
 }
 
 export function getCategoryForEmotion(emotion) {
-  const template = getTemplate(emotion);
-  return bookmarkCategories.find((category) => category.id === template.category) || bookmarkCategories[0];
+  const template = emotionTemplates[emotion];
+  const categoryId = template?.category || "talk";
+  return pendingCategories.find((category) => category.id === categoryId) || pendingCategories[0];
 }
 
 export function createSampleBookmarks() {
   return [
     {
       id: "sample-saki-cafe",
-      destinationType: "specific",
-      person: "さき",
+      targetType: "person",
+      targetName: "さき",
       emotion: "誘いたい",
       memo: "駅の近くに良さそうなカフェがあった",
-      openingLine: "今度一緒に行きたいところがあって",
-      question: "予定の話ができそうなときに開く",
-      createdAt: "2026-06-30",
+      openHint: "今度一緒に行きたいところがあって",
       status: "unopened",
+      createdAt: "2026-07-09",
     },
     {
       id: "sample-miyu-work",
-      destinationType: "specific",
-      person: "みゆ",
+      targetType: "person",
+      targetName: "みゆ",
       emotion: "相談したい",
-      memo: "バイトでちょっと悩んだことがあった",
-      openingLine: "ちょっと相談したいことがあるんやけど、今度話してもいい？",
-      question: "相手の考えを聞けそうなときに開く",
-      createdAt: "2026-06-29",
+      memo: "バイトでちょっとモヤモヤした",
+      openHint: "ちょっと相談したいことがあるんやけど、話してもいい？",
       status: "checked",
+      createdAt: "2026-07-08",
     },
     {
-      id: "sample-mom-cooking",
-      destinationType: "specific",
-      person: "お母さん",
-      emotion: "聞いてほしい",
-      memo: "最近ちゃんと自炊できた",
-      openingLine: "大したことじゃないんやけど、ちょっと聞いてほしくて",
-      question: "少しだけ話したいときに開く",
-      createdAt: "2026-06-28",
+      id: "sample-mom-thanks",
+      targetType: "person",
+      targetName: "お母さん",
+      emotion: "ありがとう",
+      memo: "この前さりげなく気にかけてくれたのがうれしかった",
+      openHint: "この前のこと、ちゃんとありがとうって言いたくて",
       status: "talked",
+      createdAt: "2026-07-07",
     },
     {
       id: "sample-someone-train",
-      destinationType: "someone",
-      person: "誰か",
+      targetType: "someone",
+      targetName: "誰か",
       emotion: "笑ってほしい",
       memo: "電車で見かけた広告の言い方がじわじわ面白かった",
-      openingLine: "これちょっと笑ってしまったんやけど、聞いて",
-      question: "気軽に話せるときに開く",
-      createdAt: "2026-06-27",
+      openHint: "これちょっと笑ってしまったんやけど、聞いて",
       status: "unopened",
+      createdAt: "2026-07-06",
     },
     {
       id: "sample-self-night",
-      destinationType: "self",
-      person: "自分",
+      targetType: "self",
+      targetName: "自分",
       emotion: "家で思い出したい",
       memo: "帰ったら今日うれしかったことをもう一回考えたい",
-      openingLine: "家に帰ったら、もう一回思い出したいことがあって",
-      question: "ひとりで落ち着けるときに開く",
-      createdAt: "2026-06-26",
-      status: "paused",
+      openHint: "家に帰ったら、この続きを少しだけ開く",
+      status: "pending",
+      createdAt: "2026-07-05",
     },
   ];
 }

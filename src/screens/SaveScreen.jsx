@@ -1,40 +1,58 @@
 import { useMemo, useState } from "react";
 import {
-  destinationOptions,
+  APP_NAME,
   emotionOptions,
-  getEmotionShortLabel,
-  getTemplate,
+  generateOpenHint,
+  getEmotionLabel,
+  targetOptions,
 } from "../data";
 import { formatToday, uniqueId } from "../utils";
 
 const initialForm = {
-  destinationType: "specific",
-  personName: "",
+  targetType: "person",
+  targetName: "",
   emotion: "",
+  customEmotion: "",
   memo: "",
 };
 
-function getPerson(form) {
-  if (form.destinationType === "someone") {
+function getTargetName(form) {
+  if (form.targetType === "someone") {
     return "誰か";
   }
 
-  if (form.destinationType === "self") {
+  if (form.targetType === "self") {
     return "自分";
   }
 
-  return form.personName.trim();
+  return form.targetName.trim();
+}
+
+function getSavedEmotion(form) {
+  if (form.emotion === "その他") {
+    return form.customEmotion.trim() || "その他";
+  }
+
+  return form.emotion;
 }
 
 export default function SaveScreen({ onSave }) {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState("");
   const [messageKind, setMessageKind] = useState("success");
-  const template = form.emotion ? getTemplate(form.emotion) : null;
+  const targetName = getTargetName(form);
+  const needsCustomEmotion = form.emotion === "その他";
+  const previewHint = form.emotion
+    ? generateOpenHint({ targetType: form.targetType, emotion: form.emotion })
+    : "";
 
   const canSave = useMemo(
-    () => getPerson(form) && form.emotion && form.memo.trim(),
-    [form],
+    () =>
+      targetName &&
+      form.emotion &&
+      (!needsCustomEmotion || form.customEmotion.trim()) &&
+      form.memo.trim(),
+    [form, needsCustomEmotion, targetName],
   );
 
   function updateField(name, value) {
@@ -42,57 +60,58 @@ export default function SaveScreen({ onSave }) {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function handleDestinationChange(destinationType) {
+  function handleTargetChange(targetType) {
     setMessage("");
-    setForm((current) => ({ ...current, destinationType }));
+    setForm((current) => ({ ...current, targetType }));
   }
 
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (!canSave || !template) {
+    if (!canSave) {
       setMessageKind("error");
       setMessage("宛先、気持ちタグ、ひとことメモを入れると保存できます。");
       return;
     }
 
+    const emotion = getSavedEmotion(form);
+
     onSave({
       id: uniqueId(),
-      destinationType: form.destinationType,
-      person: getPerson(form),
-      emotion: form.emotion,
+      targetType: form.targetType,
+      targetName,
+      emotion,
       memo: form.memo.trim(),
-      openingLine: template.openingLine,
-      question: template.question,
-      createdAt: formatToday(),
+      openHint: generateOpenHint({ targetType: form.targetType, emotion: form.emotion }),
       status: "unopened",
+      createdAt: formatToday(),
     });
     setForm(initialForm);
     setMessageKind("success");
-    setMessage("しおりを挟みました。あとで開きやすい言葉も添えておきました。");
+    setMessage("しおりを挟みました。あとで開ける言葉も、そっと添えました。");
   }
 
   return (
     <main className="screen">
       <section className="section-heading">
-        <p className="app-name">挟む</p>
-        <h1>気持ちをひとこと置くだけ。</h1>
-        <p>開くヒントと話し出しの一言は、気持ちタグからそっと添えます。</p>
+        <p className="app-name">{APP_NAME}</p>
+        <h1>言葉になる前の気持ちに、しおりを挟む。</h1>
+        <p>入力するのは、宛先、気持ちタグ、ひとことメモだけです。</p>
       </section>
 
       <form className="form-card" onSubmit={handleSubmit}>
         <fieldset className="tag-field">
           <legend>宛先</legend>
           <div className="destination-options">
-            {destinationOptions.map((option) => (
+            {targetOptions.map((option) => (
               <button
                 className={
-                  form.destinationType === option.id
+                  form.targetType === option.id
                     ? "destination-choice active"
                     : "destination-choice"
                 }
                 key={option.id}
-                onClick={() => handleDestinationChange(option.id)}
+                onClick={() => handleTargetChange(option.id)}
                 type="button"
               >
                 <span>{option.label}</span>
@@ -102,14 +121,14 @@ export default function SaveScreen({ onSave }) {
           </div>
         </fieldset>
 
-        {form.destinationType === "specific" && (
+        {form.targetType === "person" && (
           <label className="field">
             <span>名前</span>
             <input
-              onChange={(event) => updateField("personName", event.target.value)}
+              onChange={(event) => updateField("targetName", event.target.value)}
               placeholder="さき"
               type="text"
-              value={form.personName}
+              value={form.targetName}
             />
           </label>
         )}
@@ -124,31 +143,39 @@ export default function SaveScreen({ onSave }) {
                 onClick={() => updateField("emotion", emotion)}
                 type="button"
               >
-                {getEmotionShortLabel(emotion)}
+                {getEmotionLabel(emotion)}
               </button>
             ))}
           </div>
         </fieldset>
 
+        {needsCustomEmotion && (
+          <label className="field">
+            <span>その他の気持ち</span>
+            <input
+              onChange={(event) => updateField("customEmotion", event.target.value)}
+              placeholder="まだ名前がつかない感じ"
+              type="text"
+              value={form.customEmotion}
+            />
+          </label>
+        )}
+
         <label className="field">
           <span>ひとことメモ</span>
           <textarea
             onChange={(event) => updateField("memo", event.target.value)}
-            placeholder="駅の近くに良さそうなカフェがあった"
+            placeholder="今すぐ送るほどではないけれど、忘れたくないこと"
             rows="4"
             value={form.memo}
           />
         </label>
 
-        {template && (
-          <section className="auto-preview" aria-label="自動で添える言葉">
+        {previewHint && (
+          <section className="auto-preview" aria-label="自動で添える開くヒント">
             <div>
               <span>開くヒント</span>
-              <p>{template.question}</p>
-            </div>
-            <div>
-              <span>話し出しの一言</span>
-              <p>{template.openingLine}</p>
+              <p>{previewHint}</p>
             </div>
           </section>
         )}

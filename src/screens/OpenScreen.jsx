@@ -1,14 +1,10 @@
 import { useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
-import { bookmarkCategories } from "../data";
 import { pickRandom } from "../utils";
 
-function getOpenPool(bookmarks, category) {
-  const scoped = category
-    ? bookmarks.filter((bookmark) => category.emotions.includes(bookmark.emotion))
-    : bookmarks;
-  const unopened = scoped.filter((bookmark) => bookmark.status === "unopened");
-  const checked = scoped.filter((bookmark) => bookmark.status === "checked");
+function getOpenPool(bookmarks) {
+  const unopened = bookmarks.filter((bookmark) => bookmark.status === "unopened");
+  const checked = bookmarks.filter((bookmark) => bookmark.status === "checked");
   return unopened.length > 0 ? unopened : checked;
 }
 
@@ -23,8 +19,8 @@ export default function OpenScreen({ bookmarks, onUpdateStatus }) {
     );
   }
 
-  function openOne(category = null) {
-    const pool = getOpenPool(bookmarks, category);
+  function openOne() {
+    const pool = getOpenPool(bookmarks);
     const picked = pickRandom(pool, selectedBookmark?.id || "");
 
     if (!picked) {
@@ -33,43 +29,23 @@ export default function OpenScreen({ bookmarks, onUpdateStatus }) {
       return;
     }
 
-    const openedBookmark =
-      picked.status === "unopened" ? { ...picked, status: "checked" } : picked;
-
-    if (picked.status === "unopened") {
-      onUpdateStatus(picked.id, "checked");
-    }
-
-    setMessage(category ? `${category.title}のしおりを1枚ひらきました。` : "しおりを1枚ひらきました。");
-    setSelectedBookmark(openedBookmark);
+    setMessage("しおりを1枚ひらきました。");
+    setSelectedBookmark(picked);
   }
 
   return (
     <main className="screen open-screen">
       <section className="section-heading">
         <p className="app-name">ひらく</p>
-        <h1>迷ったときに、まだ話していない1枚をひらく。</h1>
-        <p>未開封のしおりを優先して、なければ確認済みのしおりから選びます。</p>
+        <h1>迷ったら、1枚だけ開いてみる。</h1>
+        <p>未開封か確認済みのしおりから、今ひらけるものを1枚だけ選びます。</p>
       </section>
 
       <section className="open-stage" aria-label="1枚ひらく">
-        <button className="big-open-button" onClick={() => openOne()} type="button">
-          <span>1枚ひらく</span>
-          <small>未開封を優先</small>
+        <button className="big-open-button" onClick={openOne} type="button">
+          <span>{selectedBookmark ? "もう1枚開く" : "1枚開く"}</span>
+          <small>話したしおりは選びません</small>
         </button>
-
-        <div className="category-open-grid">
-          {bookmarkCategories.map((category) => (
-            <button
-              className="category-open-button"
-              key={category.id}
-              onClick={() => openOne(category)}
-              type="button"
-            >
-              {category.title}
-            </button>
-          ))}
-        </div>
       </section>
 
       {message && <p className="form-message">{message}</p>}
@@ -79,8 +55,7 @@ export default function OpenScreen({ bookmarks, onUpdateStatus }) {
           bookmark={selectedBookmark}
           onUpdateStatus={updateSelectedStatus}
           showActions
-          showPerson
-          showQuestion
+          showTarget
         />
       ) : (
         <p className="empty">まだ選ばれていません。</p>

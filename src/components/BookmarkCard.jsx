@@ -1,4 +1,4 @@
-import { getEmotionShortLabel, STATUS_LABELS } from "../data";
+import { getEmotionLabel, STATUS_LABELS } from "../data";
 
 export function StatusBadge({ status }) {
   return (
@@ -14,37 +14,30 @@ export default function BookmarkCard({
   onUpdateStatus,
   showActions = false,
   showDelete = false,
-  showPerson = false,
-  showQuestion = false,
+  showTarget = false,
 }) {
   return (
     <article className={`bookmark-card ${bookmark.status}`}>
       <div className="bookmark-notch" aria-hidden="true" />
       <div className="bookmark-card-head">
         <div>
-          {showPerson && <h2>{bookmark.person}</h2>}
-          <span className="tag">{getEmotionShortLabel(bookmark.emotion)}</span>
+          {showTarget && <h2>{bookmark.targetName}</h2>}
+          <span className="tag">{getEmotionLabel(bookmark.emotion)}</span>
         </div>
         <StatusBadge status={bookmark.status} />
       </div>
 
       <p className="memo">{bookmark.memo}</p>
-      {showQuestion && (
-        <div className="talk-box hint-box">
-          <span>開くヒント</span>
-          <p>{bookmark.question}</p>
-        </div>
-      )}
-      <div className="talk-box">
-        <span>話し出しの一言</span>
-        <p>{bookmark.openingLine}</p>
+      <div className="talk-box hint-box">
+        <span>開くヒント</span>
+        <p>{bookmark.openHint}</p>
       </div>
 
       <div className="card-foot">
         <time dateTime={bookmark.createdAt}>{bookmark.createdAt}</time>
         {showDelete && (
           <button
-            aria-label={`${bookmark.person}のしおりを削除`}
+            aria-label={`${bookmark.targetName}のしおりを削除`}
             className="icon-button"
             onClick={() => onDelete(bookmark.id)}
             type="button"
@@ -62,7 +55,7 @@ export default function BookmarkCard({
             onClick={() => onUpdateStatus(bookmark.id, "checked")}
             type="button"
           >
-            確認済み
+            確認済みにする
           </button>
           <button
             className="primary-button small-action"
@@ -74,11 +67,11 @@ export default function BookmarkCard({
           </button>
           <button
             className="ghost-button small-action"
-            disabled={bookmark.status === "paused"}
-            onClick={() => onUpdateStatus(bookmark.id, "paused")}
+            disabled={bookmark.status === "pending"}
+            onClick={() => onUpdateStatus(bookmark.id, "pending")}
             type="button"
           >
-            保留
+            保留にする
           </button>
         </div>
       )}

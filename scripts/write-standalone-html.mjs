@@ -24,9 +24,9 @@ const html = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="誰かに話したかったことを、次に会う前にそっと思い出すWebアプリ。"
+      content="今すぐ送れない、でも忘れたくない気持ちを、あとで開けるしおりとして残すWebアプリ。"
     />
-    <title>会う前のしおり</title>
+    <title>あとで開くしおり</title>
     <style>
 ${css}
     </style>

@@ -1,15 +1,10 @@
 import { useMemo, useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
-import {
-  classifiedStatusOptions,
-  emotionOptions,
-  getEmotionShortLabel,
-} from "../data";
-import { sortByDate } from "../utils";
+import { emotionOptions, getEmotionLabel, statusOptions } from "../data";
+import { sortNewest } from "../utils";
 
 const modeOptions = [
-  { id: "date", label: "日付で探す" },
-  { id: "person", label: "宛先で探す" },
+  { id: "target", label: "宛先で探す" },
   { id: "tag", label: "タグで探す" },
   { id: "status", label: "状態で探す" },
 ];
@@ -55,7 +50,7 @@ function getMarkType(bookmarks) {
     return "";
   }
 
-  if (bookmarks.some((bookmark) => bookmark.status === "paused")) {
+  if (bookmarks.some((bookmark) => bookmark.status === "pending")) {
     return "bookmark";
   }
 
@@ -79,8 +74,7 @@ function ResultList({ bookmarks, onUpdateStatus }) {
           key={bookmark.id}
           onUpdateStatus={onUpdateStatus}
           showActions
-          showPerson
-          showQuestion
+          showTarget
         />
       ))}
     </section>
@@ -89,19 +83,23 @@ function ResultList({ bookmarks, onUpdateStatus }) {
 
 export default function SearchScreen({
   bookmarks,
-  onSelectPerson,
+  onSelectTarget,
   onUpdateStatus,
-  people,
-  selectedPerson,
+  selectedTarget,
+  targets,
 }) {
   const today = toDateKey(new Date());
   const [mode, setMode] = useState("date");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [monthKey, setMonthKey] = useState(toMonthKey(new Date()));
   const [selectedDate, setSelectedDate] = useState(today);
-  const [selectedTag, setSelectedTag] = useState(emotionOptions[0]);
-  const [selectedStatus, setSelectedStatus] = useState("checked");
-  const [sortDirection, setSortDirection] = useState("new");
+  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("unopened");
+
+  const usedTags = useMemo(() => {
+    const tags = [...new Set(bookmarks.map((bookmark) => bookmark.emotion).filter(Boolean))];
+    return tags.length > 0 ? tags.sort((a, b) => a.localeCompare(b, "ja")) : emotionOptions;
+  }, [bookmarks]);
 
   const bookmarksByDate = useMemo(() => {
     return bookmarks.reduce((map, bookmark) => {
@@ -112,25 +110,26 @@ export default function SearchScreen({
     }, new Map());
   }, [bookmarks]);
 
-  const activePerson = selectedPerson || people[0] || "";
+  const activeTarget = selectedTarget || targets[0] || "";
+  const activeTag = usedTags.includes(selectedTag) ? selectedTag : usedTags[0] || "";
   const days = buildMonthDays(monthKey);
   const monthLabel = monthKey.replace("-", "年") + "月";
 
   const results = useMemo(() => {
     if (mode === "date") {
-      return sortByDate(bookmarks.filter((bookmark) => bookmark.createdAt === selectedDate), sortDirection);
+      return sortNewest(bookmarks.filter((bookmark) => bookmark.createdAt === selectedDate));
     }
 
-    if (mode === "person") {
-      return sortByDate(bookmarks.filter((bookmark) => bookmark.person === activePerson), sortDirection);
+    if (mode === "target") {
+      return sortNewest(bookmarks.filter((bookmark) => bookmark.targetName === activeTarget));
     }
 
     if (mode === "tag") {
-      return sortByDate(bookmarks.filter((bookmark) => bookmark.emotion === selectedTag), sortDirection);
+      return sortNewest(bookmarks.filter((bookmark) => bookmark.emotion === activeTag));
     }
 
-    return sortByDate(bookmarks.filter((bookmark) => bookmark.status === selectedStatus), sortDirection);
-  }, [activePerson, bookmarks, mode, selectedDate, selectedStatus, selectedTag, sortDirection]);
+    return sortNewest(bookmarks.filter((bookmark) => bookmark.status === selectedStatus));
+  }, [activeTag, activeTarget, bookmarks, mode, selectedDate, selectedStatus]);
 
   function chooseMode(nextMode) {
     setMode(nextMode);
@@ -142,7 +141,7 @@ export default function SearchScreen({
       <section className="section-heading">
         <p className="app-name">探す</p>
         <h1>しおりを探す。</h1>
-        <p>日付、宛先、タグ、状態から、残していた話題を見つけます。</p>
+        <p>カレンダーに残った小さな印から、あとで開きたい気持ちを見つけます。</p>
       </section>
 
       <section className="calendar-tool" aria-label="しおりカレンダー">
@@ -201,24 +200,12 @@ export default function SearchScreen({
       <section className="search-panel" aria-label="探し方">
         <div className="section-title-row">
           <div>
-            <p className="eyebrow">{modeOptions.find((item) => item.id === mode)?.label}</p>
+            <p className="eyebrow">
+              {mode === "date"
+                ? "日付で見る"
+                : modeOptions.find((item) => item.id === mode)?.label}
+            </p>
             <h2>{results.length}件のしおり</h2>
-          </div>
-          <div className="segmented" aria-label="並び順">
-            <button
-              className={sortDirection === "new" ? "segment-button active" : "segment-button"}
-              onClick={() => setSortDirection("new")}
-              type="button"
-            >
-              新しい順
-            </button>
-            <button
-              className={sortDirection === "old" ? "segment-button active" : "segment-button"}
-              onClick={() => setSortDirection("old")}
-              type="button"
-            >
-              古い順
-            </button>
           </div>
         </div>
 
@@ -228,16 +215,16 @@ export default function SearchScreen({
           </div>
         )}
 
-        {mode === "person" && (
+        {mode === "target" && (
           <div className="chip-scroll" aria-label="宛先">
-            {people.map((person) => (
+            {targets.map((targetName) => (
               <button
-                className={activePerson === person ? "person-button active" : "person-button"}
-                key={person}
-                onClick={() => onSelectPerson(person)}
+                className={activeTarget === targetName ? "person-button active" : "person-button"}
+                key={targetName}
+                onClick={() => onSelectTarget(targetName)}
                 type="button"
               >
-                {person}
+                {targetName}
               </button>
             ))}
           </div>
@@ -245,14 +232,14 @@ export default function SearchScreen({
 
         {mode === "tag" && (
           <div className="chip-scroll" aria-label="気持ちタグ">
-            {emotionOptions.map((emotion) => (
+            {usedTags.map((emotion) => (
               <button
-                className={selectedTag === emotion ? "tag-choice active" : "tag-choice"}
+                className={activeTag === emotion ? "tag-choice active" : "tag-choice"}
                 key={emotion}
                 onClick={() => setSelectedTag(emotion)}
                 type="button"
               >
-                {getEmotionShortLabel(emotion)}
+                {getEmotionLabel(emotion)}
               </button>
             ))}
           </div>
@@ -260,7 +247,7 @@ export default function SearchScreen({
 
         {mode === "status" && (
           <div className="chip-scroll" aria-label="状態">
-            {classifiedStatusOptions.map((status) => (
+            {statusOptions.map((status) => (
               <button
                 className={selectedStatus === status.id ? "filter-button active" : "filter-button"}
                 key={status.id}
@@ -288,7 +275,7 @@ export default function SearchScreen({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="sheet-handle" aria-hidden="true" />
-            <h2>しおりを探す</h2>
+            <h2>探し方を選ぶ</h2>
             <div className="sheet-menu">
               {modeOptions.map((option) => (
                 <button

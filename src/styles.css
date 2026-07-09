@@ -840,14 +840,30 @@ time {
 
 .nav-icon {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   place-items: center;
   border-radius: 999px;
-  background: currentColor;
-  color: #fff;
-  font-size: 0.82rem;
+  border: 1px solid rgba(216, 197, 184, 0.9);
+  background: #fff8ef;
+  color: var(--muted);
   line-height: 1;
+}
+
+.nav-icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.nav-button.active .nav-icon {
+  border-color: rgba(155, 90, 72, 0.32);
+  background: #fff0e8;
+  color: var(--coral-deep);
 }
 
 @media (min-width: 560px) {

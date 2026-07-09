@@ -14,6 +14,8 @@ const initialForm = {
   emotion: "",
   customEmotion: "",
   memo: "",
+  openHint: "",
+  isEditingOpenHint: false,
 };
 
 function getTargetName(form) {
@@ -45,6 +47,10 @@ export default function SaveScreen({ onSave }) {
   const previewHint = form.emotion
     ? generateOpenHint({ targetType: form.targetType, emotion: form.emotion })
     : "";
+  const savedOpenHint =
+    form.isEditingOpenHint && form.openHint.trim()
+      ? form.openHint.trim()
+      : previewHint;
 
   const canSave = useMemo(
     () =>
@@ -62,7 +68,34 @@ export default function SaveScreen({ onSave }) {
 
   function handleTargetChange(targetType) {
     setMessage("");
-    setForm((current) => ({ ...current, targetType }));
+    setForm((current) => ({
+      ...current,
+      targetType,
+      openHint: "",
+      isEditingOpenHint: false,
+    }));
+  }
+
+  function handleEmotionChange(emotion) {
+    setMessage("");
+    setForm((current) => ({
+      ...current,
+      emotion,
+      openHint: "",
+      isEditingOpenHint: false,
+    }));
+  }
+
+  function toggleOpenHintEdit() {
+    setMessage("");
+    setForm((current) => ({
+      ...current,
+      isEditingOpenHint: !current.isEditingOpenHint,
+      openHint:
+        current.isEditingOpenHint || current.openHint
+          ? current.openHint
+          : generateOpenHint({ targetType: current.targetType, emotion: current.emotion }),
+    }));
   }
 
   function handleSubmit(event) {
@@ -82,7 +115,7 @@ export default function SaveScreen({ onSave }) {
       targetName,
       emotion,
       memo: form.memo.trim(),
-      openHint: generateOpenHint({ targetType: form.targetType, emotion: form.emotion }),
+      openHint: savedOpenHint,
       status: "unopened",
       createdAt: formatToday(),
     });
@@ -140,7 +173,7 @@ export default function SaveScreen({ onSave }) {
               <button
                 className={form.emotion === emotion ? "tag-choice active" : "tag-choice"}
                 key={emotion}
-                onClick={() => updateField("emotion", emotion)}
+                onClick={() => handleEmotionChange(emotion)}
                 type="button"
               >
                 {getEmotionLabel(emotion)}
@@ -173,9 +206,26 @@ export default function SaveScreen({ onSave }) {
 
         {previewHint && (
           <section className="auto-preview" aria-label="自動で添える開くヒント">
-            <div>
-              <span>開くヒント</span>
-              <p>{previewHint}</p>
+            <div className="open-hint-preview">
+              <div>
+                <span>開くヒント</span>
+                {form.isEditingOpenHint ? (
+                  <textarea
+                    onChange={(event) => updateField("openHint", event.target.value)}
+                    rows="3"
+                    value={form.openHint}
+                  />
+                ) : (
+                  <p>{previewHint}</p>
+                )}
+              </div>
+              <button
+                className="hint-edit-button"
+                onClick={toggleOpenHintEdit}
+                type="button"
+              >
+                {form.isEditingOpenHint ? "自動に戻す" : "編集する"}
+              </button>
             </div>
           </section>
         )}

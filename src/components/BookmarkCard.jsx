@@ -1,56 +1,38 @@
-import { getEmotionLabel, STATUS_LABELS } from "../data";
+import { STATUS_LABELS } from "../data";
 
 export function StatusBadge({ status }) {
-  return (
-    <span className={`status-label ${status}`}>
-      {STATUS_LABELS[status] || STATUS_LABELS.unopened}
-    </span>
-  );
+  return <span className={`status-label ${status}`}>{STATUS_LABELS[status]}</span>;
 }
 
 export default function BookmarkCard({
   bookmark,
-  onDelete,
   onUpdateStatus,
   showActions = false,
-  showDelete = false,
-  showTarget = false,
+  showTarget = true,
+  featured = false,
 }) {
   return (
-    <article className={`bookmark-card ${bookmark.status}`}>
-      <div className="bookmark-notch" aria-hidden="true" />
-      <div className="bookmark-card-head">
+    <article className={`bookmark-card ${bookmark.status} ${featured ? "featured" : ""}`}>
+      <span className="bookmark-ribbon" aria-hidden="true" />
+      <header className="bookmark-card-head">
         <div>
-          {showTarget && <h2>{bookmark.targetName}</h2>}
-          <span className="tag">{getEmotionLabel(bookmark.emotion)}</span>
+          {showTarget && <p className="target-name">{bookmark.targetName}へ</p>}
+          <span className="tag">{bookmark.emotion}</span>
         </div>
         <StatusBadge status={bookmark.status} />
-      </div>
-
+      </header>
       <p className="memo">{bookmark.memo}</p>
-      <div className="talk-box hint-box">
+      <div className="hint-box">
         <span>開くヒント</span>
-        <p>{bookmark.openHint}</p>
+        <p>「{bookmark.openHint}」</p>
       </div>
-
-      <div className="card-foot">
-        <time dateTime={bookmark.createdAt}>{bookmark.createdAt}</time>
-        {showDelete && (
-          <button
-            aria-label={`${bookmark.targetName}のしおりを削除`}
-            className="icon-button"
-            onClick={() => onDelete(bookmark.id)}
-            type="button"
-          >
-            削除
-          </button>
-        )}
-      </div>
-
+      <footer className="card-foot">
+        <time dateTime={bookmark.createdAt}>{bookmark.createdAt.replaceAll("-", ".")}</time>
+      </footer>
       {showActions && onUpdateStatus && (
         <div className="action-row">
           <button
-            className="secondary-button small-action"
+            className="action-button check"
             disabled={bookmark.status === "checked"}
             onClick={() => onUpdateStatus(bookmark.id, "checked")}
             type="button"
@@ -58,7 +40,7 @@ export default function BookmarkCard({
             確認済みにする
           </button>
           <button
-            className="primary-button small-action"
+            className="action-button talked"
             disabled={bookmark.status === "talked"}
             onClick={() => onUpdateStatus(bookmark.id, "talked")}
             type="button"
@@ -66,7 +48,7 @@ export default function BookmarkCard({
             話した
           </button>
           <button
-            className="ghost-button small-action"
+            className="action-button pending"
             disabled={bookmark.status === "pending"}
             onClick={() => onUpdateStatus(bookmark.id, "pending")}
             type="button"

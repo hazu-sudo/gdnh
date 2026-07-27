@@ -1,64 +1,44 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
 import { pickRandom } from "../utils";
 
-function getOpenPool(bookmarks) {
-  const unopened = bookmarks.filter((bookmark) => bookmark.status === "unopened");
-  const checked = bookmarks.filter((bookmark) => bookmark.status === "checked");
-  return unopened.length > 0 ? unopened : checked;
-}
-
 export default function OpenScreen({ bookmarks, onUpdateStatus }) {
-  const [selectedBookmark, setSelectedBookmark] = useState(null);
-  const [message, setMessage] = useState("");
+  const candidates = useMemo(
+    () => bookmarks.filter((item) => item.status === "unopened" || item.status === "checked"),
+    [bookmarks],
+  );
+  const [selectedId, setSelectedId] = useState("");
+  const selected = candidates.find((item) => item.id === selectedId) || candidates[0] || null;
 
-  function updateSelectedStatus(id, status) {
-    onUpdateStatus(id, status);
-    setSelectedBookmark((current) =>
-      current?.id === id ? { ...current, status } : current,
-    );
-  }
-
-  function openOne() {
-    const pool = getOpenPool(bookmarks);
-    const picked = pickRandom(pool, selectedBookmark?.id || "");
-
-    if (!picked) {
-      setMessage("今ひらけるしおりはありません。");
-      setSelectedBookmark(null);
-      return;
+  useEffect(() => {
+    if (!selectedId && candidates.length) setSelectedId(pickRandom(candidates)?.id || "");
+    if (selectedId && !candidates.some((item) => item.id === selectedId)) {
+      setSelectedId(pickRandom(candidates)?.id || "");
     }
+  }, [candidates, selectedId]);
 
-    setMessage("しおりを1枚ひらきました。");
-    setSelectedBookmark(picked);
+  function openAnother() {
+    setSelectedId(pickRandom(candidates, selected?.id)?.id || "");
   }
 
   return (
     <main className="screen open-screen">
-      <section className="section-heading">
-        <p className="app-name">ひらく</p>
-        <h1>迷ったら、1枚だけ開いてみる。</h1>
-        <p>未開封か確認済みのしおりから、今ひらけるものを1枚だけ選びます。</p>
+      <section className="open-heading">
+        <span className="open-symbol" aria-hidden="true">栞</span>
+        <p className="eyebrow">OPEN ONE</p>
+        <h1>迷ったら、<br />1枚だけ開いてみる。</h1>
+        <p>何を話そうか、何から考えようか。決めなくても、しおりが選んでくれます。</p>
       </section>
-
-      <section className="open-stage" aria-label="1枚ひらく">
-        <button className="big-open-button" onClick={openOne} type="button">
-          <span>{selectedBookmark ? "もう1枚開く" : "1枚開く"}</span>
-          <small>話したしおりは選びません</small>
-        </button>
-      </section>
-
-      {message && <p className="form-message">{message}</p>}
-
-      {selectedBookmark ? (
-        <BookmarkCard
-          bookmark={selectedBookmark}
-          onUpdateStatus={updateSelectedStatus}
-          showActions
-          showTarget
-        />
+      {selected ? (
+        <section className="random-stage">
+          <BookmarkCard bookmark={selected} onUpdateStatus={onUpdateStatus} showActions featured />
+          <button className="shuffle-button" onClick={openAnother} type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3c5 0 5 10 10 10h3" /><path d="m17 14 3 3-3 3M4 17h3c2 0 3.2-1.5 4.3-3M15 7h5M17 4l3 3-3 3" /></svg>
+            もう1枚開く
+          </button>
+        </section>
       ) : (
-        <p className="empty">まだ選ばれていません。</p>
+        <p className="empty">いま開けるしおりはありません。話したしおりは、静かにしまってあります。</p>
       )}
     </main>
   );

@@ -1,69 +1,59 @@
+import { useState } from "react";
 import BookmarkCard from "../components/BookmarkCard";
-import { getCategoryForEmotion, pendingCategories } from "../data";
+import { pendingCategories } from "../data";
 import { sortNewest } from "../utils";
 
-function PendingGroup({ bookmarks, category, onDelete, onUpdateStatus }) {
-  const categoryBookmarks = sortNewest(
-    bookmarks.filter((bookmark) => getCategoryForEmotion(bookmark.emotion).id === category.id),
+export default function PendingScreen({ bookmarks, onUpdateStatus }) {
+  const [activeCategory, setActiveCategory] = useState("talk");
+  const pending = bookmarks.filter((item) => item.status === "pending");
+  const category = pendingCategories.find((item) => item.id === activeCategory);
+  const items = sortNewest(
+    pending.filter((item) =>
+      category.emotions.includes(item.emotion) ||
+      (category.id === "talk" && !pendingCategories.some((group) => group.emotions.includes(item.emotion))),
+    ),
   );
 
   return (
-    <section className="box-group">
-      <div className="section-title-row compact-row">
-        <div>
-          <p className="eyebrow">保留中</p>
-          <h2>{category.title}</h2>
-        </div>
-        <span className="count-badge">{categoryBookmarks.length}</span>
-      </div>
-
-      {categoryBookmarks.length === 0 ? (
-        <p className="empty compact-empty">この分類のしおりはありません。</p>
-      ) : (
-        <div className="card-list">
-          {categoryBookmarks.map((bookmark) => (
-            <BookmarkCard
-              bookmark={bookmark}
-              key={bookmark.id}
-              onDelete={onDelete}
-              onUpdateStatus={onUpdateStatus}
-              showActions
-              showDelete
-              showTarget
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-export default function PendingScreen({ bookmarks, onDelete, onUpdateStatus }) {
-  const pendingBookmarks = bookmarks.filter((bookmark) => bookmark.status === "pending");
-
-  return (
-    <main className="screen">
-      <section className="section-heading">
-        <p className="app-name">保留</p>
-        <h1>まだ話さない気持ちを、無理に動かさず置いておく。</h1>
-        <p>保留中のしおりを、話す、向き合う、一緒にの3つで見返せます。</p>
+    <main className="screen pending-screen">
+      <section className="screen-heading">
+        <p className="eyebrow">KEEP FOR LATER</p>
+        <h1>まだ、開かなくていい。</h1>
+        <p>置いておくことも、ひとつの選び方。準備ができた気持ちから戻せます。</p>
       </section>
-
-      {pendingBookmarks.length === 0 ? (
-        <p className="empty">保留中のしおりはまだありません。</p>
-      ) : (
-        <div className="grouped-list">
-          {pendingCategories.map((category) => (
-            <PendingGroup
-              bookmarks={pendingBookmarks}
-              category={category}
-              key={category.id}
-              onDelete={onDelete}
-              onUpdateStatus={onUpdateStatus}
-            />
-          ))}
-        </div>
-      )}
+      <div className="category-tabs" role="tablist" aria-label="保留の分類">
+        {pendingCategories.map((item) => {
+          const count = pending.filter((bookmark) =>
+            item.emotions.includes(bookmark.emotion) ||
+            (item.id === "talk" && !pendingCategories.some((group) => group.emotions.includes(bookmark.emotion))),
+          ).length;
+          return (
+            <button
+              aria-selected={activeCategory === item.id}
+              className={activeCategory === item.id ? "category-tab active" : "category-tab"}
+              key={item.id}
+              onClick={() => setActiveCategory(item.id)}
+              role="tab"
+              type="button"
+            >
+              <span>{item.title}</span><small>{count}</small>
+            </button>
+          );
+        })}
+      </div>
+      <section className="pending-group">
+        <header className="section-title-row">
+          <div><h2>{category.title}</h2><p>{category.description}</p></div>
+          <span className="soft-count">{items.length} 枚</span>
+        </header>
+        {items.length ? (
+          <div className="card-list">
+            {items.map((bookmark) => (
+              <BookmarkCard bookmark={bookmark} key={bookmark.id} onUpdateStatus={onUpdateStatus} showActions />
+            ))}
+          </div>
+        ) : <p className="empty">ここで待っているしおりはありません。</p>}
+      </section>
     </main>
   );
 }

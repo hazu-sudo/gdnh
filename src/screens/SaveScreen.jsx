@@ -1,247 +1,139 @@
 import { useMemo, useState } from "react";
-import {
-  APP_NAME,
-  emotionOptions,
-  generateOpenHint,
-  getEmotionLabel,
-  targetOptions,
-} from "../data";
+import { emotionOptions, generateOpenHint, targetOptions } from "../data";
 import { formatToday, uniqueId } from "../utils";
 
-const initialForm = {
+const emptyForm = {
   targetType: "person",
   targetName: "",
   emotion: "",
   customEmotion: "",
   memo: "",
-  openHint: "",
-  isEditingOpenHint: false,
 };
 
-function getTargetName(form) {
-  if (form.targetType === "someone") {
-    return "誰か";
-  }
-
-  if (form.targetType === "self") {
-    return "自分";
-  }
-
-  return form.targetName.trim();
-}
-
-function getSavedEmotion(form) {
-  if (form.emotion === "その他") {
-    return form.customEmotion.trim() || "その他";
-  }
-
-  return form.emotion;
-}
-
-export default function SaveScreen({ onSave }) {
-  const [form, setForm] = useState(initialForm);
-  const [message, setMessage] = useState("");
-  const [messageKind, setMessageKind] = useState("success");
-  const targetName = getTargetName(form);
-  const needsCustomEmotion = form.emotion === "その他";
-  const previewHint = form.emotion
+export default function SaveScreen({ onSave, onSaved }) {
+  const [form, setForm] = useState(emptyForm);
+  const [saved, setSaved] = useState(false);
+  const targetName =
+    form.targetType === "someone" ? "誰か" : form.targetType === "self" ? "自分" : form.targetName.trim();
+  const custom = form.emotion === "その他";
+  const savedEmotion = custom ? form.customEmotion.trim() : form.emotion;
+  const hint = form.emotion
     ? generateOpenHint({ targetType: form.targetType, emotion: form.emotion })
     : "";
-  const savedOpenHint =
-    form.isEditingOpenHint && form.openHint.trim()
-      ? form.openHint.trim()
-      : previewHint;
-
   const canSave = useMemo(
-    () =>
-      targetName &&
-      form.emotion &&
-      (!needsCustomEmotion || form.customEmotion.trim()) &&
-      form.memo.trim(),
-    [form, needsCustomEmotion, targetName],
+    () => Boolean(targetName && savedEmotion && form.memo.trim()),
+    [targetName, savedEmotion, form.memo],
   );
 
-  function updateField(name, value) {
-    setMessage("");
+  function update(name, value) {
+    setSaved(false);
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function handleTargetChange(targetType) {
-    setMessage("");
-    setForm((current) => ({
-      ...current,
-      targetType,
-      openHint: "",
-      isEditingOpenHint: false,
-    }));
-  }
-
-  function handleEmotionChange(emotion) {
-    setMessage("");
-    setForm((current) => ({
-      ...current,
-      emotion,
-      openHint: "",
-      isEditingOpenHint: false,
-    }));
-  }
-
-  function toggleOpenHintEdit() {
-    setMessage("");
-    setForm((current) => ({
-      ...current,
-      isEditingOpenHint: !current.isEditingOpenHint,
-      openHint:
-        current.isEditingOpenHint || current.openHint
-          ? current.openHint
-          : generateOpenHint({ targetType: current.targetType, emotion: current.emotion }),
-    }));
-  }
-
-  function handleSubmit(event) {
+  function submit(event) {
     event.preventDefault();
-
-    if (!canSave) {
-      setMessageKind("error");
-      setMessage("宛先、気持ちタグ、ひとことメモを入れると保存できます。");
-      return;
-    }
-
-    const emotion = getSavedEmotion(form);
-
+    if (!canSave) return;
     onSave({
       id: uniqueId(),
       targetType: form.targetType,
       targetName,
-      emotion,
+      emotion: savedEmotion,
       memo: form.memo.trim(),
-      openHint: savedOpenHint,
+      openHint: hint,
       status: "unopened",
       createdAt: formatToday(),
     });
-    setForm(initialForm);
-    setMessageKind("success");
-    setMessage("しおりを挟みました。あとで開ける言葉も、そっと添えました。");
+    setForm(emptyForm);
+    setSaved(true);
   }
 
   return (
     <main className="screen">
-      <section className="section-heading">
-        <p className="app-name">{APP_NAME}</p>
-        <h1>言葉になる前の気持ちに、しおりを挟む。</h1>
-        <p>入力するのは、宛先、気持ちタグ、ひとことメモだけです。</p>
+      <section className="screen-heading">
+        <p className="eyebrow">NEW SHIORI</p>
+        <h1>気持ちを、そっと挟む。</h1>
+        <p>きれいな言葉にしなくて大丈夫。3つだけ選んで残せます。</p>
       </section>
-
-      <form className="form-card" onSubmit={handleSubmit}>
-        <fieldset className="tag-field">
-          <legend>宛先</legend>
-          <div className="destination-options">
-            {targetOptions.map((option) => (
-              <button
-                className={
-                  form.targetType === option.id
-                    ? "destination-choice active"
-                    : "destination-choice"
-                }
-                key={option.id}
-                onClick={() => handleTargetChange(option.id)}
-                type="button"
-              >
-                <span>{option.label}</span>
-                <small>{option.helper}</small>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        {form.targetType === "person" && (
-          <label className="field">
-            <span>名前</span>
-            <input
-              onChange={(event) => updateField("targetName", event.target.value)}
-              placeholder="さき"
-              type="text"
-              value={form.targetName}
-            />
-          </label>
-        )}
-
-        <fieldset className="tag-field">
-          <legend>気持ちタグ</legend>
-          <div className="tag-options">
-            {emotionOptions.map((emotion) => (
-              <button
-                className={form.emotion === emotion ? "tag-choice active" : "tag-choice"}
-                key={emotion}
-                onClick={() => handleEmotionChange(emotion)}
-                type="button"
-              >
-                {getEmotionLabel(emotion)}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        {needsCustomEmotion && (
-          <label className="field">
-            <span>その他の気持ち</span>
-            <input
-              onChange={(event) => updateField("customEmotion", event.target.value)}
-              placeholder="まだ名前がつかない感じ"
-              type="text"
-              value={form.customEmotion}
-            />
-          </label>
-        )}
-
-        <label className="field">
-          <span>ひとことメモ</span>
-          <textarea
-            onChange={(event) => updateField("memo", event.target.value)}
-            placeholder="今すぐ送るほどではないけれど、忘れたくないこと"
-            rows="4"
-            value={form.memo}
-          />
-        </label>
-
-        {previewHint && (
-          <section className="auto-preview" aria-label="自動で添える開くヒント">
-            <div className="open-hint-preview">
-              <div>
-                <span>開くヒント</span>
-                {form.isEditingOpenHint ? (
-                  <textarea
-                    onChange={(event) => updateField("openHint", event.target.value)}
-                    rows="3"
-                    value={form.openHint}
-                  />
-                ) : (
-                  <p>{previewHint}</p>
-                )}
-              </div>
-              <button
-                className="hint-edit-button"
-                onClick={toggleOpenHintEdit}
-                type="button"
-              >
-                {form.isEditingOpenHint ? "自動に戻す" : "編集する"}
-              </button>
+      <form className="form-paper" onSubmit={submit}>
+        <div className="form-step">
+          <span className="step-number">01</span>
+          <fieldset>
+            <legend>宛先</legend>
+            <div className="destination-options">
+              {targetOptions.map((option) => (
+                <button
+                  className={form.targetType === option.id ? "choice active" : "choice"}
+                  key={option.id}
+                  onClick={() => update("targetType", option.id)}
+                  type="button"
+                >
+                  <span>{option.label}</span><small>{option.helper}</small>
+                </button>
+              ))}
             </div>
-          </section>
-        )}
+            {form.targetType === "person" && (
+              <input
+                aria-label="相手の名前"
+                onChange={(event) => update("targetName", event.target.value)}
+                placeholder="名前を入力　例：さき"
+                value={form.targetName}
+              />
+            )}
+          </fieldset>
+        </div>
 
-        {message && (
-          <p
-            aria-live="polite"
-            className={`form-message ${messageKind === "error" ? "error" : ""}`}
-          >
-            {message}
-          </p>
-        )}
+        <div className="form-step">
+          <span className="step-number">02</span>
+          <fieldset>
+            <legend>気持ちタグ</legend>
+            <div className="tag-options">
+              {emotionOptions.map((emotion) => (
+                <button
+                  className={form.emotion === emotion ? "tag-choice active" : "tag-choice"}
+                  key={emotion}
+                  onClick={() => update("emotion", emotion)}
+                  type="button"
+                >
+                  {emotion}
+                </button>
+              ))}
+            </div>
+            {custom && (
+              <input
+                aria-label="その他の気持ち"
+                onChange={(event) => update("customEmotion", event.target.value)}
+                placeholder="この気持ちに名前をつけるなら"
+                value={form.customEmotion}
+              />
+            )}
+          </fieldset>
+        </div>
 
-        <button className="primary-button" type="submit">
+        <div className="form-step">
+          <span className="step-number">03</span>
+          <label>
+            <span className="field-label">ひとことメモ</span>
+            <textarea
+              onChange={(event) => update("memo", event.target.value)}
+              placeholder="まだ言葉にならないままで、短く残してみる"
+              rows="4"
+              value={form.memo}
+            />
+          </label>
+        </div>
+
+        {hint && (
+          <div className="ai-hint">
+            <div className="ai-hint-title"><span className="spark">✦</span> 開くヒントを添えます</div>
+            <p>「{hint}」</p>
+            <small>しおりを開くとき、会話や振り返りの入り口になります。</small>
+          </div>
+        )}
+        {saved && <p className="form-message">しおりを挟みました。開くタイミングは、あとで決められます。</p>}
+        <button className="primary-button save-button" disabled={!canSave} type="submit">
           しおりを挟む
         </button>
+        {saved && <button className="text-button centered" onClick={onSaved} type="button">ホームで見る</button>}
       </form>
     </main>
   );

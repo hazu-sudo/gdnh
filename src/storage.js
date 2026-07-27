@@ -1,108 +1,64 @@
 import {
   createSampleBookmarks,
   generateOpenHint,
-  LEGACY_SELECTED_PERSON_KEY,
   LEGACY_STORAGE_KEYS,
   SELECTED_TARGET_KEY,
   STORAGE_KEY,
-} from "./data";
+} from "./data.js";
 
 const validStatuses = new Set(["unopened", "checked", "talked", "pending"]);
-const statusMigration = {
-  unsent: "unopened",
-  dismissed: "pending",
-  paused: "pending",
-};
-
-const emotionMigration = {
-  "ありがとうを言いたい": "ありがとう",
-  謝りたい: "ごめんね",
-  報告: "その他",
-  なんとなく話したい: "なんとなく",
-};
-
-const targetTypeMigration = {
-  specific: "person",
-  person: "person",
-  someone: "someone",
-  self: "self",
-};
-
-function resolveTargetType(bookmark, targetName) {
-  const rawType = bookmark.targetType || bookmark.destinationType;
-
-  if (targetName === "誰か") {
-    return "someone";
-  }
-
-  if (targetName === "自分") {
-    return "self";
-  }
-
-  return targetTypeMigration[rawType] || "person";
-}
 
 function normalizeBookmark(bookmark) {
-  const targetName = String(bookmark.targetName || bookmark.person || "").trim() || "誰か";
-  const targetType = resolveTargetType(bookmark, targetName);
-  const emotion = emotionMigration[bookmark.emotion] || bookmark.emotion || "その他";
-  const status = statusMigration[bookmark.status] || bookmark.status || "unopened";
-  const openHint =
-    String(bookmark.openHint || bookmark.openingLine || bookmark.question || "").trim() ||
-    generateOpenHint({ targetType, emotion });
+  const rawName = String(bookmark.targetName || bookmark.person || "").trim();
+  const targetType =
+    bookmark.targetType === "self" || rawName === "自分"
+      ? "self"
+      : bookmark.targetType === "someone" || rawName === "誰か"
+        ? "someone"
+        : "person";
+  const targetName = targetType === "self" ? "自分" : targetType === "someone" ? "誰か" : rawName;
+  const emotion = String(bookmark.emotion || "その他").trim();
+  const status =
+    bookmark.status === "unsent"
+      ? "unopened"
+      : ["dismissed", "paused"].includes(bookmark.status)
+        ? "pending"
+        : bookmark.status || "unopened";
 
   return {
     id: String(bookmark.id || globalThis.crypto?.randomUUID?.() || Date.now()),
     targetType,
     targetName,
-    emotion: String(emotion).trim() || "その他",
+    emotion,
     memo: String(bookmark.memo || "").trim(),
-    openHint,
+    openHint:
+      String(bookmark.openHint || bookmark.openingLine || "").trim() ||
+      generateOpenHint({ targetType, emotion }),
     status: validStatuses.has(status) ? status : "unopened",
     createdAt: String(bookmark.createdAt || new Date().toLocaleDateString("sv-SE")),
   };
 }
 
-function normalizeBookmarks(bookmarks) {
-  return bookmarks
-    .map(normalizeBookmark)
-    .filter((bookmark) => bookmark.targetName && bookmark.emotion && bookmark.memo);
-}
-
-function readStoredBookmarks() {
-  const current = localStorage.getItem(STORAGE_KEY);
-
-  if (current) {
-    return current;
-  }
-
-  for (const key of LEGACY_STORAGE_KEYS) {
-    const legacy = localStorage.getItem(key);
-
-    if (legacy) {
-      return legacy;
-    }
-  }
-
-  return "";
-}
-
 export function loadBookmarks() {
-  const stored = readStoredBookmarks();
+  const raw = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]
+    .map((key) => localStorage.getItem(key))
+    .find(Boolean);
 
-  if (!stored) {
-    const samples = normalizeBookmarks(createSampleBookmarks());
+  if (!raw) {
+    const samples = createSampleBookmarks();
     saveBookmarks(samples);
     return samples;
   }
 
   try {
-    const parsed = JSON.parse(stored);
-    const bookmarks = Array.isArray(parsed) ? normalizeBookmarks(parsed) : [];
-    saveBookmarks(bookmarks);
-    return bookmarks;
+    const parsed = JSON.parse(raw);
+    const normalized = Array.isArray(parsed)
+      ? parsed.map(normalizeBookmark).filter((item) => item.targetName && item.memo)
+      : [];
+    saveBookmarks(normalized);
+    return normalized;
   } catch {
-    const samples = normalizeBookmarks(createSampleBookmarks());
+    const samples = createSampleBookmarks();
     saveBookmarks(samples);
     return samples;
   }
@@ -113,17 +69,10 @@ export function saveBookmarks(bookmarks) {
 }
 
 export function loadSelectedTarget() {
-  return (
-    localStorage.getItem(SELECTED_TARGET_KEY) ||
-    localStorage.getItem(LEGACY_SELECTED_PERSON_KEY) ||
-    ""
-  );
+  return localStorage.getItem(SELECTED_TARGET_KEY) || "";
 }
 
 export function saveSelectedTarget(targetName) {
-  if (targetName) {
-    localStorage.setItem(SELECTED_TARGET_KEY, targetName);
-  } else {
-    localStorage.removeItem(SELECTED_TARGET_KEY);
-  }
+  if (targetName) localStorage.setItem(SELECTED_TARGET_KEY, targetName);
+  else localStorage.removeItem(SELECTED_TARGET_KEY);
 }

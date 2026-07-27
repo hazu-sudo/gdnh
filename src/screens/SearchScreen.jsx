@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BookmarkCard, { formatJapaneseDate } from "../components/BookmarkCard.jsx";
-import { STATUS_LABELS } from "../data.js";
+import SharePreview from "../components/SharePreview.jsx";
 import { sortNewest } from "../utils.js";
 import { DateWheel } from "./SaveScreen.jsx";
 
@@ -33,17 +33,31 @@ function shiftMonth(key, amount) {
 
 function memoPreview(memo) {
   const firstLine = memo.split(/\r?\n/)[0].trim();
+  if (!firstLine) return "メモなし";
   return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
 }
 
-function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
+function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, senderName }) {
   const [editing, setEditing] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [targetName, setTargetName] = useState(bookmark.targetName);
   const [memo, setMemo] = useState(bookmark.memo);
   const [createdAt, setCreatedAt] = useState(bookmark.createdAt);
   const [status, setStatus] = useState(bookmark.status);
   const [dateOpen, setDateOpen] = useState(false);
-  const canSave = Boolean(targetName.trim() && memo.trim());
+  useEffect(() => {
+    if (!editing) setStatus(bookmark.status);
+  }, [bookmark.status, editing]);
+
+  if (sharing) {
+    return (
+      <SharePreview
+        bookmark={bookmark}
+        defaultSenderName={senderName}
+        onClose={() => setSharing(false)}
+      />
+    );
+  }
 
   function cancelEdit() {
     setTargetName(bookmark.targetName);
@@ -54,7 +68,6 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
   }
 
   function saveEdit() {
-    if (!canSave) return;
     onUpdateBookmark(bookmark.id, {
       targetName: targetName.trim(),
       memo: memo.trim(),
@@ -64,21 +77,39 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
     setEditing(false);
   }
 
+  function changeStatus(nextStatus) {
+    if (editing) {
+      setStatus(nextStatus);
+    } else {
+      setStatus(nextStatus);
+      onUpdateStatus(bookmark.id, nextStatus);
+    }
+  }
+
+  const currentStatus = editing ? status : bookmark.status;
+
   return (
     <main className="screen detail-screen">
       <header className="detail-header">
         <button className="back-button" onClick={onBack} type="button" aria-label="一覧へ戻る">‹</button>
         <p>しおりを開く</p>
-        <button
-          className={editing ? "detail-edit-button active" : "detail-edit-button"}
-          onClick={() => editing ? cancelEdit() : setEditing(true)}
-          type="button"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 16-.7 3.7L8 19l9.6-9.6-3-3L5 16Z" /><path d="m13.5 7.5 3 3" /></svg>
-          {editing ? "取消" : "編集"}
-        </button>
+        <div className="detail-header-actions">
+          {!editing && (
+            <button aria-label="しおりを共有" className="detail-share-button" onClick={() => setSharing(true)} type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 12v7h14v-7" /></svg>
+            </button>
+          )}
+          <button
+            className={editing ? "detail-edit-button active" : "detail-edit-button"}
+            onClick={() => editing ? cancelEdit() : setEditing(true)}
+            type="button"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 16-.7 3.7L8 19l9.6-9.6-3-3L5 16Z" /><path d="m13.5 7.5 3 3" /></svg>
+            {editing ? "取消" : "編集"}
+          </button>
+        </div>
       </header>
-      <section className={`detail-paper ${bookmark.status}`}>
+      <section className={`detail-paper ${currentStatus}`}>
         <span className="detail-ribbon" aria-hidden="true" />
         {editing ? (
           <button className="detail-date-edit" onClick={() => setDateOpen(true)} type="button">
@@ -95,7 +126,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
             onChange={(event) => setTargetName(event.target.value)}
             value={targetName}
           />
-        ) : <h1>{bookmark.targetName}へ</h1>}
+        ) : <h1>{bookmark.targetName ? `${bookmark.targetName}へ` : "宛先なし"}</h1>}
         <div className="detail-divider" />
         <p className="detail-label">ひとことメモ</p>
         {editing ? (
@@ -107,60 +138,43 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
             rows="4"
             value={memo}
           />
-        ) : <p className="detail-memo">{bookmark.memo}</p>}
+        ) : <p className={bookmark.memo ? "detail-memo" : "detail-memo empty-value"}>{bookmark.memo || "メモなし"}</p>}
         <div className="detail-status">
-          <span>現在の状態</span>
-          <div>
-            <strong className={`status-label ${editing ? status : bookmark.status}`}>
-              {STATUS_LABELS[editing ? status : bookmark.status]}
-            </strong>
-            {editing && (
-              <button
-                className="status-reset-button"
-                disabled={status === "unresolved"}
-                onClick={() => setStatus("unresolved")}
-                type="button"
-              >
-                ノーマルに戻す
-              </button>
-            )}
+          <span>状態</span>
+          <div className="status-choice-buttons" role="group" aria-label="しおりの状態">
+            <button
+              aria-pressed={currentStatus === "pending"}
+              className={currentStatus === "pending" ? "status-choice pending active" : "status-choice pending"}
+              onClick={() => changeStatus("pending")}
+              type="button"
+            >
+              保留
+            </button>
+            <button
+              aria-pressed={currentStatus === "resolved"}
+              className={currentStatus === "resolved" ? "status-choice resolved active" : "status-choice resolved"}
+              onClick={() => changeStatus("resolved")}
+              type="button"
+            >
+              話した
+            </button>
+            <button
+              aria-pressed={currentStatus === "unresolved"}
+              className={currentStatus === "unresolved" ? "status-choice unresolved active" : "status-choice unresolved"}
+              onClick={() => changeStatus("unresolved")}
+              type="button"
+            >
+              選択解除
+            </button>
           </div>
         </div>
       </section>
       {editing ? (
         <section className="edit-actions">
           <button className="edit-cancel" onClick={cancelEdit} type="button">キャンセル</button>
-          <button className="edit-save" disabled={!canSave} onClick={saveEdit} type="button">変更を保存</button>
+          <button className="edit-save" onClick={saveEdit} type="button">変更を保存</button>
         </section>
-      ) : <section className="detail-actions">
-        <p>このしおりは、どうなりましたか？</p>
-        <div>
-          <button
-            className="hold-button"
-            disabled={bookmark.status === "pending"}
-            onClick={() => onUpdateStatus(bookmark.id, "pending")}
-            type="button"
-          >
-            <span aria-hidden="true">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></svg>
-            </span>
-            <strong>保留にする</strong>
-            <small>またあとで開く</small>
-          </button>
-          <button
-            className="resolve-button"
-            disabled={bookmark.status === "resolved"}
-            onClick={() => onUpdateStatus(bookmark.id, "resolved")}
-            type="button"
-          >
-            <span aria-hidden="true">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.3 2.4 4.8-5" /></svg>
-            </span>
-            <strong>話した</strong>
-            <small>話した状態にする</small>
-          </button>
-        </div>
-      </section>}
+      ) : null}
       {dateOpen && (
         <DateWheel
           date={createdAt}
@@ -175,7 +189,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
   );
 }
 
-export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus }) {
+export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus, senderName }) {
   const [mode, setMode] = useState("");
   const [chooserOpen, setChooserOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(monthKey(new Date()));
@@ -195,7 +209,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
 
   const recipients = useMemo(() => {
     const groups = new Map();
-    bookmarks.forEach((item) => {
+    bookmarks.filter((item) => item.targetName).forEach((item) => {
       const current = groups.get(item.targetName) || [];
       groups.set(item.targetName, [...current, item]);
     });
@@ -221,6 +235,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
         onBack={() => setSelectedId("")}
         onUpdateBookmark={onUpdateBookmark}
         onUpdateStatus={onUpdateStatus}
+        senderName={senderName}
       />
     );
   }
@@ -260,7 +275,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
             {floatingBookmarks.length > 0 ? floatingBookmarks.map((bookmark, index) => (
               <div className={`floating-shiori bubble-${index + 1}`} key={bookmark.id}>
                 <span className="floating-ribbon" />
-                <strong>{bookmark.targetName}</strong>
+                <strong>{bookmark.targetName || "宛先なし"}</strong>
                 <p>{memoPreview(bookmark.memo)}</p>
               </div>
             )) : (
@@ -291,7 +306,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
                 <header>
                   <div>
                     <p className="eyebrow">HOW TO FIND</p>
-                    <h2>どこから探しますか？</h2>
+                    <h2>どちらで探す？</h2>
                   </div>
                   <button
                     aria-label="探し方を閉じる"
@@ -307,15 +322,13 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
                     <span className="choice-icon">
                       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 3v5M16 3v5M4 10h16M8 14h3M13 14h3" /></svg>
                     </span>
-                    <strong>カレンダーから探す</strong>
-                    <small>日付から、あの日のしおりへ</small>
+                    <strong>カレンダー</strong>
                   </button>
                   <button className="search-choice person-choice" onClick={() => chooseSearchMode("recipient")} type="button">
                     <span className="choice-icon">
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v11h-17z" /><path d="m4 8 8 6 8-6" /><path d="m4 18 5.5-5M20 18l-5.5-5" /></svg>
                     </span>
-                    <strong>話したい相手から探す</strong>
-                    <small>相手から、残したしおりへ</small>
+                    <strong>話す相手</strong>
                   </button>
                 </div>
                 <button className="choice-back-text" onClick={() => setChooserOpen(false)} type="button">

@@ -6,6 +6,8 @@ export function formatJapaneseDate(date) {
 }
 
 export default function BookmarkCard({ bookmark, onOpen }) {
+  const target = bookmark.targetName || "宛先なし";
+  const memo = bookmark.memo || "メモなし";
   return (
     <button
       className={`bookmark-card simple-card ${bookmark.status}`}
@@ -14,9 +16,9 @@ export default function BookmarkCard({ bookmark, onOpen }) {
     >
       <span className="bookmark-ribbon" aria-hidden="true" />
       <span className="simple-card-head">
-        <strong>{bookmark.targetName}へ</strong>
+        <strong>{target}{bookmark.targetName ? "へ" : ""}</strong>
       </span>
-      <span className="simple-card-memo">{bookmark.memo}</span>
+      <span className={bookmark.memo ? "simple-card-memo" : "simple-card-memo empty-value"}>{memo}</span>
       <span className="simple-card-foot">
         <time dateTime={bookmark.createdAt}>{formatJapaneseDate(bookmark.createdAt)}</time>
         <span className={`status-label ${bookmark.status}`}>{STATUS_LABELS[bookmark.status]}</span>

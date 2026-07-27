@@ -119,27 +119,32 @@ export function DateWheel({ date, onCancel, onConfirm }) {
   );
 }
 
-export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
+export default function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onShowBookmarks }) {
   const [date, setDate] = useState(formatToday());
   const [targetName, setTargetName] = useState("");
   const [memo, setMemo] = useState("");
   const [dateOpen, setDateOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  useEffect(() => {
+    if (!initialMemo) return;
+    setMemo(initialMemo);
+    setSaved(false);
+    onInitialMemoConsumed?.();
+  }, [initialMemo, onInitialMemoConsumed]);
+
   const recipientStats = useMemo(() => {
     const counts = new Map();
-    bookmarks.forEach((item) => counts.set(item.targetName, (counts.get(item.targetName) || 0) + 1));
+    bookmarks.forEach((item) => {
+      if (item.targetName) counts.set(item.targetName, (counts.get(item.targetName) || 0) + 1);
+    });
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja"));
   }, [bookmarks]);
-  const suggestions = recipientStats.slice(0, 5);
-  const hasFrequent = suggestions.some((item) => item.count > 1);
-  const canSave = Boolean(targetName.trim() && memo.trim());
-
+  const suggestions = recipientStats.filter((item) => item.count > 1).slice(0, 5);
   function submit(event) {
     event.preventDefault();
-    if (!canSave) return;
     onSave({
       id: uniqueId(),
       targetName: targetName.trim(),
@@ -157,25 +162,28 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
     <main className="screen save-screen">
       <header className="minimal-header">
         <div className="brand-lockup compact-brand">
-          <span className="brand-mark" aria-hidden="true">栞</span>
+          <span className="brand-mark blank-mark" aria-hidden="true" />
           <p>{APP_NAME}</p>
         </div>
-        <button className="date-trigger" onClick={() => setDateOpen(true)} type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 3v5M16 3v5M4 10h16" /></svg>
-          <span>{formatJapaneseDate(date)}</span>
-          <span aria-hidden="true">›</span>
-        </button>
       </header>
 
       <section className="save-intro">
         <p className="eyebrow">NEW SHIORI</p>
-        <h1>あとで話したいことを、<br />ひとこと挟む。</h1>
-        <p>今は話せなくても、忘れないように。きれいに書かなくて大丈夫です。</p>
+        <h1>あとで話したいことを<br />「しおり」に挟む</h1>
+        <p>話したいことを忘れないように。思いを自由にしおりに残す。</p>
       </section>
 
       <form className="quick-form" onSubmit={submit}>
+        <div className="simple-field">
+          <span>日付</span>
+          <button className="date-trigger form-date-trigger" onClick={() => setDateOpen(true)} type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 3v5M16 3v5M4 10h16" /></svg>
+            <span>{formatJapaneseDate(date)}</span>
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
         <label className="simple-field">
-          <span>だれに話す</span>
+          <span>誰に話す <small>任意</small></span>
           <input
             list="recipient-history"
             onChange={(event) => { setTargetName(event.target.value); setSaved(false); }}
@@ -189,7 +197,7 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
 
         {suggestions.length > 0 && (
           <div className="recipient-suggestions">
-            <p>{hasFrequent ? "よく話す相手" : "以前入力した相手"}</p>
+            <p>よく登録する人</p>
             <div className="recipient-chips">
               {suggestions.map((item) => (
                 <button key={item.name} onClick={() => setTargetName(item.name)} type="button">
@@ -201,7 +209,7 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
         )}
 
         <label className="simple-field">
-          <span>ひとことメモ</span>
+          <span>ひとことメモ <small>任意</small></span>
           <textarea
             maxLength="180"
             onChange={(event) => { setMemo(event.target.value); setSaved(false); }}
@@ -218,9 +226,9 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
             <p><strong>しおりを挟みました</strong><small>あとで、日付か話す相手から開けます。</small></p>
           </div>
         )}
-        <button className="primary-button quick-save" disabled={!canSave} type="submit">
+        <button className="primary-button quick-save" type="submit">
           <span className="mini-ribbon" aria-hidden="true" />
-          しおりを挟む
+          挟む
         </button>
         {saved && <button className="text-button centered" onClick={onShowBookmarks} type="button">挟んだしおりを見る</button>}
       </form>

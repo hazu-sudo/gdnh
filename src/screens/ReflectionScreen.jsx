@@ -225,7 +225,7 @@ export default function ReflectionScreen({ bookmarks }) {
               <div><dt>挟んだしおり</dt><dd>{selectedMonthData.total}<small>枚</small></dd></div>
               <div><dt>話せたしおり</dt><dd>{selectedMonthData.resolved}<small>枚</small></dd></div>
               <div><dt>保留中</dt><dd>{selectedMonthData.pending}<small>枚</small></dd></div>
-              <div><dt>まだ話していない</dt><dd>{selectedMonthData.unresolved}<small>枚</small></dd></div>
+              <div><dt>まだ選択していない</dt><dd>{selectedMonthData.unresolved}<small>枚</small></dd></div>
             </dl>
           </section>
           <GentleSummary period="この月" stats={selectedMonthData} />

@@ -10,6 +10,11 @@ const tabs = [
     icon: <><circle cx="10.5" cy="10.5" r="5.5" /><path d="m15 15 4 4" /></>,
   },
   {
+    id: "hints",
+    label: "ヒント",
+    icon: <><path d="M9 18h6M10 21h4" /><path d="M8.2 14.5A6 6 0 1 1 15.8 14.5C14.6 15.4 14 16.2 14 17h-4c0-.8-.6-1.6-1.8-2.5Z" /></>,
+  },
+  {
     id: "reflection",
     label: "振り返り",
     icon: <><path d="M5 19V11M12 19V5M19 19v-6" /><path d="M3 19h18" /></>,
@@ -21,12 +26,16 @@ const tabs = [
   },
 ];
 
-export default function BottomNav({ activeTab, onChange, showReflection }) {
-  const visibleTabs = showReflection ? tabs : tabs.filter((tab) => tab.id !== "reflection");
+export default function BottomNav({ activeTab, onChange, showHints, showReflection }) {
+  const visibleTabs = tabs.filter((tab) => {
+    if (tab.id === "reflection") return showReflection;
+    if (tab.id === "hints") return showHints;
+    return true;
+  });
 
   return (
     <nav
-      className={`bottom-nav simple-nav ${showReflection ? "four-tabs" : "three-tabs"}`}
+      className={`bottom-nav simple-nav tabs-${visibleTabs.length}`}
       aria-label="メインメニュー"
     >
       {visibleTabs.map((tab) => (

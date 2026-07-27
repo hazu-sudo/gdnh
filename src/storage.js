@@ -11,6 +11,11 @@ const statusMigration = {
 const FONT_SIZE_KEY = "later-open-shiori-font-size-v1";
 const THEME_KEY = "later-open-shiori-theme-v1";
 const REFLECTION_KEY = "later-open-shiori-reflection-v1";
+const HINTS_KEY = "later-open-shiori-hints-visible-v1";
+const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
+const MOBILE_HINTS_KEY = "later-open-shiori-mobile-hints-v1";
+const SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
+const HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
 const validFontSizes = new Set(["small", "standard", "large"]);
 const validThemes = new Set(["orange", "pink", "blue", "green", "purple", "mono"]);
 
@@ -37,9 +42,7 @@ export function loadBookmarks() {
 
   try {
     const parsed = JSON.parse(raw);
-    const normalized = Array.isArray(parsed)
-      ? parsed.map(normalizeBookmark).filter((item) => item.targetName && item.memo)
-      : [];
+    const normalized = Array.isArray(parsed) ? parsed.map(normalizeBookmark) : [];
     saveBookmarks(normalized);
     return normalized;
   } catch {
@@ -81,4 +84,49 @@ export function loadReflectionVisibility() {
 
 export function saveReflectionVisibility(visible) {
   localStorage.setItem(REFLECTION_KEY, visible ? "on" : "off");
+}
+
+export function loadHintVisibility() {
+  return localStorage.getItem(HINTS_KEY) === "on";
+}
+
+export function saveHintVisibility(visible) {
+  localStorage.setItem(HINTS_KEY, visible ? "on" : "off");
+}
+
+export function loadHintIntroSeen() {
+  return localStorage.getItem(HINTS_INTRO_KEY) === "seen";
+}
+
+export function saveHintIntroSeen() {
+  localStorage.setItem(HINTS_INTRO_KEY, "seen");
+}
+
+export function loadMobileHints() {
+  return localStorage.getItem(MOBILE_HINTS_KEY) === "on";
+}
+
+export function saveMobileHints(visible) {
+  localStorage.setItem(MOBILE_HINTS_KEY, visible ? "on" : "off");
+}
+
+export function loadSenderName() {
+  return localStorage.getItem(SENDER_NAME_KEY) || "";
+}
+
+export function saveSenderName(name) {
+  localStorage.setItem(SENDER_NAME_KEY, name);
+}
+
+export function loadHintCache(fallback = []) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HINT_CACHE_KEY) || "[]");
+    return Array.isArray(parsed) && parsed.length ? parsed.slice(0, 30) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function saveHintCache(hints) {
+  localStorage.setItem(HINT_CACHE_KEY, JSON.stringify(hints.slice(0, 30)));
 }

@@ -8,7 +8,7 @@ export const LEGACY_STORAGE_KEYS = [
 ];
 
 export const STATUS_LABELS = {
-  unresolved: "ノーマル",
+  unresolved: "未選択",
   pending: "保留",
   resolved: "話した",
 };

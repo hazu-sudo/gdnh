@@ -4,14 +4,23 @@ import SaveScreen from "./screens/SaveScreen.jsx";
 import SearchScreen from "./screens/SearchScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReflectionScreen from "./screens/ReflectionScreen.jsx";
+import HintScreen from "./screens/HintScreen.jsx";
 import {
+  loadHintIntroSeen,
+  loadHintVisibility,
   loadBookmarks,
   loadFontSize,
+  loadMobileHints,
   loadReflectionVisibility,
+  loadSenderName,
   loadTheme,
+  saveHintIntroSeen,
+  saveHintVisibility,
   saveBookmarks,
   saveFontSize,
+  saveMobileHints,
   saveReflectionVisibility,
+  saveSenderName,
   saveTheme,
 } from "./storage.js";
 
@@ -21,12 +30,21 @@ export default function App() {
   const [fontSize, setFontSize] = useState("standard");
   const [theme, setTheme] = useState("orange");
   const [showReflection, setShowReflection] = useState(true);
+  const [showHints, setShowHints] = useState(false);
+  const [hintIntroSeen, setHintIntroSeen] = useState(false);
+  const [mobileHints, setMobileHints] = useState(false);
+  const [senderName, setSenderName] = useState("");
+  const [prefilledMemo, setPrefilledMemo] = useState("");
 
   useEffect(() => {
     setBookmarks(loadBookmarks());
     setFontSize(loadFontSize());
     setTheme(loadTheme());
     setShowReflection(loadReflectionVisibility());
+    setShowHints(loadHintVisibility());
+    setHintIntroSeen(loadHintIntroSeen());
+    setMobileHints(loadMobileHints());
+    setSenderName(loadSenderName());
   }, []);
 
   useEffect(() => {
@@ -74,6 +92,33 @@ export default function App() {
   function updateReflectionVisibility(visible) {
     setShowReflection(visible);
     saveReflectionVisibility(visible);
+    if (!visible && activeTab === "reflection") setActiveTab("save");
+  }
+
+  function updateHintVisibility(visible) {
+    setShowHints(visible);
+    saveHintVisibility(visible);
+    if (!visible && activeTab === "hints") setActiveTab("save");
+  }
+
+  function markHintIntroSeen() {
+    setHintIntroSeen(true);
+    saveHintIntroSeen();
+  }
+
+  function updateMobileHints(visible) {
+    setMobileHints(visible);
+    saveMobileHints(visible);
+  }
+
+  function updateSenderName(name) {
+    setSenderName(name);
+    saveSenderName(name);
+  }
+
+  function useHintAsBookmark(text) {
+    setPrefilledMemo(text);
+    setActiveTab("save");
   }
 
   return (
@@ -81,6 +126,8 @@ export default function App() {
       {activeTab === "save" && (
         <SaveScreen
           bookmarks={bookmarks}
+          initialMemo={prefilledMemo}
+          onInitialMemoConsumed={() => setPrefilledMemo("")}
           onSave={addBookmark}
           onShowBookmarks={() => setActiveTab("search")}
         />
@@ -90,17 +137,27 @@ export default function App() {
           bookmarks={bookmarks}
           onUpdateBookmark={updateBookmark}
           onUpdateStatus={updateStatus}
+          senderName={senderName}
         />
       )}
+      {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}
       {activeTab === "reflection" && showReflection && (
         <ReflectionScreen bookmarks={bookmarks} />
       )}
       {activeTab === "settings" && (
         <SettingsScreen
           fontSize={fontSize}
+          hintIntroSeen={hintIntroSeen}
+          mobileHints={mobileHints}
           onFontSizeChange={updateFontSize}
+          onHintIntroSeen={markHintIntroSeen}
+          onHintVisibilityChange={updateHintVisibility}
+          onMobileHintsChange={updateMobileHints}
           onReflectionChange={updateReflectionVisibility}
+          onSenderNameChange={updateSenderName}
           onThemeChange={updateTheme}
+          senderName={senderName}
+          showHints={showHints}
           showReflection={showReflection}
           theme={theme}
         />
@@ -108,6 +165,7 @@ export default function App() {
       <BottomNav
         activeTab={activeTab}
         onChange={setActiveTab}
+        showHints={showHints}
         showReflection={showReflection}
       />
     </div>

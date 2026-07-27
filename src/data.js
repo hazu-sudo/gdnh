@@ -8,9 +8,9 @@ export const LEGACY_STORAGE_KEYS = [
 ];
 
 export const STATUS_LABELS = {
-  unresolved: "未解消",
+  unresolved: "ノーマル",
   pending: "保留",
-  resolved: "解消済み",
+  resolved: "話した",
 };
 
 export function createSampleBookmarks() {

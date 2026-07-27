@@ -58,7 +58,7 @@ function WheelColumn({ label, options, value, onChange, suffix }) {
   );
 }
 
-function DateWheel({ date, onCancel, onConfirm }) {
+export function DateWheel({ date, onCancel, onConfirm }) {
   const [draft, setDraft] = useState(getDateParts(date));
   const currentYear = new Date().getFullYear();
   const years = useMemo(
@@ -175,11 +175,11 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
 
       <form className="quick-form" onSubmit={submit}>
         <label className="simple-field">
-          <span>宛先</span>
+          <span>だれに話す</span>
           <input
             list="recipient-history"
             onChange={(event) => { setTargetName(event.target.value); setSaved(false); }}
-            placeholder="宛先を入力"
+            placeholder="だれに話すか入力"
             value={targetName}
           />
           <datalist id="recipient-history">
@@ -189,7 +189,7 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
 
         {suggestions.length > 0 && (
           <div className="recipient-suggestions">
-            <p>{hasFrequent ? "よく使う宛先" : "過去の宛先"}</p>
+            <p>{hasFrequent ? "よく話す相手" : "以前入力した相手"}</p>
             <div className="recipient-chips">
               {suggestions.map((item) => (
                 <button key={item.name} onClick={() => setTargetName(item.name)} type="button">
@@ -215,7 +215,7 @@ export default function SaveScreen({ bookmarks, onSave, onShowBookmarks }) {
         {saved && (
           <div className="saved-note" aria-live="polite">
             <span aria-hidden="true">✓</span>
-            <p><strong>しおりを挟みました</strong><small>あとで、日付か宛先から開けます。</small></p>
+            <p><strong>しおりを挟みました</strong><small>あとで、日付か話す相手から開けます。</small></p>
           </div>
         )}
         <button className="primary-button quick-save" disabled={!canSave} type="submit">

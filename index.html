@@ -6,6 +6,21 @@
     <meta name="description" content="言葉になる前の気持ちに、あとで開ける居場所をつくるアプリ。" />
     <meta name="theme-color" content="#f7f1e8" />
     <title>あとで開くしおり</title>
+    <script>
+      try {
+        const size = localStorage.getItem("later-open-shiori-font-size-v1");
+        const theme = localStorage.getItem("later-open-shiori-theme-v1");
+        document.documentElement.dataset.fontSize =
+          ["small", "standard", "large"].includes(size) ? size : "standard";
+        document.documentElement.dataset.theme =
+          ["orange", "pink", "blue", "green", "purple", "mono"].includes(theme)
+            ? theme
+            : "orange";
+      } catch {
+        document.documentElement.dataset.fontSize = "standard";
+        document.documentElement.dataset.theme = "orange";
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

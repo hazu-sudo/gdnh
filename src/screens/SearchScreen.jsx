@@ -31,6 +31,11 @@ function shiftMonth(key, amount) {
   return monthKey(new Date(year, month - 1 + amount, 1));
 }
 
+function memoPreview(memo) {
+  const firstLine = memo.split(/\r?\n/)[0].trim();
+  return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
+}
+
 function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
   const [editing, setEditing] = useState(false);
   const [targetName, setTargetName] = useState(bookmark.targetName);
@@ -171,7 +176,8 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus }) {
 }
 
 export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus }) {
-  const [mode, setMode] = useState("calendar");
+  const [mode, setMode] = useState("");
+  const [chooserOpen, setChooserOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(monthKey(new Date()));
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTarget, setSelectedTarget] = useState("");
@@ -179,6 +185,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
   const today = dateKey(new Date());
   const days = useMemo(() => buildMonth(calendarMonth), [calendarMonth]);
   const selectedBookmark = bookmarks.find((item) => item.id === selectedId);
+  const floatingBookmarks = useMemo(() => sortNewest(bookmarks).slice(0, 7), [bookmarks]);
 
   const dayCounts = useMemo(() => {
     const counts = {};
@@ -218,12 +225,119 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
     );
   }
 
+  function chooseSearchMode(nextMode) {
+    setMode(nextMode);
+    setChooserOpen(false);
+    setSelectedDate("");
+    setSelectedTarget("");
+  }
+
+  function returnToPortal() {
+    setMode("");
+    setChooserOpen(false);
+    setSelectedDate("");
+    setSelectedTarget("");
+  }
+
+  if (!mode) {
+    return (
+      <main className="screen search-portal-screen">
+        <section className={chooserOpen ? "search-portal chooser-open" : "search-portal"}>
+          <button
+            aria-label="探し方を選ぶ"
+            className="portal-tap-layer"
+            onClick={() => setChooserOpen(true)}
+            type="button"
+          />
+
+          <header className="portal-heading">
+            <p className="eyebrow">FIND A SHIORI</p>
+            <h1>しおりを探す</h1>
+            <p>これまで挟んだ気持ちが、ここで静かに待っています。</p>
+          </header>
+
+          <div className="floating-bookmarks" aria-hidden="true">
+            {floatingBookmarks.length > 0 ? floatingBookmarks.map((bookmark, index) => (
+              <div className={`floating-shiori bubble-${index + 1}`} key={bookmark.id}>
+                <span className="floating-ribbon" />
+                <strong>{bookmark.targetName}</strong>
+                <p>{memoPreview(bookmark.memo)}</p>
+              </div>
+            )) : (
+              <>
+                <div className="floating-shiori bubble-1 placeholder-bubble"><span className="floating-ribbon" /><strong>未来の自分</strong><p>話したいことを、ここに…</p></div>
+                <div className="floating-shiori bubble-3 placeholder-bubble"><span className="floating-ribbon" /><strong>だれかへ</strong><p>しおりが静かに待ちます</p></div>
+                <div className="floating-shiori bubble-6 placeholder-bubble"><span className="floating-ribbon" /><strong>あとで</strong><p>開ける場所をつくる</p></div>
+              </>
+            )}
+          </div>
+
+          <div className="portal-prompt" aria-hidden="true">
+            <span>
+              <svg viewBox="0 0 24 24"><path d="M12 4v12M8 12l4 4 4-4" /></svg>
+            </span>
+            <p>画面をタップして、<br />探し方をえらぶ</p>
+          </div>
+
+          {chooserOpen && (
+            <div
+              aria-label="しおりの探し方"
+              aria-modal="true"
+              className="search-choice-overlay"
+              onClick={() => setChooserOpen(false)}
+              role="dialog"
+            >
+              <div className="search-choice-dialog" onClick={(event) => event.stopPropagation()}>
+                <header>
+                  <div>
+                    <p className="eyebrow">HOW TO FIND</p>
+                    <h2>どこから探しますか？</h2>
+                  </div>
+                  <button
+                    aria-label="探し方を閉じる"
+                    className="choice-close-button"
+                    onClick={() => setChooserOpen(false)}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                </header>
+                <div className="search-choice-buttons">
+                  <button className="search-choice calendar-choice" onClick={() => chooseSearchMode("calendar")} type="button">
+                    <span className="choice-icon">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 3v5M16 3v5M4 10h16M8 14h3M13 14h3" /></svg>
+                    </span>
+                    <strong>カレンダーから探す</strong>
+                    <small>日付から、あの日のしおりへ</small>
+                  </button>
+                  <button className="search-choice person-choice" onClick={() => chooseSearchMode("recipient")} type="button">
+                    <span className="choice-icon">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v11h-17z" /><path d="m4 8 8 6 8-6" /><path d="m4 18 5.5-5M20 18l-5.5-5" /></svg>
+                    </span>
+                    <strong>話したい相手から探す</strong>
+                    <small>相手から、残したしおりへ</small>
+                  </button>
+                </div>
+                <button className="choice-back-text" onClick={() => setChooserOpen(false)} type="button">
+                  とじる
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="screen search-screen">
       <header className="search-heading">
-        <p className="eyebrow">OPEN SHIORI</p>
-        <h1>しおりを探す</h1>
-        <p>あの日から、あの人から。話したかったことをたどります。</p>
+        <button className="portal-back-button" onClick={returnToPortal} type="button">
+          <span aria-hidden="true">‹</span> 探し方へ戻る
+        </button>
+        <p className="eyebrow">{mode === "calendar" ? "BY DATE" : "BY PERSON"}</p>
+        <h1>{mode === "calendar" ? "カレンダーから探す" : "話したい相手から探す"}</h1>
+        <p>{mode === "calendar" ? "日付を押すと、その日に挟んだしおりが開きます。" : "相手を選ぶと、その人へ残したしおりを新しい順に見られます。"}</p>
       </header>
 
       <div className="search-tabs" role="tablist" aria-label="しおりの探し方">

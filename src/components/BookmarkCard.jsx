@@ -1,62 +1,25 @@
-import { STATUS_LABELS } from "../data";
+import { STATUS_LABELS } from "../data.js";
 
-export function StatusBadge({ status }) {
-  return <span className={`status-label ${status}`}>{STATUS_LABELS[status]}</span>;
+export function formatJapaneseDate(date) {
+  const [year, month, day] = date.split("-").map(Number);
+  return `${year}年${month}月${day}日`;
 }
 
-export default function BookmarkCard({
-  bookmark,
-  onUpdateStatus,
-  showActions = false,
-  showTarget = true,
-  featured = false,
-}) {
+export default function BookmarkCard({ bookmark, onOpen }) {
   return (
-    <article className={`bookmark-card ${bookmark.status} ${featured ? "featured" : ""}`}>
+    <button
+      className={`bookmark-card simple-card ${bookmark.status}`}
+      onClick={() => onOpen(bookmark)}
+      type="button"
+    >
       <span className="bookmark-ribbon" aria-hidden="true" />
-      <header className="bookmark-card-head">
-        <div>
-          {showTarget && <p className="target-name">{bookmark.targetName}へ</p>}
-          <span className="tag">{bookmark.emotion}</span>
-        </div>
-        <StatusBadge status={bookmark.status} />
-      </header>
-      <p className="memo">{bookmark.memo}</p>
-      <div className="hint-box">
-        <span>開くヒント</span>
-        <p>「{bookmark.openHint}」</p>
-      </div>
-      <footer className="card-foot">
-        <time dateTime={bookmark.createdAt}>{bookmark.createdAt.replaceAll("-", ".")}</time>
-      </footer>
-      {showActions && onUpdateStatus && (
-        <div className="action-row">
-          <button
-            className="action-button check"
-            disabled={bookmark.status === "checked"}
-            onClick={() => onUpdateStatus(bookmark.id, "checked")}
-            type="button"
-          >
-            確認済みにする
-          </button>
-          <button
-            className="action-button talked"
-            disabled={bookmark.status === "talked"}
-            onClick={() => onUpdateStatus(bookmark.id, "talked")}
-            type="button"
-          >
-            話した
-          </button>
-          <button
-            className="action-button pending"
-            disabled={bookmark.status === "pending"}
-            onClick={() => onUpdateStatus(bookmark.id, "pending")}
-            type="button"
-          >
-            保留にする
-          </button>
-        </div>
-      )}
-    </article>
+      <span className="simple-card-head">
+        <strong>{bookmark.targetName}へ</strong>
+        <span className={`status-label ${bookmark.status}`}>{STATUS_LABELS[bookmark.status]}</span>
+      </span>
+      <span className="simple-card-memo">{bookmark.memo}</span>
+      <time dateTime={bookmark.createdAt}>{formatJapaneseDate(bookmark.createdAt)}</time>
+      <span className="card-chevron" aria-hidden="true">›</span>
+    </button>
   );
 }

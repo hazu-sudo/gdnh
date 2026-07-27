@@ -1,164 +1,40 @@
 export const APP_NAME = "あとで開くしおり";
-export const STORAGE_KEY = "later-open-shiori-bookmarks-v2";
+export const STORAGE_KEY = "later-open-shiori-bookmarks-v3";
 export const LEGACY_STORAGE_KEYS = [
+  "later-open-shiori-bookmarks-v2",
   "later-open-shiori-bookmarks-v1",
   "meeting-shiori-bookmarks-v2",
   "meeting-shiori-bookmarks-v1",
 ];
-export const SELECTED_TARGET_KEY = "later-open-shiori-selected-target-v1";
 
 export const STATUS_LABELS = {
-  unopened: "未開封",
-  checked: "確認済み",
-  talked: "話した",
+  unresolved: "未解消",
   pending: "保留",
+  resolved: "解消済み",
 };
-
-export const statusOptions = Object.entries(STATUS_LABELS).map(([id, label]) => ({
-  id,
-  label,
-}));
-
-export const targetOptions = [
-  { id: "person", label: "特定の人へ", helper: "名前を添えて残す" },
-  { id: "someone", label: "誰かへ", helper: "まだ相手を決めずに残す" },
-  { id: "self", label: "未来の自分へ", helper: "あとで振り返るために残す" },
-];
-
-export const emotionTemplates = {
-  "笑ってほしい": {
-    category: "talk",
-    openHint: "これちょっと笑ってしまったんやけど、聞いて",
-    selfHint: "何が少しおもしろかったのか、もう一度思い出してみる",
-  },
-  "聞いてほしい": {
-    category: "talk",
-    openHint: "大したことじゃないんやけど、ちょっと聞いてほしくて",
-    selfHint: "今の自分はどう感じているか、もう一度見てみる",
-  },
-  "相談したい": {
-    category: "face",
-    openHint: "ちょっと相談したいことがあるんやけど、話してもいい？",
-    selfHint: "これは何が気になっていたのか、少し考えてみる",
-  },
-  "共感してほしい": {
-    category: "talk",
-    openHint: "これ、なんか分かってほしくて残してた",
-    selfHint: "どこを分かってほしかったのか、静かに見てみる",
-  },
-  "誘いたい": {
-    category: "together",
-    openHint: "今度一緒に行きたいところがあって",
-    selfHint: "誰とどんな時間を過ごしたいのか、考えてみる",
-  },
-  "ありがとう": {
-    category: "face",
-    openHint: "この前のこと、ちゃんとありがとうって言いたくて",
-    selfHint: "何がうれしかったのか、言葉にする前に見てみる",
-  },
-  "ごめんね": {
-    category: "face",
-    openHint: "ちょっと言いそびれてたことがあって",
-    selfHint: "何を引っかけたままにしているのか、少し見てみる",
-  },
-  "なんとなく": {
-    category: "talk",
-    openHint: "なんかこれ、ふと思い出して話したくなった",
-    selfHint: "まだ言葉にならない気持ちを、そのまま眺めてみる",
-  },
-  "あとで考えたい": {
-    category: "face",
-    openHint: "何が引っかかったのか、少しだけ考えてみる",
-    selfHint: "これは何が気になっていたのか、少し考えてみる",
-  },
-  "家で思い出したい": {
-    category: "face",
-    openHint: "家に帰ったら、この気持ちをもう一度開く",
-    selfHint: "家に帰ったら、この続きを少しだけ開く",
-  },
-  "その他": {
-    category: "talk",
-    openHint: "うまく言えないんやけど、少し話したいことがあって",
-    selfHint: "今の自分はどう感じているか、もう一度見てみる",
-  },
-};
-
-export const emotionOptions = Object.keys(emotionTemplates);
-
-export const pendingCategories = [
-  {
-    id: "talk",
-    title: "話す",
-    description: "誰かに聞いてもらう気持ち",
-    emotions: ["笑ってほしい", "聞いてほしい", "共感してほしい", "なんとなく"],
-  },
-  {
-    id: "face",
-    title: "向き合う",
-    description: "言葉にする前に見つめる気持ち",
-    emotions: ["相談したい", "ありがとう", "ごめんね", "あとで考えたい", "家で思い出したい"],
-  },
-  {
-    id: "together",
-    title: "一緒に",
-    description: "誰かと時間をひらく気持ち",
-    emotions: ["誘いたい"],
-  },
-];
-
-export function generateOpenHint({ targetType, emotion }) {
-  const template = emotionTemplates[emotion] || emotionTemplates["その他"];
-  return targetType === "self" ? template.selfHint : template.openHint;
-}
-
-export function getCategoryForEmotion(emotion) {
-  return (
-    pendingCategories.find((category) => category.emotions.includes(emotion)) ||
-    pendingCategories[0]
-  );
-}
 
 export function createSampleBookmarks() {
   return [
     {
-      id: "sample-saki",
-      targetType: "person",
-      targetName: "さき",
-      emotion: "相談したい",
-      memo: "バイトでちょっとモヤモヤした",
-      openHint: "ちょっと相談したいことがあるんやけど、話してもいい？",
-      status: "unopened",
-      createdAt: "2026-07-09",
-    },
-    {
-      id: "sample-someone",
-      targetType: "someone",
-      targetName: "誰か",
-      emotion: "笑ってほしい",
-      memo: "電車で見かけた小さな出来事がおもしろかった",
-      openHint: "これちょっと笑ってしまったんやけど、聞いて",
-      status: "checked",
-      createdAt: "2026-07-08",
-    },
-    {
-      id: "sample-mom",
-      targetType: "person",
-      targetName: "お母さん",
-      emotion: "ありがとう",
-      memo: "この前さりげなく気にかけてくれたのがうれしかった",
-      openHint: "この前のこと、ちゃんとありがとうって言いたくて",
-      status: "talked",
-      createdAt: "2026-07-07",
+      id: "sample-tanaka",
+      targetName: "田中さん",
+      memo: "今日の授業で面白いことがあった。次に会ったときに話したい。",
+      status: "unresolved",
+      createdAt: "2026-07-27",
     },
     {
       id: "sample-self",
-      targetType: "self",
-      targetName: "自分",
-      emotion: "家で思い出したい",
-      memo: "帰ったら今日うれしかったことをもう一度考えたい",
-      openHint: "家に帰ったら、この続きを少しだけ開く",
+      targetName: "未来の自分",
+      memo: "帰ったら、今日うれしかったことをもう一度思い出す。",
       status: "pending",
-      createdAt: "2026-07-06",
+      createdAt: "2026-07-25",
+    },
+    {
+      id: "sample-yamada",
+      targetName: "山田さん",
+      memo: "この前助けてもらったことのお礼を伝えたい。",
+      status: "resolved",
+      createdAt: "2026-07-22",
     },
   ];
 }

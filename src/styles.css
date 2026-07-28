@@ -2596,20 +2596,34 @@ html[data-font-size="large"] .search-choice small { display: none; }
 .toggle-setting h3 { margin: 0 0 0.25rem; font-size: 0.92rem; }
 .settings-title p,
 .toggle-setting p { margin: 0; color: var(--muted); font-size: 0.7rem; line-height: 1.55; }
-.setting-stack { display: grid; gap: 1rem; }
+.feature-setting-list { display: grid; gap: 0.75rem; }
 .toggle-setting {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 0.9rem;
+  gap: 0.8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 7px 20px rgba(67, 54, 47, 0.06);
+  padding: 1.05rem;
 }
 .toggle-setting > div { min-width: 0; }
-.toggle-setting + .toggle-setting {
-  border-top: 1px solid var(--line);
-  padding-top: 1rem;
+.toggle-setting .switch-control {
+  position: static;
+  top: auto;
+  right: auto;
+  flex: 0 0 auto;
+  justify-self: end;
 }
-.switch-control { flex: 0 0 auto; }
+.feature-setting-helper {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
 .confirm-dialog {
   position: relative;
   width: min(calc(100% - 2rem), 25rem);
@@ -2818,8 +2832,8 @@ html[data-font-size="large"] .search-choice small { display: none; }
 .share-actions .primary-button { display: flex; align-items: center; justify-content: center; gap: 0.45rem; }
 .share-message-note { color: var(--sage); font-size: 0.75rem; font-weight: 800; text-align: center; }
 
-html[data-font-size="large"] .toggle-setting { align-items: stretch; flex-direction: column; }
-html[data-font-size="large"] .toggle-setting .switch-control { align-self: flex-end; }
+html[data-font-size="large"] .toggle-setting { grid-template-columns: 1fr; align-items: stretch; }
+html[data-font-size="large"] .toggle-setting .switch-control { justify-self: end; }
 html[data-font-size="large"] .status-choice-buttons { grid-template-columns: 1fr; }
 html[data-font-size="large"] .hint-actions,
 html[data-font-size="large"] .share-actions { grid-template-columns: 1fr; }
@@ -2829,6 +2843,8 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   .simple-nav.tabs-5 .nav-button { font-size: 0.58rem; }
   .simple-nav.tabs-5 .nav-button svg { width: 19px; height: 19px; }
   .detail-status > div.status-choice-buttons { grid-template-columns: 1fr; }
+  .toggle-setting { grid-template-columns: 1fr; }
+  .toggle-setting .switch-control { justify-self: end; }
 }
 
 @media (prefers-reduced-motion: reduce) {

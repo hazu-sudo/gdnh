@@ -129,21 +129,21 @@ export default function SettingsScreen({
 
       <section className="settings-group">
         <header><span>02</span><h2>表示する機能</h2></header>
-        <div className="settings-panel setting-stack">
+        <div className="feature-setting-list">
           <ToggleSetting
             checked={showHints}
             description="話題に迷ったとき、会話につながるヒントを引けます"
-            label="会話のヒントを表示する"
+            label="会話のヒント"
             onChange={requestHintChange}
           />
           <ToggleSetting
             checked={showReflection}
             description="登録したしおりと、話したしおりを週ごと・月ごとに振り返ります"
-            label="しおりの振り返りを表示する"
+            label="しおりの振り返り"
             onChange={onReflectionChange}
           />
-          <p className="setting-helper">OFFにしても、これまでのしおりや設定は消えません。</p>
         </div>
+        <p className="feature-setting-helper">OFFにしても、これまでのしおりや設定は消えません。</p>
       </section>
 
       <section className="settings-group">

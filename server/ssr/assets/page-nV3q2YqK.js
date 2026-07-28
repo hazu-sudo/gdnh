@@ -1358,7 +1358,7 @@ function ToggleSetting({ checked, description, label, onChange }) {
 		})]
 	});
 }
-function SettingsScreen({ fontSize, hintIntroSeen, mobileHints, onFontSizeChange, onHintIntroSeen, onHintVisibilityChange, onMobileHintsChange, onReflectionChange, onSenderNameChange, onThemeChange, senderName, showHints, showReflection, theme }) {
+function SettingsScreen({ fontSize, hintIntroSeen, onFontSizeChange, onHintIntroSeen, onHintVisibilityChange, onReflectionChange, onSenderNameChange, onThemeChange, senderName, showHints, showReflection, theme }) {
 	const [showHintDialog, setShowHintDialog] = (0, import_react.useState)(false);
 	function requestHintChange(next) {
 		if (next && !hintIntroSeen) {
@@ -1500,21 +1500,9 @@ function SettingsScreen({ fontSize, hintIntroSeen, mobileHints, onFontSizeChange
 					]
 				})]
 			}),
-			showHints && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "settings-group",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "03" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "通信設定" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "settings-panel",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
-						checked: mobileHints,
-						description: "Wi-Fiがないときにも、新しいヒントを取得します",
-						label: "モバイルデータ通信でヒントを取得する",
-						onChange: onMobileHintsChange
-					})
-				})]
-			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "settings-group",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: showHints ? "04" : "03" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "共有設定" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "03" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "共有設定" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "settings-panel",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "simple-field",
@@ -2010,7 +1998,6 @@ var THEME_KEY = "later-open-shiori-theme-v1";
 var REFLECTION_KEY = "later-open-shiori-reflection-v1";
 var HINTS_KEY = "later-open-shiori-hints-visible-v1";
 var HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
-var MOBILE_HINTS_KEY = "later-open-shiori-mobile-hints-v1";
 var SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
 var HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
 var validFontSizes = /* @__PURE__ */ new Set([
@@ -2087,12 +2074,6 @@ function loadHintIntroSeen() {
 }
 function saveHintIntroSeen() {
 	localStorage.setItem(HINTS_INTRO_KEY, "seen");
-}
-function loadMobileHints() {
-	return localStorage.getItem(MOBILE_HINTS_KEY) === "on";
-}
-function saveMobileHints(visible) {
-	localStorage.setItem(MOBILE_HINTS_KEY, visible ? "on" : "off");
 }
 function loadSenderName() {
 	return localStorage.getItem(SENDER_NAME_KEY) || "";
@@ -2242,7 +2223,6 @@ function App() {
 	const [showReflection, setShowReflection] = (0, import_react.useState)(true);
 	const [showHints, setShowHints] = (0, import_react.useState)(false);
 	const [hintIntroSeen, setHintIntroSeen] = (0, import_react.useState)(false);
-	const [mobileHints, setMobileHints] = (0, import_react.useState)(false);
 	const [senderName, setSenderName] = (0, import_react.useState)("");
 	const [prefilledMemo, setPrefilledMemo] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
@@ -2252,7 +2232,6 @@ function App() {
 		setShowReflection(loadReflectionVisibility());
 		setShowHints(loadHintVisibility());
 		setHintIntroSeen(loadHintIntroSeen());
-		setMobileHints(loadMobileHints());
 		setSenderName(loadSenderName());
 	}, []);
 	(0, import_react.useEffect)(() => {
@@ -2310,10 +2289,6 @@ function App() {
 		setHintIntroSeen(true);
 		saveHintIntroSeen();
 	}
-	function updateMobileHints(visible) {
-		setMobileHints(visible);
-		saveMobileHints(visible);
-	}
 	function updateSenderName(name) {
 		setSenderName(name);
 		saveSenderName(name);
@@ -2343,11 +2318,9 @@ function App() {
 			activeTab === "settings" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsScreen, {
 				fontSize,
 				hintIntroSeen,
-				mobileHints,
 				onFontSizeChange: updateFontSize,
 				onHintIntroSeen: markHintIntroSeen,
 				onHintVisibilityChange: updateHintVisibility,
-				onMobileHintsChange: updateMobileHints,
 				onReflectionChange: updateReflectionVisibility,
 				onSenderNameChange: updateSenderName,
 				onThemeChange: updateTheme,

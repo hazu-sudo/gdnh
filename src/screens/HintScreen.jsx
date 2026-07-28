@@ -4,15 +4,19 @@ import { loadHintCache, saveHintCache } from "../storage.js";
 import { pickRandom } from "../utils.js";
 
 export default function HintScreen({ onUseHint }) {
-  const [hints, setHints] = useState(() => loadHintCache(BUILT_IN_HINTS));
+  const [hints, setHints] = useState(BUILT_IN_HINTS);
   const [current, setCurrent] = useState(null);
   const [offline, setOffline] = useState(() => !navigator.onLine);
 
   useEffect(() => {
-    if (!localStorage.getItem("later-open-shiori-hint-cache-v1")) {
-      saveHintCache(BUILT_IN_HINTS);
-      setHints(BUILT_IN_HINTS);
-    }
+    const cached = loadHintCache([]);
+    const builtInById = new Map(BUILT_IN_HINTS.map((hint) => [hint.id, hint]));
+    const refreshed = cached.length
+      ? cached.map((hint) => ({ ...hint, ...builtInById.get(hint.id) })).filter((hint) => hint.text)
+      : BUILT_IN_HINTS;
+    const nextHints = refreshed.length ? refreshed : BUILT_IN_HINTS;
+    saveHintCache(nextHints);
+    setHints(nextHints);
     const update = () => setOffline(!navigator.onLine);
     window.addEventListener("online", update);
     window.addEventListener("offline", update);
@@ -54,11 +58,19 @@ export default function HintScreen({ onUseHint }) {
         </section>
       ) : (
         <section className="hint-result">
-          <div className="hint-paper">
+          <div className="hint-paper" key={current.id}>
             <span className="hint-category">{current.category}</span>
             <span className="hint-paper-ribbon" aria-hidden="true" />
-            <p className="hint-text">{current.text}</p>
-            {current.question && <p className="hint-question">{current.question}</p>}
+            <div className="hint-content-block">
+              <small>雑学</small>
+              <p className="hint-text">{current.text}</p>
+            </div>
+            {current.question && (
+              <div className="hint-content-block conversation-line">
+                <small>会話につなげる一言</small>
+                <p className="hint-question">{current.question}</p>
+              </div>
+            )}
             <footer>
               <span>出典：{current.source}</span>
               <span>{current.checkedAt}確認</span>
@@ -69,8 +81,8 @@ export default function HintScreen({ onUseHint }) {
           {offline && <p className="offline-note">保存済みのヒントを表示しています。</p>}
           <div className="hint-actions">
             <button className="secondary-button" onClick={drawHint} type="button">もう一度引く</button>
-            <button className="primary-button" onClick={() => onUseHint(current.text)} type="button">
-              しおりに挟む
+            <button className="primary-button hint-talk-button" onClick={() => onUseHint(current.memo || current.question)} type="button">
+              話す
             </button>
           </div>
         </section>

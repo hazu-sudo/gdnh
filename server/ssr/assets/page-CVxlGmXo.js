@@ -1482,16 +1482,16 @@ function SettingsScreen({ fontSize, hintIntroSeen, onFontSizeChange, onHintIntro
 					className: "settings-panel setting-stack",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
+							checked: showHints,
+							description: "話題に迷ったとき、会話につながるヒントを引けます",
+							label: "会話のヒントを表示する",
+							onChange: requestHintChange
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
 							checked: showReflection,
 							description: "登録したしおりと、話したしおりを週ごと・月ごとに振り返ります",
 							label: "しおりの振り返りを表示する",
 							onChange: onReflectionChange
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
-							checked: showHints,
-							description: "話題に迷ったとき、ランダムな雑学を引けます",
-							label: "会話のヒントを表示する",
-							onChange: requestHintChange
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "setting-helper",
@@ -1807,6 +1807,7 @@ var BUILT_IN_HINTS = [
 		category: "動物",
 		text: "ラッコは休むとき、流されにくいよう海藻に体を巻き付けることがあります。",
 		question: "水族館で、つい長く見てしまう生き物は？",
+		memo: "水族館でつい長く見てしまう生き物について話したい",
 		source: "Monterey Bay Aquarium",
 		url: "https://www.montereybayaquarium.org/animals/animals-a-to-z/sea-otter",
 		checkedAt: "2026年7月"
@@ -1816,6 +1817,7 @@ var BUILT_IN_HINTS = [
 		category: "動物",
 		text: "タコには心臓が3つあります。2つはえらへ、1つは全身へ血液を送ります。",
 		question: "不思議だと思う海の生き物は？",
+		memo: "不思議だと思う海の生き物について聞きたい",
 		source: "Smithsonian Ocean",
 		url: "https://ocean.si.edu/ocean-life/invertebrates/octopuses-and-squids",
 		checkedAt: "2026年7月"
@@ -1825,6 +1827,7 @@ var BUILT_IN_HINTS = [
 		category: "食べ物",
 		text: "植物学の分類では、バナナはベリーの仲間。名前の印象とは少し違います。",
 		question: "名前と実物の印象が違った食べ物はある？",
+		memo: "名前の印象と違った食べ物について話したい",
 		source: "Encyclopaedia Britannica",
 		url: "https://www.britannica.com/science/berry-plant-reproductive-body",
 		checkedAt: "2026年7月"
@@ -1834,6 +1837,7 @@ var BUILT_IN_HINTS = [
 		category: "食べ物",
 		text: "りんごは中に空気を多く含むため、水に浮きやすい果物です。",
 		question: "秋になると食べたくなるものは？",
+		memo: "秋になると食べたくなるものを聞きたい",
 		source: "USDA",
 		url: "https://snaped.fns.usda.gov/resources/nutrition-education-materials/seasonal-produce-guide/apples",
 		checkedAt: "2026年7月"
@@ -1843,6 +1847,7 @@ var BUILT_IN_HINTS = [
 		category: "科学",
 		text: "雨上がりの土のにおいは「ペトリコール」と呼ばれます。",
 		question: "好きな天気のにおいはある？",
+		memo: "好きな天気のにおいについて話したい",
 		source: "CSIRO",
 		url: "https://www.csiro.au/en/news/all/articles/2015/march/what-is-petrichor",
 		checkedAt: "2026年7月"
@@ -1852,6 +1857,7 @@ var BUILT_IN_HINTS = [
 		category: "科学",
 		text: "月には風や雨がほとんどないため、宇宙飛行士の足跡は長く残ります。",
 		question: "一度行ってみたい場所は地球のどこ？",
+		memo: "一度行ってみたい場所について聞きたい",
 		source: "NASA",
 		url: "https://science.nasa.gov/moon/",
 		checkedAt: "2026年7月"
@@ -1861,6 +1867,7 @@ var BUILT_IN_HINTS = [
 		category: "季節",
 		text: "雪の結晶は基本的に六角形。育つときの温度や湿度で形が変わります。",
 		question: "冬にだけ楽しみにしていることは？",
+		memo: "冬に楽しみにしていることについて話したい",
 		source: "NOAA",
 		url: "https://www.noaa.gov/jetstream/snow",
 		checkedAt: "2026年7月"
@@ -1870,6 +1877,7 @@ var BUILT_IN_HINTS = [
 		category: "季節",
 		text: "桜の開花予想には、冬から春にかけての気温の変化が使われます。",
 		question: "春を感じる小さな合図は？",
+		memo: "春を感じる小さな合図について聞きたい",
 		source: "気象庁",
 		url: "https://www.jma.go.jp/jma/kishou/know/kurashi/sakura.html",
 		checkedAt: "2026年7月"
@@ -1879,6 +1887,7 @@ var BUILT_IN_HINTS = [
 		category: "身近なもの",
 		text: "鉛筆の芯に鉛は使われておらず、主に黒鉛と粘土でできています。",
 		question: "つい集めたくなる文房具は？",
+		memo: "つい集めたくなる文房具について話したい",
 		source: "Smithsonian Institution",
 		url: "https://www.si.edu/spotlight/pencils",
 		checkedAt: "2026年7月"
@@ -1888,6 +1897,7 @@ var BUILT_IN_HINTS = [
 		category: "身近なもの",
 		text: "面ファスナーは、服に付いた植物の実を観察したことから着想されました。",
 		question: "身近な発明で、よくできていると思うものは？",
+		memo: "よくできていると思う身近な発明を聞きたい",
 		source: "Smithsonian Magazine",
 		url: "https://www.smithsonianmag.com/innovation/accidental-invention-velcro-180972197/",
 		checkedAt: "2026年7月"
@@ -1897,17 +1907,19 @@ var BUILT_IN_HINTS = [
 		category: "暮らし",
 		text: "同じお茶でも、お湯の温度や時間で香りと味の出方が変わります。",
 		question: "ほっとするときに飲みたいものは？",
+		memo: "ほっとするときに飲みたいものを聞きたい",
 		source: "農林水産省",
 		url: "https://www.maff.go.jp/j/seisan/tokusan/cha/ocha.html",
 		checkedAt: "2026年7月"
 	},
 	{
-		id: "sleep-cycles",
-		category: "暮らし",
-		text: "眠りは一晩中同じ深さではなく、いくつかの段階を繰り返します。",
-		question: "よく眠れた朝にしたいことは？",
-		source: "NIH",
-		url: "https://www.nhlbi.nih.gov/health/sleep/stages-of-sleep",
+		id: "music-memory",
+		category: "音楽",
+		text: "音楽は、その曲をよく聴いていた時期の出来事や気持ちを思い出すきっかけになることがあります。",
+		question: "聴くと思い出が浮かぶ曲ってある？",
+		memo: "好きな音楽と思い出について話したい",
+		source: "National Institutes of Health",
+		url: "https://www.nih.gov/news-events/nih-research-matters/music-memory-emotion",
 		checkedAt: "2026年7月"
 	},
 	{
@@ -1915,6 +1927,7 @@ var BUILT_IN_HINTS = [
 		category: "言葉",
 		text: "「傘」という漢字には、人が屋根の下に集まっているように見える部分があります。",
 		question: "形が好きな漢字はある？",
+		memo: "形が好きな漢字について聞きたい",
 		source: "文化庁",
 		url: "https://www.bunka.go.jp/seisaku/kokugo_nihongo/kokugo_shisaku/",
 		checkedAt: "2026年7月"
@@ -1924,6 +1937,7 @@ var BUILT_IN_HINTS = [
 		category: "文化",
 		text: "絵文字は日本で生まれ、いまでは世界中の文字コードに収録されています。",
 		question: "よく使う絵文字をひとつ選ぶなら？",
+		memo: "よく使う絵文字について話したい",
 		source: "Unicode Consortium",
 		url: "https://home.unicode.org/emoji/about-emoji/",
 		checkedAt: "2026年7月"
@@ -1933,6 +1947,7 @@ var BUILT_IN_HINTS = [
 		category: "歴史",
 		text: "日本で郵便はがきが発行されたのは、明治時代の1873年です。",
 		question: "手紙やはがきを最後に書いたのはいつ？",
+		memo: "手紙やはがきの思い出について聞きたい",
 		source: "郵政博物館",
 		url: "https://www.postalmuseum.jp/column/transition/postcard.html",
 		checkedAt: "2026年7月"
@@ -1942,6 +1957,7 @@ var BUILT_IN_HINTS = [
 		category: "地域",
 		text: "東京駅の赤れんが駅舎は、創建時の姿を大切にしながら復原されました。",
 		question: "好きな駅や、思い出のある駅は？",
+		memo: "好きな駅や思い出のある駅について話したい",
 		source: "JR東日本",
 		url: "https://www.jreast.co.jp/tokyostation/",
 		checkedAt: "2026年7月"
@@ -1951,6 +1967,7 @@ var BUILT_IN_HINTS = [
 		category: "文化",
 		text: "図書館の本の背にある数字は、似たテーマの本を近くに並べるための手がかりです。",
 		question: "本屋や図書館で、最初に見る棚は？",
+		memo: "本屋や図書館で最初に見る棚を聞きたい",
 		source: "国立国会図書館",
 		url: "https://www.ndl.go.jp/jp/data/catstandards/classification_subject/ndlc.html",
 		checkedAt: "2026年7月"
@@ -1960,6 +1977,7 @@ var BUILT_IN_HINTS = [
 		category: "科学",
 		text: "雲は軽く見えますが、小さな水滴が集まってできています。",
 		question: "空を見ていて、何に見えた雲があった？",
+		memo: "何かに見えた雲について話したい",
 		source: "NOAA",
 		url: "https://www.noaa.gov/jetstream/clouds",
 		checkedAt: "2026年7月"
@@ -1969,6 +1987,7 @@ var BUILT_IN_HINTS = [
 		category: "動物",
 		text: "猫のひげは、狭い場所や周りの動きを感じ取る助けになります。",
 		question: "動物のすごい感覚で、ひとつ欲しいのは？",
+		memo: "欲しい動物の感覚について聞きたい",
 		source: "Cornell Feline Health Center",
 		url: "https://www.vet.cornell.edu/departments-centers-and-institutes/cornell-feline-health-center",
 		checkedAt: "2026年7月"
@@ -1978,6 +1997,7 @@ var BUILT_IN_HINTS = [
 		category: "食べ物",
 		text: "パンの中の穴は、酵母などが生地の中で作ったガスがふくらんだ跡です。",
 		question: "焼きたてで食べたいパンは？",
+		memo: "焼きたてで食べたいパンについて話したい",
 		source: "American Chemical Society",
 		url: "https://www.acs.org/education/whatischemistry/adventures-in-chemistry/experiments/yeast-air-balloons.html",
 		checkedAt: "2026年7月"
@@ -2095,14 +2115,19 @@ function saveHintCache(hints) {
 //#endregion
 //#region src/screens/HintScreen.jsx
 function HintScreen({ onUseHint }) {
-	const [hints, setHints] = (0, import_react.useState)(() => loadHintCache(BUILT_IN_HINTS));
+	const [hints, setHints] = (0, import_react.useState)(BUILT_IN_HINTS);
 	const [current, setCurrent] = (0, import_react.useState)(null);
 	const [offline, setOffline] = (0, import_react.useState)(() => !navigator.onLine);
 	(0, import_react.useEffect)(() => {
-		if (!localStorage.getItem("later-open-shiori-hint-cache-v1")) {
-			saveHintCache(BUILT_IN_HINTS);
-			setHints(BUILT_IN_HINTS);
-		}
+		const cached = loadHintCache([]);
+		const builtInById = new Map(BUILT_IN_HINTS.map((hint) => [hint.id, hint]));
+		const refreshed = cached.length ? cached.map((hint) => ({
+			...hint,
+			...builtInById.get(hint.id)
+		})).filter((hint) => hint.text) : BUILT_IN_HINTS;
+		const nextHints = refreshed.length ? refreshed : BUILT_IN_HINTS;
+		saveHintCache(nextHints);
+		setHints(nextHints);
 		const update = () => setOffline(!navigator.onLine);
 		window.addEventListener("online", update);
 		window.addEventListener("offline", update);
@@ -2167,13 +2192,19 @@ function HintScreen({ onUseHint }) {
 							className: "hint-paper-ribbon",
 							"aria-hidden": "true"
 						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "hint-text",
-							children: current.text
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "hint-content-block",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "雑学" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "hint-text",
+								children: current.text
+							})]
 						}),
-						current.question && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "hint-question",
-							children: current.question
+						current.question && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "hint-content-block conversation-line",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "会話につなげる一言" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "hint-question",
+								children: current.question
+							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", { children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: ["出典：", current.source] }),
@@ -2186,7 +2217,7 @@ function HintScreen({ onUseHint }) {
 							})
 						] })
 					]
-				}),
+				}, current.id),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "hint-source-note",
 					children: "信頼できる情報源をもとに、会話向けに短く要約しています。"
@@ -2203,10 +2234,10 @@ function HintScreen({ onUseHint }) {
 						type: "button",
 						children: "もう一度引く"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-						className: "primary-button",
-						onClick: () => onUseHint(current.text),
+						className: "primary-button hint-talk-button",
+						onClick: () => onUseHint(current.memo || current.question),
 						type: "button",
-						children: "しおりに挟む"
+						children: "話す"
 					})]
 				})
 			]

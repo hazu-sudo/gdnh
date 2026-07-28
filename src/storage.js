@@ -13,7 +13,6 @@ const THEME_KEY = "later-open-shiori-theme-v1";
 const REFLECTION_KEY = "later-open-shiori-reflection-v1";
 const HINTS_KEY = "later-open-shiori-hints-visible-v1";
 const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
-const MOBILE_HINTS_KEY = "later-open-shiori-mobile-hints-v1";
 const SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
 const HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
 const validFontSizes = new Set(["small", "standard", "large"]);
@@ -100,14 +99,6 @@ export function loadHintIntroSeen() {
 
 export function saveHintIntroSeen() {
   localStorage.setItem(HINTS_INTRO_KEY, "seen");
-}
-
-export function loadMobileHints() {
-  return localStorage.getItem(MOBILE_HINTS_KEY) === "on";
-}
-
-export function saveMobileHints(visible) {
-  localStorage.setItem(MOBILE_HINTS_KEY, visible ? "on" : "off");
 }
 
 export function loadSenderName() {

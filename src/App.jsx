@@ -10,7 +10,6 @@ import {
   loadHintVisibility,
   loadBookmarks,
   loadFontSize,
-  loadMobileHints,
   loadReflectionVisibility,
   loadSenderName,
   loadTheme,
@@ -18,7 +17,6 @@ import {
   saveHintVisibility,
   saveBookmarks,
   saveFontSize,
-  saveMobileHints,
   saveReflectionVisibility,
   saveSenderName,
   saveTheme,
@@ -32,7 +30,6 @@ export default function App() {
   const [showReflection, setShowReflection] = useState(true);
   const [showHints, setShowHints] = useState(false);
   const [hintIntroSeen, setHintIntroSeen] = useState(false);
-  const [mobileHints, setMobileHints] = useState(false);
   const [senderName, setSenderName] = useState("");
   const [prefilledMemo, setPrefilledMemo] = useState("");
 
@@ -43,7 +40,6 @@ export default function App() {
     setShowReflection(loadReflectionVisibility());
     setShowHints(loadHintVisibility());
     setHintIntroSeen(loadHintIntroSeen());
-    setMobileHints(loadMobileHints());
     setSenderName(loadSenderName());
   }, []);
 
@@ -106,11 +102,6 @@ export default function App() {
     saveHintIntroSeen();
   }
 
-  function updateMobileHints(visible) {
-    setMobileHints(visible);
-    saveMobileHints(visible);
-  }
-
   function updateSenderName(name) {
     setSenderName(name);
     saveSenderName(name);
@@ -148,11 +139,9 @@ export default function App() {
         <SettingsScreen
           fontSize={fontSize}
           hintIntroSeen={hintIntroSeen}
-          mobileHints={mobileHints}
           onFontSizeChange={updateFontSize}
           onHintIntroSeen={markHintIntroSeen}
           onHintVisibilityChange={updateHintVisibility}
-          onMobileHintsChange={updateMobileHints}
           onReflectionChange={updateReflectionVisibility}
           onSenderNameChange={updateSenderName}
           onThemeChange={updateTheme}

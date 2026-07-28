@@ -2494,13 +2494,7 @@ html[data-font-size="large"] .search-choice small { display: none; }
 
 /* Optional features and clearer core interactions */
 .eyebrow { letter-spacing: 0; }
-.brand-mark.blank-mark::after {
-  width: 7px;
-  height: 7px;
-  border: 2px solid rgba(255, 255, 255, 0.88);
-  border-radius: 50%;
-  content: "";
-}
+.brand-mark.blank-mark::after { content: none; }
 .form-date-trigger {
   width: 100%;
   justify-content: flex-start;

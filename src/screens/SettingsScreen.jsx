@@ -40,11 +40,9 @@ function ToggleSetting({ checked, description, label, onChange }) {
 export default function SettingsScreen({
   fontSize,
   hintIntroSeen,
-  mobileHints,
   onFontSizeChange,
   onHintIntroSeen,
   onHintVisibilityChange,
-  onMobileHintsChange,
   onReflectionChange,
   onSenderNameChange,
   onThemeChange,
@@ -148,22 +146,8 @@ export default function SettingsScreen({
         </div>
       </section>
 
-      {showHints && (
-        <section className="settings-group">
-          <header><span>03</span><h2>通信設定</h2></header>
-          <div className="settings-panel">
-            <ToggleSetting
-              checked={mobileHints}
-              description="Wi-Fiがないときにも、新しいヒントを取得します"
-              label="モバイルデータ通信でヒントを取得する"
-              onChange={onMobileHintsChange}
-            />
-          </div>
-        </section>
-      )}
-
       <section className="settings-group">
-        <header><span>{showHints ? "04" : "03"}</span><h2>共有設定</h2></header>
+        <header><span>03</span><h2>共有設定</h2></header>
         <div className="settings-panel">
           <label className="simple-field">
             <span>共有時の差出人名</span>

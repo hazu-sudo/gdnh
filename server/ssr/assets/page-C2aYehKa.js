@@ -1478,27 +1478,27 @@ function SettingsScreen({ fontSize, hintIntroSeen, onFontSizeChange, onHintIntro
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "settings-group",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "02" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "表示する機能" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "settings-panel setting-stack",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "02" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "表示する機能" })] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "feature-setting-list",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
 							checked: showHints,
 							description: "話題に迷ったとき、会話につながるヒントを引けます",
-							label: "会話のヒントを表示する",
+							label: "会話のヒント",
 							onChange: requestHintChange
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleSetting, {
 							checked: showReflection,
 							description: "登録したしおりと、話したしおりを週ごと・月ごとに振り返ります",
-							label: "しおりの振り返りを表示する",
+							label: "しおりの振り返り",
 							onChange: onReflectionChange
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "setting-helper",
-							children: "OFFにしても、これまでのしおりや設定は消えません。"
-						})
-					]
-				})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "feature-setting-helper",
+						children: "OFFにしても、これまでのしおりや設定は消えません。"
+					})
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "settings-group",

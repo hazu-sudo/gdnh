@@ -127,13 +127,24 @@ function BookmarkCard({ bookmark, onOpen }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 				className: "simple-card-foot",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("time", {
-					dateTime: bookmark.createdAt,
-					children: formatJapaneseDate(bookmark.createdAt)
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: `status-label ${bookmark.status}`,
-					children: STATUS_LABELS[bookmark.status]
-				})]
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("time", {
+						dateTime: bookmark.createdAt,
+						children: formatJapaneseDate(bookmark.createdAt)
+					}),
+					bookmark.attachmentId && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "attachment-badge",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+							viewBox: "0 0 24 24",
+							"aria-hidden": "true",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "m9 12 5.2-5.2a3 3 0 0 1 4.2 4.2l-7.3 7.3a5 5 0 0 1-7.1-7.1l7.1-7.1" })
+						}), "添付"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: `status-label ${bookmark.status}`,
+						children: STATUS_LABELS[bookmark.status]
+					})
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 				className: "card-chevron",
@@ -159,6 +170,329 @@ function pickRandom(items, currentId = "") {
 }
 function sortNewest(bookmarks) {
 	return [...bookmarks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+//#endregion
+//#region src/attachmentStore.js
+var DB_NAME = "later-open-shiori-attachments-v1";
+var STORE_NAME = "attachments";
+var DB_VERSION = 1;
+var MAX_DOCUMENT_SIZE = 20 * 1024 * 1024;
+var MAX_IMAGE_EDGE = 2400;
+function openDatabase() {
+	return new Promise((resolve, reject) => {
+		if (!globalThis.indexedDB) {
+			reject(/* @__PURE__ */ new Error("ATTACHMENT_STORAGE_UNAVAILABLE"));
+			return;
+		}
+		const request = indexedDB.open(DB_NAME, DB_VERSION);
+		request.onupgradeneeded = () => {
+			const database = request.result;
+			if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath: "id" }).createIndex("bookmarkId", "bookmarkId", { unique: false });
+		};
+		request.onsuccess = () => resolve(request.result);
+		request.onerror = () => reject(request.error || /* @__PURE__ */ new Error("ATTACHMENT_STORAGE_UNAVAILABLE"));
+	});
+}
+function useStore(mode, operation) {
+	return openDatabase().then((database) => new Promise((resolve, reject) => {
+		const transaction = database.transaction(STORE_NAME, mode);
+		const store = transaction.objectStore(STORE_NAME);
+		let result;
+		try {
+			result = operation(store);
+		} catch (error) {
+			database.close();
+			reject(error);
+			return;
+		}
+		transaction.oncomplete = () => {
+			database.close();
+			resolve(result?.result);
+		};
+		transaction.onerror = () => {
+			database.close();
+			reject(transaction.error || /* @__PURE__ */ new Error("ATTACHMENT_STORAGE_FAILED"));
+		};
+		transaction.onabort = transaction.onerror;
+	}));
+}
+function loadImage(file) {
+	return new Promise((resolve, reject) => {
+		const url = URL.createObjectURL(file);
+		const image = new Image();
+		image.onload = () => {
+			URL.revokeObjectURL(url);
+			resolve(image);
+		};
+		image.onerror = () => {
+			URL.revokeObjectURL(url);
+			reject(/* @__PURE__ */ new Error("IMAGE_READ_FAILED"));
+		};
+		image.src = url;
+	});
+}
+function canvasToBlob(canvas, type, quality) {
+	return new Promise((resolve, reject) => {
+		canvas.toBlob((blob) => blob ? resolve(blob) : reject(/* @__PURE__ */ new Error("IMAGE_OPTIMIZE_FAILED")), type, quality);
+	});
+}
+async function optimizeImage(file) {
+	const image = await loadImage(file);
+	const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+	const width = Math.max(1, Math.round(image.naturalWidth * scale));
+	const height = Math.max(1, Math.round(image.naturalHeight * scale));
+	if (scale === 1 && file.size <= 4 * 1024 * 1024) return {
+		blob: file,
+		height,
+		width
+	};
+	const canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = height;
+	const context = canvas.getContext("2d", { alpha: false });
+	if (!context) throw new Error("IMAGE_OPTIMIZE_FAILED");
+	context.fillStyle = "#fff";
+	context.fillRect(0, 0, width, height);
+	context.drawImage(image, 0, 0, width, height);
+	return {
+		blob: await canvasToBlob(canvas, "image/jpeg", .88),
+		height,
+		width
+	};
+}
+async function assertStorageSpace(requiredBytes) {
+	if (!navigator.storage?.estimate) return;
+	const { quota = 0, usage = 0 } = await navigator.storage.estimate();
+	if (quota && quota - usage < requiredBytes * 1.15) {
+		const error = /* @__PURE__ */ new Error("ATTACHMENT_QUOTA_EXCEEDED");
+		error.code = "quota";
+		throw error;
+	}
+}
+async function saveAttachment(file, bookmarkId) {
+	if (!(file instanceof Blob)) throw new Error("INVALID_ATTACHMENT");
+	if (!file.type.startsWith("image/") && file.size > MAX_DOCUMENT_SIZE) {
+		const error = /* @__PURE__ */ new Error("ATTACHMENT_TOO_LARGE");
+		error.code = "too-large";
+		throw error;
+	}
+	let prepared = {
+		blob: file,
+		height: null,
+		width: null
+	};
+	if (file.type.startsWith("image/")) prepared = await optimizeImage(file).catch(() => prepared);
+	if (navigator.storage?.persist) await navigator.storage.persist().catch(() => false);
+	await assertStorageSpace(prepared.blob.size);
+	const convertedToJpeg = prepared.blob.type === "image/jpeg" && file.type !== "image/jpeg";
+	const originalName = file.name || `attachment-${Date.now()}`;
+	const name = convertedToJpeg ? `${originalName.replace(/\.[^.]+$/, "") || "photo"}.jpg` : originalName;
+	const record = {
+		id: uniqueId(),
+		bookmarkId,
+		blob: prepared.blob,
+		type: prepared.blob.type || file.type || "application/octet-stream",
+		name,
+		size: prepared.blob.size,
+		width: prepared.width,
+		height: prepared.height,
+		attachedAt: (/* @__PURE__ */ new Date()).toISOString()
+	};
+	await useStore("readwrite", (store) => store.put(record));
+	return record;
+}
+async function getAttachment(id) {
+	if (!id) return null;
+	return useStore("readonly", (store) => store.get(id));
+}
+async function deleteAttachment(id) {
+	if (!id) return;
+	await useStore("readwrite", (store) => store.delete(id));
+}
+async function getAttachmentUsage() {
+	const records = await useStore("readonly", (store) => store.getAll()) || [];
+	return {
+		bytes: records.reduce((total, item) => total + Number(item.size || item.blob?.size || 0), 0),
+		bookmarkCount: new Set(records.map((item) => item.bookmarkId)).size,
+		fileCount: records.length
+	};
+}
+function attachmentErrorMessage(error) {
+	if (error?.code === "quota" || error?.name === "QuotaExceededError") return "端末の空き容量が不足しているため、写真・資料を保存できません";
+	if (error?.code === "too-large") return "資料のサイズが大きすぎます。20MB以下のファイルを選んでください";
+	return "写真・資料を保存できませんでした。もう一度お試しください";
+}
+function formatFileSize(bytes = 0) {
+	if (bytes < 1024) return `${bytes}B`;
+	if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+	return `${(bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)}MB`;
+}
+//#endregion
+//#region src/components/AttachmentEditor.jsx
+var FILE_ACCEPT = "image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv";
+function useObjectUrl(blob) {
+	const [url, setUrl] = (0, import_react.useState)("");
+	(0, import_react.useEffect)(() => {
+		if (!blob) {
+			setUrl("");
+			return;
+		}
+		const nextUrl = URL.createObjectURL(blob);
+		setUrl(nextUrl);
+		return () => URL.revokeObjectURL(nextUrl);
+	}, [blob]);
+	return url;
+}
+function FilePreview({ item }) {
+	const blob = item?.blob || item;
+	const url = useObjectUrl(blob);
+	const type = item?.type || blob?.type || "";
+	const name = item?.name || "添付ファイル";
+	const size = item?.size ?? blob?.size ?? 0;
+	if (!item) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "attachment-preview",
+		children: [type.startsWith("image/") && url ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+			href: url,
+			rel: "noreferrer",
+			target: "_blank",
+			"aria-label": `${name}をプレビュー`,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+				alt: name,
+				src: url
+			})
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
+			className: "document-preview",
+			href: url || void 0,
+			rel: "noreferrer",
+			target: "_blank",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", {
+				viewBox: "0 0 24 24",
+				"aria-hidden": "true",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M6 3h8l4 4v14H6V3Z" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M14 3v5h5M9 13h6M9 17h6" })]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: name }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "タップしてプレビュー" })] })]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "attachment-meta",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: name }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+					type.startsWith("image/") ? "写真" : "資料",
+					"・",
+					formatFileSize(size)
+				] }),
+				item?.width && item?.height && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+					item.width,
+					" × ",
+					item.height,
+					"px"
+				] })
+			]
+		})]
+	});
+}
+function AttachmentEditor({ attachment, disabled, onChoose, onRequestRemove, pendingFile, readOnly = false, removed = false }) {
+	const [menuOpen, setMenuOpen] = (0, import_react.useState)(false);
+	const photoInput = (0, import_react.useRef)(null);
+	const cameraInput = (0, import_react.useRef)(null);
+	const fileInput = (0, import_react.useRef)(null);
+	const visibleItem = removed ? null : pendingFile || attachment;
+	function choose(event) {
+		const file = event.target.files?.[0];
+		if (file) onChoose(file);
+		event.target.value = "";
+		setMenuOpen(false);
+	}
+	if (readOnly) return visibleItem ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePreview, { item: visibleItem }) : null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "attachment-editor",
+		children: [
+			visibleItem ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FilePreview, { item: visibleItem }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "attachment-empty",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", {
+					viewBox: "0 0 24 24",
+					"aria-hidden": "true",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M4 7h4l1.5-2h5L16 7h4v12H4V7Z" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("circle", {
+						cx: "12",
+						cy: "13",
+						r: "3.2"
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "写真や資料を一緒に挟めます" })]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "attachment-controls",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "attachment-change-button",
+					disabled,
+					onClick: () => setMenuOpen(true),
+					type: "button",
+					children: visibleItem ? "変更" : "添付する"
+				}), visibleItem && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					className: "attachment-remove-button",
+					disabled,
+					onClick: onRequestRemove,
+					type: "button",
+					children: "削除"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				accept: "image/*",
+				className: "sr-only",
+				onChange: choose,
+				ref: photoInput,
+				type: "file"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				accept: "image/*",
+				capture: "environment",
+				className: "sr-only",
+				onChange: choose,
+				ref: cameraInput,
+				type: "file"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				accept: FILE_ACCEPT,
+				className: "sr-only",
+				onChange: choose,
+				ref: fileInput,
+				type: "file"
+			}),
+			menuOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "modal-backdrop",
+				onClick: () => setMenuOpen(false),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "attachment-menu",
+					onClick: (event) => event.stopPropagation(),
+					role: "dialog",
+					"aria-modal": "true",
+					"aria-label": "添付方法を選ぶ",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "写真・資料を選ぶ" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							onClick: () => photoInput.current?.click(),
+							type: "button",
+							children: "写真ライブラリから選ぶ"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							onClick: () => cameraInput.current?.click(),
+							type: "button",
+							children: "写真を撮る"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							onClick: () => fileInput.current?.click(),
+							type: "button",
+							children: "ファイルから選ぶ"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "attachment-menu-cancel",
+							onClick: () => setMenuOpen(false),
+							type: "button",
+							children: "キャンセル"
+						})
+					]
+				})
+			})
+		]
+	});
 }
 //#endregion
 //#region src/screens/SaveScreen.jsx
@@ -301,12 +635,15 @@ function DateWheel({ date, onCancel, onConfirm }) {
 		})
 	});
 }
-function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onShowBookmarks }) {
+function SaveScreen({ bookmarks, initialMemo, onAttachmentsChanged, onInitialMemoConsumed, onSave, onShowBookmarks }) {
 	const [date, setDate] = (0, import_react.useState)(formatToday());
 	const [targetName, setTargetName] = (0, import_react.useState)("");
 	const [memo, setMemo] = (0, import_react.useState)("");
 	const [dateOpen, setDateOpen] = (0, import_react.useState)(false);
 	const [saved, setSaved] = (0, import_react.useState)(false);
+	const [pendingFile, setPendingFile] = (0, import_react.useState)(null);
+	const [attachmentError, setAttachmentError] = (0, import_react.useState)("");
+	const [saving, setSaving] = (0, import_react.useState)(false);
 	(0, import_react.useEffect)(() => {
 		if (!initialMemo) return;
 		setMemo(initialMemo);
@@ -324,19 +661,35 @@ function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onS
 		})).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja"));
 	}, [bookmarks]);
 	const suggestions = recipientStats.filter((item) => item.count > 1).slice(0, 5);
-	function submit(event) {
+	async function submit(event) {
 		event.preventDefault();
-		onSave({
-			id: uniqueId(),
-			targetName: targetName.trim(),
-			memo: memo.trim(),
-			status: "unresolved",
-			createdAt: date
-		});
-		setTargetName("");
-		setMemo("");
-		setDate(formatToday());
-		setSaved(true);
+		if (saving) return;
+		const id = uniqueId();
+		let storedAttachment = null;
+		setAttachmentError("");
+		setSaving(true);
+		try {
+			if (pendingFile) storedAttachment = await saveAttachment(pendingFile, id);
+			onSave({
+				id,
+				targetName: targetName.trim(),
+				memo: memo.trim(),
+				status: "unresolved",
+				createdAt: date,
+				attachmentId: storedAttachment?.id || ""
+			});
+			setTargetName("");
+			setMemo("");
+			setPendingFile(null);
+			setDate(formatToday());
+			setSaved(true);
+			if (storedAttachment) onAttachmentsChanged?.();
+		} catch (error) {
+			if (storedAttachment?.id) await deleteAttachment(storedAttachment.id).catch(() => {});
+			setAttachmentError(attachmentErrorMessage(error));
+		} finally {
+			setSaving(false);
+		}
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 		className: "screen save-screen",
@@ -446,6 +799,38 @@ function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onS
 							})
 						]
 					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: "attachment-field",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "写真・資料" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "任意" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "端末内に保存" })] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AttachmentEditor, {
+								disabled: saving,
+								onChoose: (file) => {
+									setPendingFile(file);
+									setAttachmentError("");
+									setSaved(false);
+								},
+								onRequestRemove: () => {
+									setPendingFile(null);
+									setAttachmentError("");
+								},
+								pendingFile
+							}),
+							pendingFile && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "attachment-privacy-note",
+								children: "しおりに挟んだ写真や資料は、元のデータを削除しても確認できるように、アプリ内に保存されます。"
+							}),
+							attachmentError && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "attachment-error",
+								role: "alert",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: attachmentError }), pendingFile && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									onClick: () => setPendingFile(null),
+									type: "button",
+									children: "添付を外す"
+								})]
+							})
+						]
+					}),
 					saved && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "saved-note",
 						"aria-live": "polite",
@@ -456,11 +841,12 @@ function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onS
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						className: "primary-button quick-save",
+						disabled: saving,
 						type: "submit",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 							className: "mini-ribbon",
 							"aria-hidden": "true"
-						}), "挟む"]
+						}), saving ? pendingFile?.type.startsWith("image/") ? "写真をしおりに挟んでいます" : "資料を保存しています" : "挟む"]
 					}),
 					saved && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "text-button centered",
@@ -550,7 +936,18 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 	const [senderName, setSenderName] = (0, import_react.useState)(defaultSenderName);
 	const [showDear, setShowDear] = (0, import_react.useState)(true);
 	const [showFrom, setShowFrom] = (0, import_react.useState)(true);
+	const [attachment, setAttachment] = (0, import_react.useState)(null);
+	const [includeAttachment, setIncludeAttachment] = (0, import_react.useState)(false);
 	const [message, setMessage] = (0, import_react.useState)("");
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		getAttachment(bookmark.attachmentId).then((item) => {
+			if (active) setAttachment(item);
+		}).catch(() => {});
+		return () => {
+			active = false;
+		};
+	}, [bookmark.attachmentId]);
 	async function shareCard() {
 		const blob = await renderCard({
 			createdAt: bookmark.createdAt,
@@ -561,11 +958,13 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 			targetName
 		});
 		if (!blob) return;
-		const file = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
+		const cardFile = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
+		const files = [cardFile];
+		if (includeAttachment && attachment?.blob) files.push(new File([attachment.blob], attachment.name, { type: attachment.type }));
 		try {
-			if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+			if (navigator.share && (!navigator.canShare || navigator.canShare({ files }))) {
 				await navigator.share({
-					files: [file],
+					files,
 					title: "あとで開くしおり"
 				});
 				setMessage("共有メニューを開きました");
@@ -577,9 +976,17 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 		const url = URL.createObjectURL(blob);
 		const anchor = document.createElement("a");
 		anchor.href = url;
-		anchor.download = file.name;
+		anchor.download = cardFile.name;
 		anchor.click();
 		URL.revokeObjectURL(url);
+		if (includeAttachment && attachment?.blob) {
+			const attachmentUrl = URL.createObjectURL(attachment.blob);
+			const attachmentAnchor = document.createElement("a");
+			attachmentAnchor.href = attachmentUrl;
+			attachmentAnchor.download = attachment.name;
+			attachmentAnchor.click();
+			URL.revokeObjectURL(attachmentUrl);
+		}
 		setMessage("画像として保存しました");
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
@@ -654,6 +1061,21 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 							onChange: (event) => setShowFrom(event.target.checked),
 							type: "checkbox"
 						}), "Fromを表示"] })]
+					}),
+					attachment && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "share-attachment-option",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AttachmentEditor, {
+								attachment,
+								readOnly: true
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+								checked: includeAttachment,
+								onChange: (event) => setIncludeAttachment(event.target.checked),
+								type: "checkbox"
+							}), "この写真・資料も共有する"] }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "選択した場合だけ、共有先へ添付します。" })
+						]
 					})
 				]
 			}),
@@ -721,7 +1143,7 @@ function memoPreview(memo) {
 	if (!firstLine) return "メモなし";
 	return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
 }
-function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, senderName }) {
+function DetailView({ bookmark, onAttachmentsChanged, onBack, onUpdateBookmark, onUpdateStatus, senderName }) {
 	const [editing, setEditing] = (0, import_react.useState)(false);
 	const [sharing, setSharing] = (0, import_react.useState)(false);
 	const [targetName, setTargetName] = (0, import_react.useState)(bookmark.targetName);
@@ -729,6 +1151,24 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 	const [createdAt, setCreatedAt] = (0, import_react.useState)(bookmark.createdAt);
 	const [status, setStatus] = (0, import_react.useState)(bookmark.status);
 	const [dateOpen, setDateOpen] = (0, import_react.useState)(false);
+	const [attachment, setAttachment] = (0, import_react.useState)(null);
+	const [pendingFile, setPendingFile] = (0, import_react.useState)(null);
+	const [removeAttachment, setRemoveAttachment] = (0, import_react.useState)(false);
+	const [attachmentError, setAttachmentError] = (0, import_react.useState)("");
+	const [deleteConfirmOpen, setDeleteConfirmOpen] = (0, import_react.useState)(false);
+	const [unsavedDialog, setUnsavedDialog] = (0, import_react.useState)("");
+	const [saving, setSaving] = (0, import_react.useState)(false);
+	(0, import_react.useEffect)(() => {
+		let active = true;
+		getAttachment(bookmark.attachmentId).then((item) => {
+			if (active) setAttachment(item);
+		}).catch(() => {
+			if (active) setAttachment(null);
+		});
+		return () => {
+			active = false;
+		};
+	}, [bookmark.attachmentId]);
 	(0, import_react.useEffect)(() => {
 		if (!editing) setStatus(bookmark.status);
 	}, [bookmark.status, editing]);
@@ -737,21 +1177,67 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 		defaultSenderName: senderName,
 		onClose: () => setSharing(false)
 	});
-	function cancelEdit() {
+	function resetDraft() {
 		setTargetName(bookmark.targetName);
 		setMemo(bookmark.memo);
 		setCreatedAt(bookmark.createdAt);
 		setStatus(bookmark.status);
-		setEditing(false);
+		setPendingFile(null);
+		setRemoveAttachment(false);
+		setAttachmentError("");
 	}
-	function saveEdit() {
-		onUpdateBookmark(bookmark.id, {
-			targetName: targetName.trim(),
-			memo: memo.trim(),
-			createdAt,
-			status
-		});
+	const dirty = targetName !== bookmark.targetName || memo !== bookmark.memo || createdAt !== bookmark.createdAt || status !== bookmark.status || Boolean(pendingFile) || removeAttachment;
+	function discardEdit(destination = "detail") {
+		resetDraft();
 		setEditing(false);
+		setUnsavedDialog("");
+		if (destination === "list") onBack();
+	}
+	function requestLeave(destination) {
+		if (editing && dirty) {
+			setUnsavedDialog(destination);
+			return;
+		}
+		if (destination === "list") onBack();
+		else {
+			resetDraft();
+			setEditing(false);
+		}
+	}
+	async function saveEdit(destination = "detail") {
+		if (saving) return false;
+		let newAttachment = null;
+		setAttachmentError("");
+		setSaving(true);
+		try {
+			if (pendingFile) newAttachment = await saveAttachment(pendingFile, bookmark.id);
+			const oldAttachmentId = bookmark.attachmentId || "";
+			const nextAttachmentId = removeAttachment ? "" : newAttachment?.id || oldAttachmentId;
+			onUpdateBookmark(bookmark.id, {
+				targetName: targetName.trim(),
+				memo: memo.trim(),
+				createdAt,
+				status,
+				attachmentId: nextAttachmentId
+			});
+			if ((removeAttachment || newAttachment) && oldAttachmentId) await deleteAttachment(oldAttachmentId).catch(() => {});
+			if (newAttachment) setAttachment(newAttachment);
+			if (removeAttachment) setAttachment(null);
+			if (removeAttachment || newAttachment) onAttachmentsChanged?.();
+			setPendingFile(null);
+			setRemoveAttachment(false);
+			setUnsavedDialog("");
+			setEditing(false);
+			if (destination === "list") onBack();
+			return true;
+		} catch (error) {
+			if (newAttachment?.id) await deleteAttachment(newAttachment.id).catch(() => {});
+			setAttachmentError(attachmentErrorMessage(error));
+			setUnsavedDialog("");
+			return false;
+		} finally {
+			setSaving(false);
+		}
 	}
 	function changeStatus(nextStatus) {
 		if (editing) setStatus(nextStatus);
@@ -769,7 +1255,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						className: "back-button",
-						onClick: onBack,
+						onClick: () => requestLeave("list"),
 						type: "button",
 						"aria-label": "一覧へ戻る",
 						children: "‹"
@@ -789,7 +1275,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							className: editing ? "detail-edit-button active" : "detail-edit-button",
-							onClick: () => editing ? cancelEdit() : setEditing(true),
+							onClick: () => editing ? requestLeave("detail") : setEditing(true),
 							type: "button",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("svg", {
 								viewBox: "0 0 24 24",
@@ -860,6 +1346,41 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 						children: bookmark.memo || "メモなし"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "detail-attachment",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "detail-label",
+							children: "写真・資料"
+						}), editing ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AttachmentEditor, {
+								attachment,
+								disabled: saving,
+								onChoose: (file) => {
+									setPendingFile(file);
+									setRemoveAttachment(false);
+									setAttachmentError("");
+								},
+								onRequestRemove: () => setDeleteConfirmOpen(true),
+								pendingFile,
+								removed: removeAttachment
+							}),
+							(pendingFile || removeAttachment) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "attachment-pending-note",
+								children: "添付の変更は「変更を保存」で確定します。"
+							}),
+							attachmentError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "attachment-error-text",
+								role: "alert",
+								children: attachmentError
+							})
+						] }) : attachment ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AttachmentEditor, {
+							attachment,
+							readOnly: true
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "detail-no-attachment",
+							children: "添付はありません"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "detail-status",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "状態" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "status-choice-buttons",
@@ -896,14 +1417,16 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 				className: "edit-actions",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "edit-cancel",
-					onClick: cancelEdit,
+					disabled: saving,
+					onClick: () => requestLeave("detail"),
 					type: "button",
 					children: "キャンセル"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 					className: "edit-save",
-					onClick: saveEdit,
+					disabled: saving,
+					onClick: () => saveEdit(),
 					type: "button",
-					children: "変更を保存"
+					children: saving ? "写真・資料を保存しています" : "変更を保存"
 				})]
 			}) : null,
 			dateOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DateWheel, {
@@ -913,11 +1436,85 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
 					setCreatedAt(nextDate);
 					setDateOpen(false);
 				}
+			}),
+			deleteConfirmOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "modal-backdrop",
+				onClick: () => setDeleteConfirmOpen(false),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "confirm-dialog",
+					onClick: (event) => event.stopPropagation(),
+					role: "dialog",
+					"aria-modal": "true",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dialog-bookmark",
+							"aria-hidden": "true"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: (pendingFile?.type || attachment?.type || "").startsWith("image/") ? "写真を外しますか？" : "資料を外しますか？" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "このしおりから添付だけを外します。しおりの内容は残ります。" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "secondary-button",
+							onClick: () => setDeleteConfirmOpen(false),
+							type: "button",
+							children: "キャンセル"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "danger-soft-button",
+							onClick: () => {
+								setPendingFile(null);
+								setRemoveAttachment(true);
+								setDeleteConfirmOpen(false);
+							},
+							type: "button",
+							children: "外す"
+						})] })
+					]
+				})
+			}),
+			unsavedDialog && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "modal-backdrop",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "confirm-dialog unsaved-dialog",
+					role: "dialog",
+					"aria-modal": "true",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "dialog-bookmark",
+							"aria-hidden": "true"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "変更内容が保存されていません" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "編集した内容をどうしますか？" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "unsaved-actions",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "primary-button",
+									disabled: saving,
+									onClick: () => saveEdit(unsavedDialog),
+									type: "button",
+									children: "変更を保存する"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "secondary-button",
+									disabled: saving,
+									onClick: () => discardEdit(unsavedDialog),
+									type: "button",
+									children: "保存せず戻る"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+									className: "text-button",
+									onClick: () => setUnsavedDialog(""),
+									type: "button",
+									children: "編集を続ける"
+								})
+							]
+						})
+					]
+				})
 			})
 		]
 	});
 }
-function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus, senderName }) {
+function SearchScreen({ bookmarks, onAttachmentsChanged, onUpdateBookmark, onUpdateStatus, senderName }) {
 	const [mode, setMode] = (0, import_react.useState)("");
 	const [chooserOpen, setChooserOpen] = (0, import_react.useState)(false);
 	const [calendarMonth, setCalendarMonth] = (0, import_react.useState)(monthKey$1(/* @__PURE__ */ new Date()));
@@ -959,6 +1556,7 @@ function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus, senderName 
 	]);
 	if (selectedBookmark) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DetailView, {
 		bookmark: selectedBookmark,
+		onAttachmentsChanged,
 		onBack: () => setSelectedId(""),
 		onUpdateBookmark,
 		onUpdateStatus,
@@ -1358,8 +1956,16 @@ function ToggleSetting({ checked, description, label, onChange }) {
 		})]
 	});
 }
-function SettingsScreen({ fontSize, hintIntroSeen, onFontSizeChange, onHintIntroSeen, onHintVisibilityChange, onReflectionChange, onSenderNameChange, onThemeChange, senderName, showHints, showReflection, theme }) {
+function SettingsScreen({ attachmentRevision, fontSize, hintIntroSeen, onFontSizeChange, onHintIntroSeen, onHintVisibilityChange, onReflectionChange, onSenderNameChange, onThemeChange, senderName, showHints, showReflection, theme }) {
 	const [showHintDialog, setShowHintDialog] = (0, import_react.useState)(false);
+	const [attachmentUsage, setAttachmentUsage] = (0, import_react.useState)({
+		bytes: 0,
+		bookmarkCount: 0,
+		fileCount: 0
+	});
+	(0, import_react.useEffect)(() => {
+		getAttachmentUsage().then(setAttachmentUsage).catch(() => {});
+	}, [attachmentRevision]);
 	function requestHintChange(next) {
 		if (next && !hintIntroSeen) {
 			setShowHintDialog(true);
@@ -1502,7 +2108,18 @@ function SettingsScreen({ fontSize, hintIntroSeen, onFontSizeChange, onHintIntro
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "settings-group",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "03" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "共有設定" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "03" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "端末内の保存" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "settings-panel attachment-usage-panel",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "添付ファイルの使用容量" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: formatFileSize(attachmentUsage.bytes) })] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "写真・資料を含むしおり" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [attachmentUsage.bookmarkCount, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: "枚" })] })] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "写真や資料は外部へ送信せず、この端末のアプリ内に保存します。" })
+					]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "settings-group",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "04" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "共有設定" })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "settings-panel",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "simple-field",
@@ -2039,7 +2656,8 @@ function normalizeBookmark(bookmark) {
 		targetName: String(bookmark.targetName || bookmark.person || "").trim(),
 		memo: String(bookmark.memo || "").trim(),
 		status: statusMigration[bookmark.status] || "unresolved",
-		createdAt: String(bookmark.createdAt || (/* @__PURE__ */ new Date()).toLocaleDateString("sv-SE"))
+		createdAt: String(bookmark.createdAt || (/* @__PURE__ */ new Date()).toLocaleDateString("sv-SE")),
+		attachmentId: String(bookmark.attachmentId || "")
 	};
 }
 function loadBookmarks() {
@@ -2256,6 +2874,7 @@ function App() {
 	const [hintIntroSeen, setHintIntroSeen] = (0, import_react.useState)(false);
 	const [senderName, setSenderName] = (0, import_react.useState)("");
 	const [prefilledMemo, setPrefilledMemo] = (0, import_react.useState)("");
+	const [attachmentRevision, setAttachmentRevision] = (0, import_react.useState)(0);
 	(0, import_react.useEffect)(() => {
 		setBookmarks(loadBookmarks());
 		setFontSize(loadFontSize());
@@ -2272,11 +2891,9 @@ function App() {
 		document.documentElement.dataset.theme = theme;
 	}, [theme]);
 	function addBookmark(bookmark) {
-		setBookmarks((current) => {
-			const next = [bookmark, ...current];
-			saveBookmarks(next);
-			return next;
-		});
+		const next = [bookmark, ...bookmarks];
+		saveBookmarks(next);
+		setBookmarks(next);
 	}
 	function updateStatus(id, status) {
 		setBookmarks((current) => {
@@ -2289,14 +2906,12 @@ function App() {
 		});
 	}
 	function updateBookmark(id, changes) {
-		setBookmarks((current) => {
-			const next = current.map((item) => item.id === id ? {
-				...item,
-				...changes
-			} : item);
-			saveBookmarks(next);
-			return next;
-		});
+		const next = bookmarks.map((item) => item.id === id ? {
+			...item,
+			...changes
+		} : item);
+		saveBookmarks(next);
+		setBookmarks(next);
 	}
 	function updateFontSize(size) {
 		setFontSize(size);
@@ -2334,6 +2949,7 @@ function App() {
 			activeTab === "save" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SaveScreen, {
 				bookmarks,
 				initialMemo: prefilledMemo,
+				onAttachmentsChanged: () => setAttachmentRevision((current) => current + 1),
 				onInitialMemoConsumed: () => setPrefilledMemo(""),
 				onSave: addBookmark,
 				onShowBookmarks: () => setActiveTab("search")
@@ -2342,6 +2958,7 @@ function App() {
 				bookmarks,
 				onUpdateBookmark: updateBookmark,
 				onUpdateStatus: updateStatus,
+				onAttachmentsChanged: () => setAttachmentRevision((current) => current + 1),
 				senderName
 			}),
 			activeTab === "hints" && showHints && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HintScreen, { onUseHint: useHintAsBookmark }),
@@ -2349,6 +2966,7 @@ function App() {
 			activeTab === "settings" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SettingsScreen, {
 				fontSize,
 				hintIntroSeen,
+				attachmentRevision,
 				onFontSizeChange: updateFontSize,
 				onHintIntroSeen: markHintIntroSeen,
 				onHintVisibilityChange: updateHintVisibility,

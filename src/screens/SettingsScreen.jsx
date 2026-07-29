@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { APP_NAME } from "../data.js";
+import { formatFileSize, getAttachmentUsage } from "../attachmentStore.js";
 
 const sizes = [
   { id: "small", label: "小", sample: "Aa", description: "コンパクト" },
@@ -38,6 +39,7 @@ function ToggleSetting({ checked, description, label, onChange }) {
 }
 
 export default function SettingsScreen({
+  attachmentRevision,
   fontSize,
   hintIntroSeen,
   onFontSizeChange,
@@ -52,6 +54,11 @@ export default function SettingsScreen({
   theme,
 }) {
   const [showHintDialog, setShowHintDialog] = useState(false);
+  const [attachmentUsage, setAttachmentUsage] = useState({ bytes: 0, bookmarkCount: 0, fileCount: 0 });
+
+  useEffect(() => {
+    getAttachmentUsage().then(setAttachmentUsage).catch(() => {});
+  }, [attachmentRevision]);
 
   function requestHintChange(next) {
     if (next && !hintIntroSeen) {
@@ -147,7 +154,22 @@ export default function SettingsScreen({
       </section>
 
       <section className="settings-group">
-        <header><span>03</span><h2>共有設定</h2></header>
+        <header><span>03</span><h2>端末内の保存</h2></header>
+        <div className="settings-panel attachment-usage-panel">
+          <div>
+            <span>添付ファイルの使用容量</span>
+            <strong>{formatFileSize(attachmentUsage.bytes)}</strong>
+          </div>
+          <div>
+            <span>写真・資料を含むしおり</span>
+            <strong>{attachmentUsage.bookmarkCount}<small>枚</small></strong>
+          </div>
+          <p>写真や資料は外部へ送信せず、この端末のアプリ内に保存します。</p>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <header><span>04</span><h2>共有設定</h2></header>
         <div className="settings-panel">
           <label className="simple-field">
             <span>共有時の差出人名</span>

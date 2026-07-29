@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import BookmarkCard, { formatJapaneseDate } from "../components/BookmarkCard.jsx";
 import SharePreview from "../components/SharePreview.jsx";
+import AttachmentEditor from "../components/AttachmentEditor.jsx";
+import {
+  attachmentErrorMessage,
+  deleteAttachment,
+  getAttachment,
+  saveAttachment,
+} from "../attachmentStore.js";
 import { sortNewest } from "../utils.js";
 import { DateWheel } from "./SaveScreen.jsx";
 
@@ -37,7 +44,14 @@ function memoPreview(memo) {
   return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
 }
 
-function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, senderName }) {
+function DetailView({
+  bookmark,
+  onAttachmentsChanged,
+  onBack,
+  onUpdateBookmark,
+  onUpdateStatus,
+  senderName,
+}) {
   const [editing, setEditing] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [targetName, setTargetName] = useState(bookmark.targetName);
@@ -45,6 +59,21 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
   const [createdAt, setCreatedAt] = useState(bookmark.createdAt);
   const [status, setStatus] = useState(bookmark.status);
   const [dateOpen, setDateOpen] = useState(false);
+  const [attachment, setAttachment] = useState(null);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [removeAttachment, setRemoveAttachment] = useState(false);
+  const [attachmentError, setAttachmentError] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [unsavedDialog, setUnsavedDialog] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getAttachment(bookmark.attachmentId)
+      .then((item) => { if (active) setAttachment(item); })
+      .catch(() => { if (active) setAttachment(null); });
+    return () => { active = false; };
+  }, [bookmark.attachmentId]);
   useEffect(() => {
     if (!editing) setStatus(bookmark.status);
   }, [bookmark.status, editing]);
@@ -59,22 +88,84 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
     );
   }
 
-  function cancelEdit() {
+  function resetDraft() {
     setTargetName(bookmark.targetName);
     setMemo(bookmark.memo);
     setCreatedAt(bookmark.createdAt);
     setStatus(bookmark.status);
-    setEditing(false);
+    setPendingFile(null);
+    setRemoveAttachment(false);
+    setAttachmentError("");
   }
 
-  function saveEdit() {
-    onUpdateBookmark(bookmark.id, {
-      targetName: targetName.trim(),
-      memo: memo.trim(),
-      createdAt,
-      status,
-    });
+  const dirty =
+    targetName !== bookmark.targetName ||
+    memo !== bookmark.memo ||
+    createdAt !== bookmark.createdAt ||
+    status !== bookmark.status ||
+    Boolean(pendingFile) ||
+    removeAttachment;
+
+  function discardEdit(destination = "detail") {
+    resetDraft();
     setEditing(false);
+    setUnsavedDialog("");
+    if (destination === "list") onBack();
+  }
+
+  function requestLeave(destination) {
+    if (editing && dirty) {
+      setUnsavedDialog(destination);
+      return;
+    }
+    if (destination === "list") onBack();
+    else {
+      resetDraft();
+      setEditing(false);
+    }
+  }
+
+  async function saveEdit(destination = "detail") {
+    if (saving) return false;
+    let newAttachment = null;
+    setAttachmentError("");
+    setSaving(true);
+
+    try {
+      if (pendingFile) newAttachment = await saveAttachment(pendingFile, bookmark.id);
+      const oldAttachmentId = bookmark.attachmentId || "";
+      const nextAttachmentId = removeAttachment
+        ? ""
+        : (newAttachment?.id || oldAttachmentId);
+
+      onUpdateBookmark(bookmark.id, {
+        targetName: targetName.trim(),
+        memo: memo.trim(),
+        createdAt,
+        status,
+        attachmentId: nextAttachmentId,
+      });
+
+      if ((removeAttachment || newAttachment) && oldAttachmentId) {
+        await deleteAttachment(oldAttachmentId).catch(() => {});
+      }
+      if (newAttachment) setAttachment(newAttachment);
+      if (removeAttachment) setAttachment(null);
+      if (removeAttachment || newAttachment) onAttachmentsChanged?.();
+      setPendingFile(null);
+      setRemoveAttachment(false);
+      setUnsavedDialog("");
+      setEditing(false);
+      if (destination === "list") onBack();
+      return true;
+    } catch (error) {
+      if (newAttachment?.id) await deleteAttachment(newAttachment.id).catch(() => {});
+      setAttachmentError(attachmentErrorMessage(error));
+      setUnsavedDialog("");
+      return false;
+    } finally {
+      setSaving(false);
+    }
   }
 
   function changeStatus(nextStatus) {
@@ -91,7 +182,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
   return (
     <main className="screen detail-screen">
       <header className="detail-header">
-        <button className="back-button" onClick={onBack} type="button" aria-label="一覧へ戻る">‹</button>
+        <button className="back-button" onClick={() => requestLeave("list")} type="button" aria-label="一覧へ戻る">‹</button>
         <p>しおりを開く</p>
         <div className="detail-header-actions">
           {!editing && (
@@ -101,7 +192,7 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
           )}
           <button
             className={editing ? "detail-edit-button active" : "detail-edit-button"}
-            onClick={() => editing ? cancelEdit() : setEditing(true)}
+            onClick={() => editing ? requestLeave("detail") : setEditing(true)}
             type="button"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 16-.7 3.7L8 19l9.6-9.6-3-3L5 16Z" /><path d="m13.5 7.5 3 3" /></svg>
@@ -139,6 +230,31 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
             value={memo}
           />
         ) : <p className={bookmark.memo ? "detail-memo" : "detail-memo empty-value"}>{bookmark.memo || "メモなし"}</p>}
+        <div className="detail-attachment">
+          <p className="detail-label">写真・資料</p>
+          {editing ? (
+            <>
+              <AttachmentEditor
+                attachment={attachment}
+                disabled={saving}
+                onChoose={(file) => {
+                  setPendingFile(file);
+                  setRemoveAttachment(false);
+                  setAttachmentError("");
+                }}
+                onRequestRemove={() => setDeleteConfirmOpen(true)}
+                pendingFile={pendingFile}
+                removed={removeAttachment}
+              />
+              {(pendingFile || removeAttachment) && (
+                <p className="attachment-pending-note">添付の変更は「変更を保存」で確定します。</p>
+              )}
+              {attachmentError && <p className="attachment-error-text" role="alert">{attachmentError}</p>}
+            </>
+          ) : attachment ? (
+            <AttachmentEditor attachment={attachment} readOnly />
+          ) : <p className="detail-no-attachment">添付はありません</p>}
+        </div>
         <div className="detail-status">
           <span>状態</span>
           <div className="status-choice-buttons" role="group" aria-label="しおりの状態">
@@ -171,8 +287,10 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
       </section>
       {editing ? (
         <section className="edit-actions">
-          <button className="edit-cancel" onClick={cancelEdit} type="button">キャンセル</button>
-          <button className="edit-save" onClick={saveEdit} type="button">変更を保存</button>
+          <button className="edit-cancel" disabled={saving} onClick={() => requestLeave("detail")} type="button">キャンセル</button>
+          <button className="edit-save" disabled={saving} onClick={() => saveEdit()} type="button">
+            {saving ? "写真・資料を保存しています" : "変更を保存"}
+          </button>
         </section>
       ) : null}
       {dateOpen && (
@@ -185,11 +303,54 @@ function DetailView({ bookmark, onBack, onUpdateBookmark, onUpdateStatus, sender
           }}
         />
       )}
+      {deleteConfirmOpen && (
+        <div className="modal-backdrop" onClick={() => setDeleteConfirmOpen(false)}>
+          <section className="confirm-dialog" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <span className="dialog-bookmark" aria-hidden="true" />
+            <h2>{(pendingFile?.type || attachment?.type || "").startsWith("image/") ? "写真を外しますか？" : "資料を外しますか？"}</h2>
+            <p>このしおりから添付だけを外します。しおりの内容は残ります。</p>
+            <div>
+              <button className="secondary-button" onClick={() => setDeleteConfirmOpen(false)} type="button">キャンセル</button>
+              <button
+                className="danger-soft-button"
+                onClick={() => {
+                  setPendingFile(null);
+                  setRemoveAttachment(true);
+                  setDeleteConfirmOpen(false);
+                }}
+                type="button"
+              >
+                外す
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {unsavedDialog && (
+        <div className="modal-backdrop">
+          <section className="confirm-dialog unsaved-dialog" role="dialog" aria-modal="true">
+            <span className="dialog-bookmark" aria-hidden="true" />
+            <h2>変更内容が保存されていません</h2>
+            <p>編集した内容をどうしますか？</p>
+            <div className="unsaved-actions">
+              <button className="primary-button" disabled={saving} onClick={() => saveEdit(unsavedDialog)} type="button">変更を保存する</button>
+              <button className="secondary-button" disabled={saving} onClick={() => discardEdit(unsavedDialog)} type="button">保存せず戻る</button>
+              <button className="text-button" onClick={() => setUnsavedDialog("")} type="button">編集を続ける</button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
 
-export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStatus, senderName }) {
+export default function SearchScreen({
+  bookmarks,
+  onAttachmentsChanged,
+  onUpdateBookmark,
+  onUpdateStatus,
+  senderName,
+}) {
   const [mode, setMode] = useState("");
   const [chooserOpen, setChooserOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(monthKey(new Date()));
@@ -232,6 +393,7 @@ export default function SearchScreen({ bookmarks, onUpdateBookmark, onUpdateStat
     return (
       <DetailView
         bookmark={selectedBookmark}
+        onAttachmentsChanged={onAttachmentsChanged}
         onBack={() => setSelectedId("")}
         onUpdateBookmark={onUpdateBookmark}
         onUpdateStatus={onUpdateStatus}

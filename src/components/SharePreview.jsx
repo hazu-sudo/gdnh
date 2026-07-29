@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatJapaneseDate } from "./BookmarkCard.jsx";
+import AttachmentEditor from "./AttachmentEditor.jsx";
+import { getAttachment } from "../attachmentStore.js";
 
 function wrapCanvasText(context, text, maxWidth) {
   const lines = [];
@@ -78,7 +80,17 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
   const [senderName, setSenderName] = useState(defaultSenderName);
   const [showDear, setShowDear] = useState(true);
   const [showFrom, setShowFrom] = useState(true);
+  const [attachment, setAttachment] = useState(null);
+  const [includeAttachment, setIncludeAttachment] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    getAttachment(bookmark.attachmentId)
+      .then((item) => { if (active) setAttachment(item); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [bookmark.attachmentId]);
 
   async function shareCard() {
     const blob = await renderCard({
@@ -90,11 +102,15 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
       targetName,
     });
     if (!blob) return;
-    const file = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
+    const cardFile = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
+    const files = [cardFile];
+    if (includeAttachment && attachment?.blob) {
+      files.push(new File([attachment.blob], attachment.name, { type: attachment.type }));
+    }
 
     try {
-      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
-        await navigator.share({ files: [file], title: "あとで開くしおり" });
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files }))) {
+        await navigator.share({ files, title: "あとで開くしおり" });
         setMessage("共有メニューを開きました");
         return;
       }
@@ -105,9 +121,17 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = file.name;
+    anchor.download = cardFile.name;
     anchor.click();
     URL.revokeObjectURL(url);
+    if (includeAttachment && attachment?.blob) {
+      const attachmentUrl = URL.createObjectURL(attachment.blob);
+      const attachmentAnchor = document.createElement("a");
+      attachmentAnchor.href = attachmentUrl;
+      attachmentAnchor.download = attachment.name;
+      attachmentAnchor.click();
+      URL.revokeObjectURL(attachmentUrl);
+    }
     setMessage("画像として保存しました");
   }
 
@@ -146,6 +170,20 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
           <label><input checked={showDear} onChange={(event) => setShowDear(event.target.checked)} type="checkbox" />Dearを表示</label>
           <label><input checked={showFrom} onChange={(event) => setShowFrom(event.target.checked)} type="checkbox" />Fromを表示</label>
         </div>
+        {attachment && (
+          <div className="share-attachment-option">
+            <AttachmentEditor attachment={attachment} readOnly />
+            <label>
+              <input
+                checked={includeAttachment}
+                onChange={(event) => setIncludeAttachment(event.target.checked)}
+                type="checkbox"
+              />
+              この写真・資料も共有する
+            </label>
+            <small>選択した場合だけ、共有先へ添付します。</small>
+          </div>
+        )}
       </section>
 
       {message && <p className="share-message-note" aria-live="polite">{message}</p>}

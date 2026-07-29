@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { APP_NAME } from "../data.js";
 import { formatJapaneseDate } from "../components/BookmarkCard.jsx";
+import AttachmentEditor from "../components/AttachmentEditor.jsx";
+import {
+  attachmentErrorMessage,
+  deleteAttachment,
+  saveAttachment,
+} from "../attachmentStore.js";
 import { formatToday, uniqueId } from "../utils.js";
 
 const ITEM_HEIGHT = 44;
@@ -119,12 +125,22 @@ export function DateWheel({ date, onCancel, onConfirm }) {
   );
 }
 
-export default function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsumed, onSave, onShowBookmarks }) {
+export default function SaveScreen({
+  bookmarks,
+  initialMemo,
+  onAttachmentsChanged,
+  onInitialMemoConsumed,
+  onSave,
+  onShowBookmarks,
+}) {
   const [date, setDate] = useState(formatToday());
   const [targetName, setTargetName] = useState("");
   const [memo, setMemo] = useState("");
   const [dateOpen, setDateOpen] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [attachmentError, setAttachmentError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!initialMemo) return;
@@ -143,19 +159,36 @@ export default function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsum
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ja"));
   }, [bookmarks]);
   const suggestions = recipientStats.filter((item) => item.count > 1).slice(0, 5);
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    onSave({
-      id: uniqueId(),
-      targetName: targetName.trim(),
-      memo: memo.trim(),
-      status: "unresolved",
-      createdAt: date,
-    });
-    setTargetName("");
-    setMemo("");
-    setDate(formatToday());
-    setSaved(true);
+    if (saving) return;
+    const id = uniqueId();
+    let storedAttachment = null;
+    setAttachmentError("");
+    setSaving(true);
+
+    try {
+      if (pendingFile) storedAttachment = await saveAttachment(pendingFile, id);
+      onSave({
+        id,
+        targetName: targetName.trim(),
+        memo: memo.trim(),
+        status: "unresolved",
+        createdAt: date,
+        attachmentId: storedAttachment?.id || "",
+      });
+      setTargetName("");
+      setMemo("");
+      setPendingFile(null);
+      setDate(formatToday());
+      setSaved(true);
+      if (storedAttachment) onAttachmentsChanged?.();
+    } catch (error) {
+      if (storedAttachment?.id) await deleteAttachment(storedAttachment.id).catch(() => {});
+      setAttachmentError(attachmentErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -220,15 +253,51 @@ export default function SaveScreen({ bookmarks, initialMemo, onInitialMemoConsum
           <small className="character-count">{memo.length} / 180</small>
         </label>
 
+        <section className="attachment-field">
+          <header>
+            <div>
+              <strong>写真・資料</strong>
+              <small>任意</small>
+            </div>
+            <span>端末内に保存</span>
+          </header>
+          <AttachmentEditor
+            disabled={saving}
+            onChoose={(file) => {
+              setPendingFile(file);
+              setAttachmentError("");
+              setSaved(false);
+            }}
+            onRequestRemove={() => {
+              setPendingFile(null);
+              setAttachmentError("");
+            }}
+            pendingFile={pendingFile}
+          />
+          {pendingFile && (
+            <p className="attachment-privacy-note">
+              しおりに挟んだ写真や資料は、元のデータを削除しても確認できるように、アプリ内に保存されます。
+            </p>
+          )}
+          {attachmentError && (
+            <div className="attachment-error" role="alert">
+              <p>{attachmentError}</p>
+              {pendingFile && <button onClick={() => setPendingFile(null)} type="button">添付を外す</button>}
+            </div>
+          )}
+        </section>
+
         {saved && (
           <div className="saved-note" aria-live="polite">
             <span aria-hidden="true">✓</span>
             <p><strong>しおりを挟みました</strong><small>あとで、日付か話す相手から開けます。</small></p>
           </div>
         )}
-        <button className="primary-button quick-save" type="submit">
+        <button className="primary-button quick-save" disabled={saving} type="submit">
           <span className="mini-ribbon" aria-hidden="true" />
-          挟む
+          {saving
+            ? (pendingFile?.type.startsWith("image/") ? "写真をしおりに挟んでいます" : "資料を保存しています")
+            : "挟む"}
         </button>
         {saved && <button className="text-button centered" onClick={onShowBookmarks} type="button">挟んだしおりを見る</button>}
       </form>

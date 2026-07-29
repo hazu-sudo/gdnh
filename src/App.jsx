@@ -32,6 +32,7 @@ export default function App() {
   const [hintIntroSeen, setHintIntroSeen] = useState(false);
   const [senderName, setSenderName] = useState("");
   const [prefilledMemo, setPrefilledMemo] = useState("");
+  const [attachmentRevision, setAttachmentRevision] = useState(0);
 
   useEffect(() => {
     setBookmarks(loadBookmarks());
@@ -52,11 +53,9 @@ export default function App() {
   }, [theme]);
 
   function addBookmark(bookmark) {
-    setBookmarks((current) => {
-      const next = [bookmark, ...current];
-      saveBookmarks(next);
-      return next;
-    });
+    const next = [bookmark, ...bookmarks];
+    saveBookmarks(next);
+    setBookmarks(next);
   }
 
   function updateStatus(id, status) {
@@ -68,11 +67,9 @@ export default function App() {
   }
 
   function updateBookmark(id, changes) {
-    setBookmarks((current) => {
-      const next = current.map((item) => item.id === id ? { ...item, ...changes } : item);
-      saveBookmarks(next);
-      return next;
-    });
+    const next = bookmarks.map((item) => item.id === id ? { ...item, ...changes } : item);
+    saveBookmarks(next);
+    setBookmarks(next);
   }
 
   function updateFontSize(size) {
@@ -118,6 +115,7 @@ export default function App() {
         <SaveScreen
           bookmarks={bookmarks}
           initialMemo={prefilledMemo}
+          onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           onInitialMemoConsumed={() => setPrefilledMemo("")}
           onSave={addBookmark}
           onShowBookmarks={() => setActiveTab("search")}
@@ -128,6 +126,7 @@ export default function App() {
           bookmarks={bookmarks}
           onUpdateBookmark={updateBookmark}
           onUpdateStatus={updateStatus}
+          onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           senderName={senderName}
         />
       )}
@@ -139,6 +138,7 @@ export default function App() {
         <SettingsScreen
           fontSize={fontSize}
           hintIntroSeen={hintIntroSeen}
+          attachmentRevision={attachmentRevision}
           onFontSizeChange={updateFontSize}
           onHintIntroSeen={markHintIntroSeen}
           onHintVisibilityChange={updateHintVisibility}

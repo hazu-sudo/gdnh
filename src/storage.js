@@ -25,6 +25,7 @@ function normalizeBookmark(bookmark) {
     memo: String(bookmark.memo || "").trim(),
     status: statusMigration[bookmark.status] || "unresolved",
     createdAt: String(bookmark.createdAt || new Date().toLocaleDateString("sv-SE")),
+    attachmentId: String(bookmark.attachmentId || ""),
   };
 }
 

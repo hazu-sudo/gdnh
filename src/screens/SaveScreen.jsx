@@ -127,6 +127,7 @@ export function DateWheel({ date, onCancel, onConfirm }) {
 
 export default function SaveScreen({
   bookmarks,
+  cloudConfigured,
   initialMemo,
   onAttachmentsChanged,
   onInitialMemoConsumed,
@@ -259,7 +260,7 @@ export default function SaveScreen({
               <strong>写真・資料</strong>
               <small>任意</small>
             </div>
-            <span>端末内に保存</span>
+            <span>{cloudConfigured ? "アカウントに保存" : "端末内に保存"}</span>
           </header>
           <AttachmentEditor
             disabled={saving}

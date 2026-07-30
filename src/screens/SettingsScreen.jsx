@@ -39,18 +39,24 @@ function ToggleSetting({ checked, description, label, onChange }) {
 }
 
 export default function SettingsScreen({
+  accountEmail,
   attachmentRevision,
+  cloudConfigured,
   fontSize,
   hintIntroSeen,
+  lastSyncAt,
   onFontSizeChange,
   onHintIntroSeen,
   onHintVisibilityChange,
   onReflectionChange,
   onSenderNameChange,
+  onSignOut,
+  onSyncNow,
   onThemeChange,
   senderName,
   showHints,
   showReflection,
+  syncStatus,
   theme,
 }) {
   const [showHintDialog, setShowHintDialog] = useState(false);
@@ -85,6 +91,52 @@ export default function SettingsScreen({
         <h1>使い心地を、<br />自分に合わせる。</h1>
         <p>毎日気持ちよく使えるように、自分の好みに設定できます。</p>
       </header>
+
+      <section className="settings-group account-sync-group">
+        <header><span>00</span><h2>アカウントと同期</h2></header>
+        <div className="settings-panel account-sync-panel">
+          <div className="account-row">
+            <div>
+              <small>アカウント</small>
+              <h3>{cloudConfigured ? "ログイン中" : "クラウド同期は未設定です"}</h3>
+              <p>{accountEmail || "この端末だけに保存されています"}</p>
+            </div>
+            {cloudConfigured && (
+              <button className="secondary-button compact-button" onClick={onSignOut} type="button">
+                ログアウト
+              </button>
+            )}
+          </div>
+          <div className="sync-summary">
+            <div>
+              <small>データ同期</small>
+              <strong>
+                {syncStatus === "syncing" && "同期中"}
+                {syncStatus === "synced" && "同期済み"}
+                {syncStatus === "waiting" && "同期待ち"}
+                {syncStatus === "error" && "同期できませんでした"}
+                {syncStatus === "local" && "端末内に保存"}
+                {syncStatus === "loading" && "確認中"}
+              </strong>
+              <p>
+                {lastSyncAt
+                  ? `最終同期：${new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(new Date(lastSyncAt))}`
+                  : "まだ同期していません"}
+              </p>
+            </div>
+            {cloudConfigured && (
+              <button className="secondary-button compact-button" onClick={onSyncNow} type="button">
+                今すぐ同期する
+              </button>
+            )}
+          </div>
+          {!cloudConfigured && (
+            <p className="setting-helper">
+              Supabaseの接続情報を設定すると、同じアカウントでPCとiPhoneから利用できます。
+            </p>
+          )}
+        </div>
+      </section>
 
       <section className="settings-group">
         <header><span>01</span><h2>文字と表示</h2></header>
@@ -154,7 +206,7 @@ export default function SettingsScreen({
       </section>
 
       <section className="settings-group">
-        <header><span>03</span><h2>端末内の保存</h2></header>
+        <header><span>03</span><h2>{cloudConfigured ? "写真・資料の保存" : "端末内の保存"}</h2></header>
         <div className="settings-panel attachment-usage-panel">
           <div>
             <span>添付ファイルの使用容量</span>
@@ -164,7 +216,11 @@ export default function SettingsScreen({
             <span>写真・資料を含むしおり</span>
             <strong>{attachmentUsage.bookmarkCount}<small>枚</small></strong>
           </div>
-          <p>写真や資料は外部へ送信せず、この端末のアプリ内に保存します。</p>
+          <p>
+            {cloudConfigured
+              ? "写真や資料は利用者専用の非公開ストレージへ保存し、ログインした端末で確認できます。"
+              : "写真や資料は外部へ送信せず、この端末のアプリ内に保存します。"}
+          </p>
         </div>
       </section>
 
@@ -183,7 +239,11 @@ export default function SettingsScreen({
         </div>
       </section>
 
-      <p className="settings-note">選んだ設定は、この端末に保存されます。</p>
+      <p className="settings-note">
+        {cloudConfigured
+          ? "選んだ設定はアカウントへ保存され、ログインした端末に反映されます。"
+          : "選んだ設定は、この端末に保存されます。"}
+      </p>
 
       {showHintDialog && (
         <div className="modal-backdrop">

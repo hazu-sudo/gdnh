@@ -107,5 +107,8 @@ export function saveCustomTheme(theme) {
   };
   const themes = [...loadCustomThemes(), saved].slice(-20);
   localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(themes));
+  window.dispatchEvent(new CustomEvent("shiori-local-setting", {
+    detail: { customThemes: themes },
+  }));
   return { saved, themes };
 }

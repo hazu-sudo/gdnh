@@ -1,49 +1,28 @@
 import { useEffect, useState } from "react";
 import BottomNav from "./components/BottomNav.jsx";
+import AuthScreen from "./components/AuthScreen.jsx";
 import SaveScreen from "./screens/SaveScreen.jsx";
 import SearchScreen from "./screens/SearchScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReflectionScreen from "./screens/ReflectionScreen.jsx";
 import HintScreen from "./screens/HintScreen.jsx";
 import { deleteAttachmentsForBookmark } from "./attachmentStore.js";
-import {
-  loadHintIntroSeen,
-  loadHintVisibility,
-  loadBookmarks,
-  loadFontSize,
-  loadReflectionVisibility,
-  loadSenderName,
-  loadTheme,
-  saveHintIntroSeen,
-  saveHintVisibility,
-  saveBookmarks,
-  saveFontSize,
-  saveReflectionVisibility,
-  saveSenderName,
-  saveTheme,
-} from "./storage.js";
+import { useCloudSync } from "./cloud/useCloudSync.js";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("save");
-  const [bookmarks, setBookmarks] = useState([]);
-  const [fontSize, setFontSize] = useState("standard");
-  const [theme, setTheme] = useState("orange");
-  const [showReflection, setShowReflection] = useState(true);
-  const [showHints, setShowHints] = useState(false);
-  const [hintIntroSeen, setHintIntroSeen] = useState(false);
-  const [senderName, setSenderName] = useState("");
   const [prefilledMemo, setPrefilledMemo] = useState("");
   const [attachmentRevision, setAttachmentRevision] = useState(0);
+  const sync = useCloudSync();
 
-  useEffect(() => {
-    setBookmarks(loadBookmarks());
-    setFontSize(loadFontSize());
-    setTheme(loadTheme());
-    setShowReflection(loadReflectionVisibility());
-    setShowHints(loadHintVisibility());
-    setHintIntroSeen(loadHintIntroSeen());
-    setSenderName(loadSenderName());
-  }, []);
+  const {
+    fontSize = "standard",
+    theme = "orange",
+    showReflection = true,
+    showHints = false,
+    hintIntroSeen = false,
+    senderName = "",
+  } = sync.settings;
 
   useEffect(() => {
     document.documentElement.dataset.fontSize = fontSize;
@@ -53,64 +32,28 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  function addBookmark(bookmark) {
-    const next = [bookmark, ...bookmarks];
-    saveBookmarks(next);
-    setBookmarks(next);
+  if (sync.cloudConfigured && !sync.authReady) {
+    return <div className="app-loading" role="status">しおりを開いています…</div>;
   }
 
-  function updateStatus(id, status) {
-    setBookmarks((current) => {
-      const next = current.map((item) => item.id === id ? { ...item, status } : item);
-      saveBookmarks(next);
-      return next;
-    });
-  }
-
-  function updateBookmark(id, changes) {
-    const next = bookmarks.map((item) => item.id === id ? { ...item, ...changes } : item);
-    saveBookmarks(next);
-    setBookmarks(next);
+  if (sync.cloudConfigured && !sync.session) {
+    return <AuthScreen />;
   }
 
   async function deleteBookmark(id) {
-    const next = bookmarks.filter((item) => item.id !== id);
-    saveBookmarks(next);
-    setBookmarks(next);
+    sync.deleteBookmark(id);
     await deleteAttachmentsForBookmark(id).catch(() => {});
     setAttachmentRevision((current) => current + 1);
   }
 
-  function updateFontSize(size) {
-    setFontSize(size);
-    saveFontSize(size);
-  }
-
-  function updateTheme(nextTheme) {
-    setTheme(nextTheme);
-    saveTheme(nextTheme);
-  }
-
   function updateReflectionVisibility(visible) {
-    setShowReflection(visible);
-    saveReflectionVisibility(visible);
+    sync.updateSettings({ showReflection: visible });
     if (!visible && activeTab === "reflection") setActiveTab("save");
   }
 
   function updateHintVisibility(visible) {
-    setShowHints(visible);
-    saveHintVisibility(visible);
+    sync.updateSettings({ showHints: visible });
     if (!visible && activeTab === "hints") setActiveTab("save");
-  }
-
-  function markHintIntroSeen() {
-    setHintIntroSeen(true);
-    saveHintIntroSeen();
-  }
-
-  function updateSenderName(name) {
-    setSenderName(name);
-    saveSenderName(name);
   }
 
   function useHintAsBookmark(text) {
@@ -120,22 +63,32 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {sync.syncStatus === "waiting" && (
+        <div className="sync-pill waiting" role="status">同期待ち</div>
+      )}
+      {sync.syncStatus === "error" && (
+        <button className="sync-pill error" onClick={() => sync.pullCloud()} type="button">
+          同期できませんでした
+        </button>
+      )}
+
       {activeTab === "save" && (
         <SaveScreen
-          bookmarks={bookmarks}
+          bookmarks={sync.bookmarks}
+          cloudConfigured={sync.cloudConfigured}
           initialMemo={prefilledMemo}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           onInitialMemoConsumed={() => setPrefilledMemo("")}
-          onSave={addBookmark}
+          onSave={sync.addBookmark}
           onShowBookmarks={() => setActiveTab("search")}
         />
       )}
       {activeTab === "search" && (
         <SearchScreen
-          bookmarks={bookmarks}
+          bookmarks={sync.bookmarks}
           onDeleteBookmark={deleteBookmark}
-          onUpdateBookmark={updateBookmark}
-          onUpdateStatus={updateStatus}
+          onUpdateBookmark={sync.updateBookmark}
+          onUpdateStatus={sync.updateStatus}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           senderName={senderName}
           theme={theme}
@@ -143,22 +96,28 @@ export default function App() {
       )}
       {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}
       {activeTab === "reflection" && showReflection && (
-        <ReflectionScreen bookmarks={bookmarks} />
+        <ReflectionScreen bookmarks={sync.bookmarks} />
       )}
       {activeTab === "settings" && (
         <SettingsScreen
+          accountEmail={sync.user?.email || ""}
+          attachmentRevision={attachmentRevision}
+          cloudConfigured={sync.cloudConfigured}
           fontSize={fontSize}
           hintIntroSeen={hintIntroSeen}
-          attachmentRevision={attachmentRevision}
-          onFontSizeChange={updateFontSize}
-          onHintIntroSeen={markHintIntroSeen}
+          lastSyncAt={sync.lastSyncAt}
+          onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
+          onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
           onHintVisibilityChange={updateHintVisibility}
           onReflectionChange={updateReflectionVisibility}
-          onSenderNameChange={updateSenderName}
-          onThemeChange={updateTheme}
+          onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
+          onSignOut={sync.signOut}
+          onSyncNow={() => sync.pullCloud({ allowMigration: false })}
+          onThemeChange={(nextTheme) => sync.updateSettings({ theme: nextTheme })}
           senderName={senderName}
           showHints={showHints}
           showReflection={showReflection}
+          syncStatus={sync.syncStatus}
           theme={theme}
         />
       )}
@@ -168,6 +127,20 @@ export default function App() {
         showHints={showHints}
         showReflection={showReflection}
       />
+
+      {sync.migrationPending && (
+        <div className="modal-backdrop">
+          <section aria-modal="true" className="confirm-dialog migration-dialog" role="dialog">
+            <span className="dialog-bookmark" aria-hidden="true" />
+            <h2>この端末のしおりを保存しますか？</h2>
+            <p>端末にあるしおり・設定・写真や資料を、ログイン中のアカウントへ保存します。</p>
+            <div>
+              <button className="secondary-button" onClick={sync.skipMigration} type="button">今はしない</button>
+              <button className="primary-button" onClick={sync.migrateLocalData} type="button">アカウントへ保存する</button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

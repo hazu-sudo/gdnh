@@ -1,4 +1,5 @@
 import { uniqueId } from "./utils.js";
+import { downloadCloudAttachment } from "./cloud/cloudAttachments.js";
 
 const DB_NAME = "later-open-shiori-attachments-v1";
 const STORE_NAME = "attachments";
@@ -148,9 +149,23 @@ export async function saveAttachment(file, bookmarkId) {
   return record;
 }
 
-export async function getAttachment(id) {
+export async function getLocalAttachment(id) {
   if (!id) return null;
   return useStore("readonly", (store) => store.get(id));
+}
+
+export async function cacheAttachment(record) {
+  if (!record?.id) return null;
+  await useStore("readwrite", (store) => store.put(record));
+  return record;
+}
+
+export async function getAttachment(id) {
+  const local = await getLocalAttachment(id);
+  if (local || !id || !navigator.onLine) return local;
+  const downloaded = await downloadCloudAttachment(id).catch(() => null);
+  if (downloaded) await cacheAttachment(downloaded).catch(() => {});
+  return downloaded;
 }
 
 export async function deleteAttachment(id) {
@@ -184,6 +199,10 @@ export async function getAttachmentUsage() {
     bookmarkCount: new Set(records.map((item) => item.bookmarkId)).size,
     fileCount: records.length,
   };
+}
+
+export async function getAllAttachments() {
+  return useStore("readonly", (store) => store.getAll()) || [];
 }
 
 export function attachmentErrorMessage(error) {

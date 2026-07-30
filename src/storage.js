@@ -16,6 +16,7 @@ const HINTS_KEY = "later-open-shiori-hints-visible-v1";
 const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
 const SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
 const HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
+const CUSTOM_THEMES_KEY = "later-open-shiori-share-backgrounds-v1";
 const validFontSizes = new Set(["small", "standard", "large"]);
 const validThemes = new Set(["orange", "pink", "blue", "green", "purple", "mono"]);
 
@@ -120,6 +121,47 @@ export function loadHintCache(fallback = []) {
   }
 }
 
-export function saveHintCache(hints) {
-  localStorage.setItem(HINT_CACHE_KEY, JSON.stringify(hints.slice(0, 30)));
+export function saveHintCache(hints, notify = true) {
+  const next = hints.slice(0, 30);
+  localStorage.setItem(HINT_CACHE_KEY, JSON.stringify(next));
+  if (notify) {
+    window.dispatchEvent(new CustomEvent("shiori-local-setting", {
+      detail: { hintCache: next },
+    }));
+  }
+}
+
+export function loadSettingsSnapshot() {
+  return {
+    fontSize: loadFontSize(),
+    theme: loadTheme(),
+    showReflection: loadReflectionVisibility(),
+    showHints: loadHintVisibility(),
+    hintIntroSeen: loadHintIntroSeen(),
+    senderName: loadSenderName(),
+    hintCache: loadHintCache([]),
+    customThemes: readArray(CUSTOM_THEMES_KEY),
+  };
+}
+
+export function saveSettingsSnapshot(settings) {
+  saveFontSize(settings.fontSize);
+  saveTheme(settings.theme);
+  saveReflectionVisibility(settings.showReflection);
+  saveHintVisibility(settings.showHints);
+  if (settings.hintIntroSeen) saveHintIntroSeen();
+  saveSenderName(settings.senderName || "");
+  if (Array.isArray(settings.hintCache)) saveHintCache(settings.hintCache, false);
+  if (Array.isArray(settings.customThemes)) {
+    localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify(settings.customThemes.slice(0, 20)));
+  }
+}
+
+function readArray(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }

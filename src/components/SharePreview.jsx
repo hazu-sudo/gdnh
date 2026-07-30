@@ -17,15 +17,10 @@ import {
 const THEME_DECORATIONS = {
   gentle: ["clover", "clover", "clover", "clover"],
   thanks: ["heart", "heart", "heart", "heart"],
-  birthday: ["cracker", "balloon", "cake", "gift"],
-  celebration: ["flower", "flower", "leaf", "sparkle"],
-  christmas: ["tree", "bell", "wreath", "santa", "reindeer"],
-  halloween: ["pumpkin", "ghost", "bat", "moon"],
-  spring: ["flower", "leaf", "flower", "leaf"],
-  summer: ["watermelon", "sunflower", "shaved-ice", "shell"],
-  autumn: ["acorn", "ginkgo", "mushroom", "leaf"],
-  winter: ["snowman", "snow", "snowman", "snow"],
-  newyear: ["kagami", "kadomatsu", "daruma", "shimenawa"],
+  spring: ["sakura", "sakura", "sakura", "sakura"],
+  summer: ["sunflower", "sunflower", "sunflower", "sunflower"],
+  autumn: ["ginkgo", "ginkgo", "ginkgo", "ginkgo"],
+  winter: ["snow", "snow", "snow", "snow"],
 };
 
 const CUSTOM_DECORATION_TYPES = {
@@ -81,7 +76,7 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
   context.translate(x, y);
   context.fillStyle = hexToRgba(color, 0.38);
 
-  if (type === "flower" || type === "clover") {
+  if (type === "flower" || type === "sakura" || type === "clover") {
     const petals = type === "clover" ? 4 : 5;
     for (let index = 0; index < petals; index += 1) {
       const angle = (Math.PI * 2 * index) / petals;
@@ -363,55 +358,6 @@ function loadCanvasImage(blob) {
   });
 }
 
-function drawThemePattern(context, theme, width, height) {
-  const id = theme.id;
-  context.save();
-  context.globalAlpha = 0.22;
-  context.fillStyle = theme.accent;
-
-  if (id === "birthday") {
-    [[115, 160], [220, 95], [780, 115], [965, 280], [105, 1080], [920, 1190]].forEach(([x, y], index) => {
-      context.beginPath();
-      if (index % 2) context.arc(x, y, 10, 0, Math.PI * 2);
-      else context.fillRect(x - 7, y - 18, 14, 36);
-      context.fill();
-    });
-  } else if (id === "christmas") {
-    for (let x = 105; x < width; x += 120) {
-      context.beginPath();
-      context.arc(x, 105, 9, 0, Math.PI * 2);
-      context.fill();
-      context.beginPath();
-      context.arc(x + 55, height - 105, 7, 0, Math.PI * 2);
-      context.fill();
-    }
-  } else if (id === "halloween") {
-    [[105, 150, 20], [945, 160, 12], [125, 1190, 13], [930, 1130, 18]].forEach(([x, y, radius]) => {
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.fill();
-    });
-  } else if (id === "summer") {
-    for (let y = 100; y < height; y += 38) {
-      context.beginPath();
-      context.ellipse(120, y, 52, 7, 0, 0, Math.PI * 2);
-      context.fill();
-    }
-  } else if (id === "winter") {
-    [[110, 160], [950, 240], [125, 1100], [925, 1180]].forEach(([x, y]) => {
-      drawDecoration(context, "snow", x, y, theme.accent, 0.5);
-    });
-  } else if (id === "spring" || id === "autumn" || id === "celebration" || id === "thanks") {
-    [[100, 130], [960, 190], [110, 1170], [940, 1210]].forEach(([x, y], index) => {
-      drawDecoration(context, theme.decoration, x, y, theme.accent, index % 2 ? 0.55 : 0.7);
-    });
-  } else {
-    context.fillStyle = hexToRgba(theme.accent, 0.18);
-    for (let x = 70; x < width; x += 80) context.fillRect(x, 78, 34, 3);
-  }
-  context.restore();
-}
-
 async function renderCard({
   attachment,
   createdAt,
@@ -430,7 +376,6 @@ async function renderCard({
 
   context.fillStyle = theme.background;
   context.fillRect(0, 0, canvas.width, canvas.height);
-  drawThemePattern(context, theme, canvas.width, canvas.height);
   context.fillStyle = theme.paper;
   context.beginPath();
   context.roundRect(92, 96, 896, 1158, 36);
@@ -570,7 +515,7 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
   const [customDraft, setCustomDraft] = useState(DEFAULT_CUSTOM_THEME);
   const [customName, setCustomName] = useState("");
   const [eventColors, setEventColors] = useState({
-    birthday: "pink",
+    birthday: "red",
     celebration: "orange",
   });
 
@@ -721,13 +666,15 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
             >
               <span className="theme-mini-preview">
                 <span className="theme-mini-mark" />
-                <span
-                  className={`silhouette-motif theme-mini-silhouette motif-${
-                    THEME_DECORATIONS[theme.id]?.[0]
-                    || CUSTOM_DECORATION_TYPES[theme.decoration]
-                    || "ribbon"
-                  }`}
-                />
+                {theme.decoration !== "none" && (
+                  <span
+                    className={`silhouette-motif theme-mini-silhouette motif-${
+                      THEME_DECORATIONS[theme.id]?.[0]
+                      || CUSTOM_DECORATION_TYPES[theme.decoration]
+                      || "ribbon"
+                    }`}
+                  />
+                )}
               </span>
               <strong>{theme.label}</strong>
               <span className="theme-selected-mark" aria-hidden="true">✓</span>
@@ -748,7 +695,7 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
 
         {(selectedThemeId === "birthday" || selectedThemeId === "celebration") && (
           <div className="event-color-picker">
-            <strong>飾りの色</strong>
+            <strong>背景・アクセントの色</strong>
             <div aria-label={`${activeTheme.label}の色`} role="group">
               {CELEBRATION_COLORS.map((color) => (
                 <button

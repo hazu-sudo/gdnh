@@ -3169,6 +3169,7 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
 }
 .motif-clover::after { top: 58%; left: 48%; width: 0.15rem; height: 0.9rem; transform: rotate(-18deg); }
 .motif-flower,
+.motif-sakura,
 .motif-sunflower {
   border-radius: 50%;
   background:
@@ -3178,6 +3179,15 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
     radial-gradient(ellipse at 50% 95%, currentColor 0 16%, transparent 18%),
     radial-gradient(ellipse at 5% 50%, currentColor 0 16%, transparent 18%);
   clip-path: none;
+}
+.motif-sakura {
+  background:
+    radial-gradient(ellipse at 50% 6%, currentColor 0 17%, transparent 19%),
+    radial-gradient(ellipse at 91% 38%, currentColor 0 17%, transparent 19%),
+    radial-gradient(ellipse at 76% 88%, currentColor 0 17%, transparent 19%),
+    radial-gradient(ellipse at 24% 88%, currentColor 0 17%, transparent 19%),
+    radial-gradient(ellipse at 9% 38%, currentColor 0 17%, transparent 19%),
+    radial-gradient(circle, currentColor 0 14%, transparent 16%);
 }
 .motif-sparkle,
 .motif-snow {
@@ -3244,6 +3254,28 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   height: 1.15rem;
   color: var(--share-accent);
   transform: none;
+}
+
+/* Each preset uses one source of identity: color only, or color plus one motif. */
+.share-theme-card.theme-simple::before,
+.share-theme-card.theme-gentle::before,
+.share-theme-card.theme-thanks::before,
+.share-theme-card.theme-birthday::before,
+.share-theme-card.theme-celebration::before,
+.share-theme-card.theme-spring::before,
+.share-theme-card.theme-summer::before,
+.share-theme-card.theme-autumn::before,
+.share-theme-card.theme-winter::before,
+.share-theme-option.theme-simple .theme-mini-preview,
+.share-theme-option.theme-gentle .theme-mini-preview,
+.share-theme-option.theme-thanks .theme-mini-preview,
+.share-theme-option.theme-birthday .theme-mini-preview,
+.share-theme-option.theme-celebration .theme-mini-preview,
+.share-theme-option.theme-spring .theme-mini-preview,
+.share-theme-option.theme-summer .theme-mini-preview,
+.share-theme-option.theme-autumn .theme-mini-preview,
+.share-theme-option.theme-winter .theme-mini-preview {
+  background-image: none;
 }
 
 .share-background-picker {

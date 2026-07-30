@@ -35,32 +35,28 @@ export const APP_THEME_PALETTES = {
 };
 
 export const CELEBRATION_COLORS = [
-  { id: "red", label: "赤", accent: "#b95f5b", background: "#f2dfdc", bookmarkColor: "#c96b65" },
-  { id: "blue", label: "青", accent: "#5f7f9d", background: "#dfe9f1", bookmarkColor: "#6f90ad" },
-  { id: "yellow", label: "黄", accent: "#b98b38", background: "#f5ebc9", bookmarkColor: "#d0a548" },
-  { id: "green", label: "緑", accent: "#66866a", background: "#e1ebdd", bookmarkColor: "#799779" },
-  { id: "purple", label: "紫", accent: "#806893", background: "#e9e0ef", bookmarkColor: "#9277a5" },
-  { id: "orange", label: "オレンジ", accent: "#bd704c", background: "#f3dfcf", bookmarkColor: "#d17c55" },
-  { id: "pink", label: "ピンク", accent: "#be7185", background: "#f3dfe5", bookmarkColor: "#d18195" },
-  { id: "white", label: "白", accent: "#77736c", background: "#f7f5f0", bookmarkColor: "#aaa49a" },
-  { id: "black", label: "黒", accent: "#3f3f42", background: "#dededf", bookmarkColor: "#54545a" },
-  { id: "lightblue", label: "水色", accent: "#5f96a9", background: "#dceff2", bookmarkColor: "#71a9b8" },
-  { id: "lime", label: "黄緑", accent: "#79924e", background: "#e9efd5", bookmarkColor: "#8ea65e" },
+  { id: "red", label: "赤", accent: "#d84444", background: "#f8dede", bookmarkColor: "#e05151" },
+  { id: "blue", label: "青", accent: "#3578d4", background: "#dfeafb", bookmarkColor: "#4285df" },
+  { id: "lightblue", label: "水色", accent: "#29a9d6", background: "#daf3fb", bookmarkColor: "#3bb7df" },
+  { id: "yellow", label: "黄", accent: "#e0a900", background: "#fff2bd", bookmarkColor: "#efba16" },
+  { id: "orange", label: "オレンジ", accent: "#e56c28", background: "#fae2d2", bookmarkColor: "#ef7935" },
+  { id: "green", label: "緑", accent: "#31945b", background: "#dbf1e3", bookmarkColor: "#41a66a" },
+  { id: "lime", label: "黄緑", accent: "#78a91f", background: "#eaf4cf", bookmarkColor: "#88ba2d" },
+  { id: "purple", label: "紫", accent: "#8557bd", background: "#eadff6", bookmarkColor: "#9568cb" },
+  { id: "black", label: "黒", accent: "#292a2d", background: "#dedfe1", bookmarkColor: "#3a3b3f" },
+  { id: "white", label: "白", accent: "#737373", background: "#fafafa", bookmarkColor: "#a1a1a1" },
 ];
 
 export const SHARE_THEMES = [
-  { id: "simple", label: "シンプル", background: "#f4eadc", paper: "#fffdf8", accent: "#c97a61", ink: "#453832", muted: "#846f65", decoration: "bookmark", position: "top-left", frame: true, bookmarkColor: "#d17f68", dearStyle: "standard" },
+  { id: "simple", label: "シンプル", background: "#f4eadc", paper: "#fffdf8", accent: "#c97a61", ink: "#453832", muted: "#846f65", decoration: "none", position: "top-left", frame: true, bookmarkColor: "#d17f68", dearStyle: "standard" },
   { id: "gentle", label: "やさしい", background: "#e1eddf", paper: "#fcfdf9", accent: "#66886c", ink: "#354339", muted: "#6e7f70", decoration: "clover", position: "corners", frame: true, bookmarkColor: "#7c9b79", dearStyle: "soft" },
   { id: "thanks", label: "ありがとう", background: "#f3dfe6", paper: "#fffafb", accent: "#b96981", ink: "#49383e", muted: "#846b74", decoration: "heart", position: "corners", frame: true, bookmarkColor: "#ce7f94", dearStyle: "soft", wordmark: "Thank you" },
-  { id: "birthday", label: "誕生日", background: "#f3dfe5", paper: "#fffaf6", accent: "#be7185", ink: "#49373a", muted: "#8e6b70", decoration: "cake", position: "corners", frame: true, bookmarkColor: "#d18195", dearStyle: "soft", wordmark: "Happy Birthday" },
-  { id: "celebration", label: "お祝い", background: "#f3dfcf", paper: "#fffcf5", accent: "#bd704c", ink: "#473b34", muted: "#887569", decoration: "star", position: "corners", frame: true, bookmarkColor: "#d17c55", dearStyle: "standard", wordmark: "Anniversary" },
-  { id: "spring", label: "春", background: "#f5e1e5", paper: "#fffafa", accent: "#ca7b8b", ink: "#49383c", muted: "#896d72", decoration: "flower", position: "corners", frame: true, bookmarkColor: "#dc8f9b", dearStyle: "soft" },
-  { id: "summer", label: "夏", background: "#dceef2", paper: "#f8fdfd", accent: "#5894a8", ink: "#2f464b", muted: "#68868c", decoration: "wave", position: "top", frame: true, bookmarkColor: "#68a6b7", dearStyle: "minimal" },
-  { id: "autumn", label: "秋", background: "#ead9c3", paper: "#fff9f0", accent: "#9f6245", ink: "#49382f", muted: "#836b5c", decoration: "leaf", position: "corners", frame: true, bookmarkColor: "#b36e4b", dearStyle: "standard" },
+  { id: "birthday", label: "誕生日", background: "#f8dede", paper: "#fffdf9", accent: "#d84444", ink: "#49373a", muted: "#7f6d70", decoration: "none", position: "corners", frame: true, bookmarkColor: "#e05151", dearStyle: "soft", wordmark: "Happy Birthday" },
+  { id: "celebration", label: "お祝い", background: "#fae2d2", paper: "#fffdf9", accent: "#e56c28", ink: "#473b34", muted: "#807269", decoration: "none", position: "corners", frame: true, bookmarkColor: "#ef7935", dearStyle: "standard", wordmark: "Anniversary" },
+  { id: "spring", label: "春", background: "#f5e1e5", paper: "#fffafa", accent: "#ca7b8b", ink: "#49383c", muted: "#896d72", decoration: "sakura", position: "corners", frame: true, bookmarkColor: "#dc8f9b", dearStyle: "soft" },
+  { id: "summer", label: "夏", background: "#f7e8ae", paper: "#fffdf6", accent: "#c58d18", ink: "#4a402d", muted: "#81745d", decoration: "sunflower", position: "corners", frame: true, bookmarkColor: "#d7a126", dearStyle: "standard" },
+  { id: "autumn", label: "秋", background: "#e4d1ba", paper: "#fff9f0", accent: "#8f5d39", ink: "#49382f", muted: "#836b5c", decoration: "ginkgo", position: "corners", frame: true, bookmarkColor: "#a36c43", dearStyle: "standard" },
   { id: "winter", label: "冬", background: "#dfe9f0", paper: "#fbfdff", accent: "#64859c", ink: "#35444d", muted: "#6d808a", decoration: "snow", position: "corners", frame: true, bookmarkColor: "#7899ad", dearStyle: "minimal" },
-  { id: "halloween", label: "ハロウィン", background: "#f0dccb", paper: "#fff9f4", accent: "#ad673f", ink: "#49382f", muted: "#826f65", decoration: "pumpkin", position: "corners", frame: true, bookmarkColor: "#7d658d", dearStyle: "standard" },
-  { id: "christmas", label: "クリスマス", background: "#e3ebe3", paper: "#fffdf8", accent: "#587b65", ink: "#34443a", muted: "#6b7d71", decoration: "gift", position: "corners", frame: true, bookmarkColor: "#aa6963", dearStyle: "standard" },
-  { id: "newyear", label: "お正月", background: "#f2e8d7", paper: "#fffdf8", accent: "#a85e55", ink: "#443830", muted: "#806f62", decoration: "ribbon", position: "corners", frame: true, bookmarkColor: "#6f8b6d", dearStyle: "standard", wordmark: "Happy New Year" },
 ];
 
 export const DEFAULT_CUSTOM_THEME = {
@@ -79,7 +75,7 @@ export const DEFAULT_CUSTOM_THEME = {
 };
 
 export function applyCelebrationColor(theme, colorId) {
-  const color = CELEBRATION_COLORS.find((item) => item.id === colorId) || CELEBRATION_COLORS[6];
+  const color = CELEBRATION_COLORS.find((item) => item.id === colorId) || CELEBRATION_COLORS[0];
   return { ...theme, background: color.background, accent: color.accent, bookmarkColor: color.bookmarkColor };
 }
 

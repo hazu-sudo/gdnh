@@ -20,6 +20,16 @@ const CACHE_PREFIX = "later-open-shiori-cloud-cache-v1:";
 
 const isSample = (bookmark) => String(bookmark.id).startsWith("sample-");
 
+function mergeSettings(localSettings, storedSettings = {}) {
+  const legacyColor = storedSettings.theme;
+  return {
+    ...localSettings,
+    ...storedSettings,
+    backgroundColor: storedSettings.backgroundColor || legacyColor || localSettings.backgroundColor || "orange",
+    themeColor: storedSettings.themeColor || legacyColor || localSettings.themeColor || "orange",
+  };
+}
+
 function toCloudBookmark(bookmark, userId) {
   const now = bookmark.updatedAt || new Date().toISOString();
   return {
@@ -192,7 +202,7 @@ export function useCloudSync() {
         setMigrationPending(true);
       } else {
         const nextSettings = settingRow?.settings
-          ? { ...localSettings.current, ...settingRow.settings }
+          ? mergeSettings(localSettings.current, settingRow.settings)
           : localSettings.current;
         setBookmarks(remoteBookmarks);
         setSettings(nextSettings);
@@ -204,7 +214,7 @@ export function useCloudSync() {
       const cached = readJson(`${CACHE_PREFIX}${user.id}`, null);
       if (cached) {
         setBookmarks(cached.bookmarks || []);
-        setSettings({ ...localSettings.current, ...cached.settings });
+        setSettings(mergeSettings(localSettings.current, cached.settings));
       }
       setSyncStatus(navigator.onLine ? "error" : "waiting");
     } finally {
@@ -235,7 +245,7 @@ export function useCloudSync() {
     const cached = readJson(`${CACHE_PREFIX}${user.id}`, null);
     if (cached) {
       setBookmarks(cached.bookmarks || []);
-      setSettings({ ...localSettings.current, ...cached.settings });
+      setSettings(mergeSettings(localSettings.current, cached.settings));
     }
     pullCloud();
     flushQueue();

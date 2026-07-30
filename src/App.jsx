@@ -17,7 +17,8 @@ export default function App() {
 
   const {
     fontSize = "standard",
-    theme = "orange",
+    backgroundColor = sync.settings.theme || "orange",
+    themeColor = sync.settings.theme || "orange",
     showReflection = true,
     showHints = false,
     hintIntroSeen = false,
@@ -29,8 +30,10 @@ export default function App() {
   }, [fontSize]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
+    document.documentElement.dataset.backgroundColor = backgroundColor;
+    document.documentElement.dataset.themeColor = themeColor;
+    delete document.documentElement.dataset.theme;
+  }, [backgroundColor, themeColor]);
 
   if (sync.cloudConfigured && !sync.authReady) {
     return <div className="app-loading" role="status">しおりを開いています…</div>;
@@ -91,7 +94,8 @@ export default function App() {
           onUpdateStatus={sync.updateStatus}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           senderName={senderName}
-          theme={theme}
+          backgroundColor={backgroundColor}
+          themeColor={themeColor}
         />
       )}
       {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}
@@ -102,10 +106,12 @@ export default function App() {
         <SettingsScreen
           accountEmail={sync.user?.email || ""}
           attachmentRevision={attachmentRevision}
+          backgroundColor={backgroundColor}
           cloudConfigured={sync.cloudConfigured}
           fontSize={fontSize}
           hintIntroSeen={hintIntroSeen}
           lastSyncAt={sync.lastSyncAt}
+          onBackgroundColorChange={(color) => sync.updateSettings({ backgroundColor: color })}
           onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
           onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
           onHintVisibilityChange={updateHintVisibility}
@@ -113,12 +119,12 @@ export default function App() {
           onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
           onSignOut={sync.signOut}
           onSyncNow={() => sync.pullCloud({ allowMigration: false })}
-          onThemeChange={(nextTheme) => sync.updateSettings({ theme: nextTheme })}
+          onThemeColorChange={(color) => sync.updateSettings({ themeColor: color })}
           senderName={senderName}
           showHints={showHints}
           showReflection={showReflection}
           syncStatus={sync.syncStatus}
-          theme={theme}
+          themeColor={themeColor}
         />
       )}
       <BottomNav

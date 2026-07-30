@@ -171,7 +171,13 @@ function themeStyle(theme) {
   };
 }
 
-export default function SharePreview({ appTheme, bookmark, defaultSenderName, onClose }) {
+export default function SharePreview({
+  appBackgroundColor,
+  appThemeColor,
+  bookmark,
+  defaultSenderName,
+  onClose,
+}) {
   const [targetName, setTargetName] = useState(bookmark.targetName);
   const [memo, setMemo] = useState(bookmark.memo);
   const [senderName, setSenderName] = useState(defaultSenderName);
@@ -191,8 +197,8 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
   });
 
   const availableThemes = useMemo(
-    () => SHARE_THEMES.map((theme) => applyAppTheme(theme, appTheme)),
-    [appTheme],
+    () => SHARE_THEMES.map((theme) => applyAppTheme(theme, appBackgroundColor, appThemeColor)),
+    [appBackgroundColor, appThemeColor],
   );
   const activeTheme = selectedThemeId === "custom"
     ? customDraft

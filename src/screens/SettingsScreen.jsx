@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
 import { APP_NAME } from "../data.js";
 import { formatFileSize, getAttachmentUsage } from "../attachmentStore.js";
+import { APP_COLOR_OPTIONS } from "../appColors.js";
 
 const sizes = [
   { id: "small", label: "小", sample: "Aa", description: "コンパクト" },
   { id: "standard", label: "標準", sample: "Aa", description: "おすすめ" },
   { id: "large", label: "大", sample: "Aa", description: "ゆったり" },
-];
-
-const themes = [
-  { id: "orange", label: "オレンジ", colors: ["#fff8ec", "#e47f65"] },
-  { id: "pink", label: "ピンク", colors: ["#fff5f6", "#d9778d"] },
-  { id: "blue", label: "ブルー", colors: ["#f3f8fa", "#628da5"] },
-  { id: "green", label: "グリーン", colors: ["#f4f9f4", "#669277"] },
-  { id: "purple", label: "パープル", colors: ["#f8f5fa", "#8d78a5"] },
-  { id: "mono", label: "白黒", colors: ["#f7f7f5", "#565656"] },
 ];
 
 function ToggleSetting({ checked, description, label, onChange }) {
@@ -41,10 +33,12 @@ function ToggleSetting({ checked, description, label, onChange }) {
 export default function SettingsScreen({
   accountEmail,
   attachmentRevision,
+  backgroundColor,
   cloudConfigured,
   fontSize,
   hintIntroSeen,
   lastSyncAt,
+  onBackgroundColorChange,
   onFontSizeChange,
   onHintIntroSeen,
   onHintVisibilityChange,
@@ -52,12 +46,12 @@ export default function SettingsScreen({
   onSenderNameChange,
   onSignOut,
   onSyncNow,
-  onThemeChange,
+  onThemeColorChange,
   senderName,
   showHints,
   showReflection,
   syncStatus,
-  theme,
+  themeColor,
 }) {
   const [showHintDialog, setShowHintDialog] = useState(false);
   const [attachmentUsage, setAttachmentUsage] = useState({ bytes: 0, bookmarkCount: 0, fileCount: 0 });
@@ -143,21 +137,52 @@ export default function SettingsScreen({
         <div className="settings-panel">
           <div className="settings-title">
             <span className="settings-icon color-icon" aria-hidden="true"><i /><i /><i /></span>
-            <div><h3>背景とテーマカラー</h3><p>気分になじむ色を選べます</p></div>
+            <div><h3>背景色</h3><p>画面全体のやわらかなベース色です</p></div>
           </div>
-          <div className="theme-options" role="radiogroup" aria-label="背景とテーマカラー">
-            {themes.map((item) => (
+          <div className="theme-options" role="radiogroup" aria-label="背景色">
+            {APP_COLOR_OPTIONS.map((item) => (
               <button
-                aria-checked={theme === item.id}
-                className={theme === item.id ? "theme-option active" : "theme-option"}
+                aria-checked={backgroundColor === item.id}
+                className={backgroundColor === item.id ? "theme-option active" : "theme-option"}
                 key={item.id}
-                onClick={() => onThemeChange(item.id)}
+                onClick={() => onBackgroundColorChange(item.id)}
                 role="radio"
                 type="button"
               >
-                <span className="theme-swatch" style={{ "--swatch-bg": item.colors[0], "--swatch-accent": item.colors[1] }} aria-hidden="true"><i /></span>
+                <span
+                  className="theme-swatch background-swatch"
+                  style={{ "--swatch-bg": item.background.canvas, "--swatch-accent": item.background.paper }}
+                  aria-hidden="true"
+                ><i /></span>
                 <strong>{item.label}</strong>
-                <small aria-hidden="true">{theme === item.id ? "✓" : ""}</small>
+                {backgroundColor === item.id && <small aria-hidden="true">✓</small>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-panel">
+          <div className="settings-title">
+            <span className="settings-icon accent-icon" aria-hidden="true">✓</span>
+            <div><h3>テーマカラー</h3><p>ボタンやアイコン、選択状態に使う色です</p></div>
+          </div>
+          <div className="theme-options" role="radiogroup" aria-label="テーマカラー">
+            {APP_COLOR_OPTIONS.map((item) => (
+              <button
+                aria-checked={themeColor === item.id}
+                className={themeColor === item.id ? "theme-option active" : "theme-option"}
+                key={item.id}
+                onClick={() => onThemeColorChange(item.id)}
+                role="radio"
+                type="button"
+              >
+                <span
+                  className="theme-swatch accent-swatch"
+                  style={{ "--swatch-bg": item.accent.soft, "--swatch-accent": item.accent.main }}
+                  aria-hidden="true"
+                ><i /></span>
+                <strong>{item.label}</strong>
+                {themeColor === item.id && <small aria-hidden="true">✓</small>}
               </button>
             ))}
           </div>

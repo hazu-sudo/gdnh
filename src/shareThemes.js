@@ -1,4 +1,5 @@
 import { uniqueId } from "./utils.js";
+import { getAppColor } from "./appColors.js";
 
 const CUSTOM_THEME_KEY = "later-open-shiori-share-backgrounds-v1";
 
@@ -20,15 +21,6 @@ export const POSITION_OPTIONS = [
   ["corners", "四隅に飾る"],
   ["top-left", "左上だけに飾る"],
 ];
-
-export const APP_THEME_PALETTES = {
-  orange: { background: "#f3e3d2", accent: "#c86f55", bookmarkColor: "#dc7c61", muted: "#876d62" },
-  pink: { background: "#f3e1e6", accent: "#b96f83", bookmarkColor: "#cf8296", muted: "#846b73" },
-  blue: { background: "#dfeaf0", accent: "#60869a", bookmarkColor: "#7197aa", muted: "#697e89" },
-  green: { background: "#e2ece1", accent: "#66866a", bookmarkColor: "#78957a", muted: "#6e7f70" },
-  purple: { background: "#e9e2ef", accent: "#806d93", bookmarkColor: "#9580a8", muted: "#776e80" },
-  mono: { background: "#e9e9e7", accent: "#555555", bookmarkColor: "#707070", muted: "#737373" },
-};
 
 export const CELEBRATION_COLORS = [
   { id: "red", label: "赤", accent: "#d84444", background: "#f8dede", bookmarkColor: "#e05151" },
@@ -75,10 +67,19 @@ export function applyCelebrationColor(theme, colorId) {
   return { ...theme, background: color.background, accent: color.accent, bookmarkColor: color.bookmarkColor };
 }
 
-export function applyAppTheme(theme, appTheme) {
-  return theme.id === "simple"
-    ? { ...theme, ...(APP_THEME_PALETTES[appTheme] || APP_THEME_PALETTES.orange) }
-    : theme;
+export function applyAppTheme(theme, backgroundColorId, themeColorId) {
+  if (theme.id !== "simple") return theme;
+  const backgroundColor = getAppColor(backgroundColorId);
+  const themeColor = getAppColor(themeColorId);
+  return {
+    ...theme,
+    background: backgroundColor.background.canvas,
+    paper: backgroundColor.background.paper,
+    ink: backgroundColor.background.ink,
+    muted: backgroundColor.background.muted,
+    accent: themeColor.accent.main,
+    bookmarkColor: themeColor.accent.main,
+  };
 }
 
 function normalizeTheme(theme) {

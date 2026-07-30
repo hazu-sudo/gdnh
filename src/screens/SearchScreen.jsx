@@ -45,6 +45,7 @@ function memoPreview(memo) {
 }
 
 function DetailView({
+  backgroundColor,
   bookmark,
   onAttachmentsChanged,
   onBack,
@@ -52,7 +53,7 @@ function DetailView({
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
-  theme,
+  themeColor,
 }) {
   const [editing, setEditing] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -86,7 +87,8 @@ function DetailView({
     return (
       <SharePreview
         bookmark={bookmark}
-        appTheme={theme}
+        appBackgroundColor={backgroundColor}
+        appThemeColor={themeColor}
         defaultSenderName={senderName}
         onClose={() => setSharing(false)}
       />
@@ -389,13 +391,14 @@ function DetailView({
 }
 
 export default function SearchScreen({
+  backgroundColor,
   bookmarks,
   onAttachmentsChanged,
   onDeleteBookmark,
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
-  theme,
+  themeColor,
 }) {
   const [mode, setMode] = useState("");
   const [chooserOpen, setChooserOpen] = useState(false);
@@ -439,6 +442,7 @@ export default function SearchScreen({
   if (selectedBookmark) {
     return (
       <DetailView
+        backgroundColor={backgroundColor}
         bookmark={selectedBookmark}
         onAttachmentsChanged={onAttachmentsChanged}
         onBack={() => setSelectedId("")}
@@ -451,7 +455,7 @@ export default function SearchScreen({
         onUpdateBookmark={onUpdateBookmark}
         onUpdateStatus={onUpdateStatus}
         senderName={senderName}
-        theme={theme}
+        themeColor={themeColor}
       />
     );
   }

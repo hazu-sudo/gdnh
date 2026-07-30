@@ -11,6 +11,8 @@ const statusMigration = {
 };
 const FONT_SIZE_KEY = "later-open-shiori-font-size-v1";
 const THEME_KEY = "later-open-shiori-theme-v1";
+const BACKGROUND_COLOR_KEY = "later-open-shiori-background-color-v1";
+const THEME_COLOR_KEY = "later-open-shiori-theme-color-v1";
 const REFLECTION_KEY = "later-open-shiori-reflection-v1";
 const HINTS_KEY = "later-open-shiori-hints-visible-v1";
 const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
@@ -18,7 +20,7 @@ const SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
 const HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
 const CUSTOM_THEMES_KEY = "later-open-shiori-share-backgrounds-v1";
 const validFontSizes = new Set(["small", "standard", "large"]);
-const validThemes = new Set(["orange", "pink", "blue", "green", "purple", "mono"]);
+const validThemes = new Set(["red", "pink", "blue", "yellow", "orange", "brown", "green", "purple", "mono"]);
 
 function normalizeBookmark(bookmark) {
   return {
@@ -80,6 +82,24 @@ export function saveTheme(theme) {
   }
 }
 
+export function loadBackgroundColor() {
+  const stored = localStorage.getItem(BACKGROUND_COLOR_KEY);
+  return validThemes.has(stored) ? stored : loadTheme();
+}
+
+export function saveBackgroundColor(color) {
+  if (validThemes.has(color)) localStorage.setItem(BACKGROUND_COLOR_KEY, color);
+}
+
+export function loadThemeColor() {
+  const stored = localStorage.getItem(THEME_COLOR_KEY);
+  return validThemes.has(stored) ? stored : loadTheme();
+}
+
+export function saveThemeColor(color) {
+  if (validThemes.has(color)) localStorage.setItem(THEME_COLOR_KEY, color);
+}
+
 export function loadReflectionVisibility() {
   return localStorage.getItem(REFLECTION_KEY) !== "off";
 }
@@ -134,7 +154,8 @@ export function saveHintCache(hints, notify = true) {
 export function loadSettingsSnapshot() {
   return {
     fontSize: loadFontSize(),
-    theme: loadTheme(),
+    backgroundColor: loadBackgroundColor(),
+    themeColor: loadThemeColor(),
     showReflection: loadReflectionVisibility(),
     showHints: loadHintVisibility(),
     hintIntroSeen: loadHintIntroSeen(),
@@ -146,7 +167,8 @@ export function loadSettingsSnapshot() {
 
 export function saveSettingsSnapshot(settings) {
   saveFontSize(settings.fontSize);
-  saveTheme(settings.theme);
+  saveBackgroundColor(settings.backgroundColor);
+  saveThemeColor(settings.themeColor);
   saveReflectionVisibility(settings.showReflection);
   saveHintVisibility(settings.showHints);
   if (settings.hintIntroSeen) saveHintIntroSeen();

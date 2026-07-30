@@ -60,6 +60,7 @@ export const SHARE_THEMES = [
   { id: "winter", label: "冬", background: "#dfe9f0", paper: "#fbfdff", accent: "#64859c", ink: "#35444d", muted: "#6d808a", decoration: "snow", position: "corners", frame: true, bookmarkColor: "#7899ad", dearStyle: "minimal" },
   { id: "halloween", label: "ハロウィン", background: "#f0dccb", paper: "#fff9f4", accent: "#ad673f", ink: "#49382f", muted: "#826f65", decoration: "pumpkin", position: "corners", frame: true, bookmarkColor: "#7d658d", dearStyle: "standard" },
   { id: "christmas", label: "クリスマス", background: "#e3ebe3", paper: "#fffdf8", accent: "#587b65", ink: "#34443a", muted: "#6b7d71", decoration: "gift", position: "corners", frame: true, bookmarkColor: "#aa6963", dearStyle: "standard" },
+  { id: "newyear", label: "お正月", background: "#f2e8d7", paper: "#fffdf8", accent: "#a85e55", ink: "#443830", muted: "#806f62", decoration: "ribbon", position: "corners", frame: true, bookmarkColor: "#6f8b6d", dearStyle: "standard", wordmark: "Happy New Year" },
 ];
 
 export const DEFAULT_CUSTOM_THEME = {

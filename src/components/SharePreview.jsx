@@ -14,47 +14,33 @@ import {
   SHARE_THEMES,
 } from "../shareThemes.js";
 
-const DECORATION_MARKS = {
-  none: "",
-  flower: "✿",
-  clover: "♣",
-  star: "✦",
-  heart: "♡",
-  bookmark: "▮",
-  envelope: "✉",
-  ribbon: "◇",
-  snow: "❄",
-  leaf: "◒",
-  pumpkin: "○",
-  gift: "□",
-  cake: "▱",
-  wave: "≈",
-};
-
-const THEME_MARKS = {
-  gentle: ["♣", "♣", "♣", "♣"],
-  thanks: ["♡", "♡", "♡", "♡"],
-  birthday: ["▱", "✦", "□", "○"],
-  celebration: ["✿", "◇", "✦", "✿"],
-  christmas: ["△", "❄", "○", "□"],
-  halloween: ["○", "☾", "✦", "○"],
-  spring: ["✿", "◒", "✿", "◦"],
-  summer: ["≈", "✦", "☼", "≈"],
-  autumn: ["◒", "●", "◒", "●"],
-  winter: ["❄", "✦", "❄", "·"],
-};
-
 const THEME_DECORATIONS = {
   gentle: ["clover", "clover", "clover", "clover"],
   thanks: ["heart", "heart", "heart", "heart"],
-  birthday: ["cake", "star", "gift", "star"],
-  celebration: ["flower", "ribbon", "star", "flower"],
-  christmas: ["tree", "snow", "star", "gift"],
-  halloween: ["pumpkin", "moon", "star", "pumpkin"],
+  birthday: ["cracker", "balloon", "cake", "gift"],
+  celebration: ["flower", "flower", "leaf", "sparkle"],
+  christmas: ["tree", "bell", "wreath", "santa", "reindeer"],
+  halloween: ["pumpkin", "ghost", "bat", "moon"],
   spring: ["flower", "leaf", "flower", "leaf"],
-  summer: ["wave", "star", "flower", "wave"],
-  autumn: ["leaf", "pumpkin", "leaf", "leaf"],
-  winter: ["snow", "star", "snow", "star"],
+  summer: ["watermelon", "sunflower", "shaved-ice", "shell"],
+  autumn: ["acorn", "ginkgo", "mushroom", "leaf"],
+  winter: ["snowman", "snow", "snowman", "snow"],
+  newyear: ["kagami", "kadomatsu", "daruma", "shimenawa"],
+};
+
+const CUSTOM_DECORATION_TYPES = {
+  clover: "clover",
+  flower: "flower",
+  star: "sparkle",
+  heart: "heart",
+  bookmark: "bookmark",
+  envelope: "envelope",
+  ribbon: "ribbon",
+  snow: "snow",
+  leaf: "leaf",
+  pumpkin: "pumpkin",
+  gift: "gift",
+  cake: "cake",
 };
 
 function wrapCanvasText(context, text, maxWidth) {
@@ -93,11 +79,7 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
   if (type === "none") return;
   context.save();
   context.translate(x, y);
-  context.strokeStyle = color;
-  context.fillStyle = hexToRgba(color, 0.2);
-  context.lineWidth = 7 * scale;
-  context.lineCap = "round";
-  context.lineJoin = "round";
+  context.fillStyle = hexToRgba(color, 0.38);
 
   if (type === "flower" || type === "clover") {
     const petals = type === "clover" ? 4 : 5;
@@ -106,24 +88,22 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
       context.beginPath();
       context.arc(Math.cos(angle) * 22 * scale, Math.sin(angle) * 22 * scale, 15 * scale, 0, Math.PI * 2);
       context.fill();
-      context.stroke();
     }
     context.beginPath();
     context.arc(0, 0, 9 * scale, 0, Math.PI * 2);
-    context.fillStyle = color;
     context.fill();
+    if (type === "clover") context.fillRect(-3 * scale, 12 * scale, 7 * scale, 33 * scale);
   } else if (type === "heart") {
     context.beginPath();
     context.moveTo(0, 30 * scale);
     context.bezierCurveTo(-55 * scale, 0, -32 * scale, -40 * scale, 0, -12 * scale);
     context.bezierCurveTo(32 * scale, -40 * scale, 55 * scale, 0, 0, 30 * scale);
     context.fill();
-    context.stroke();
-  } else if (type === "star" || type === "snow") {
-    const points = type === "star" ? 5 : 8;
+  } else if (type === "sparkle" || type === "star" || type === "snow") {
+    const points = type === "snow" ? 8 : 4;
     context.beginPath();
     for (let index = 0; index < points * 2; index += 1) {
-      const radius = (index % 2 ? 13 : 37) * scale;
+      const radius = (index % 2 ? 8 : 36) * scale;
       const angle = -Math.PI / 2 + (Math.PI * index) / points;
       const px = Math.cos(angle) * radius;
       const py = Math.sin(angle) * radius;
@@ -132,65 +112,191 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
     }
     context.closePath();
     context.fill();
-    context.stroke();
-  } else if (type === "tree") {
+  } else if (type === "cracker") {
+    context.rotate(-0.45);
     context.beginPath();
-    context.moveTo(0, -42 * scale);
-    context.lineTo(36 * scale, 28 * scale);
-    context.lineTo(-36 * scale, 28 * scale);
+    context.moveTo(-31 * scale, 27 * scale);
+    context.lineTo(26 * scale, 7 * scale);
+    context.lineTo(8 * scale, -30 * scale);
     context.closePath();
     context.fill();
-    context.stroke();
+    [[32, -22, 5], [42, 3, 4], [18, -43, 4]].forEach(([cx, cy, radius]) => {
+      context.beginPath();
+      context.arc(cx * scale, cy * scale, radius * scale, 0, Math.PI * 2);
+      context.fill();
+    });
+  } else if (type === "balloon") {
     context.beginPath();
-    context.moveTo(0, 28 * scale);
-    context.lineTo(0, 42 * scale);
-    context.stroke();
+    context.ellipse(0, -8 * scale, 27 * scale, 35 * scale, 0, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.moveTo(-7 * scale, 28 * scale);
+    context.lineTo(7 * scale, 28 * scale);
+    context.lineTo(0, 40 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "tree") {
+    [-8, 10].forEach((offset, index) => {
+      context.beginPath();
+      context.moveTo(0, (-42 + offset) * scale);
+      context.lineTo((32 + index * 5) * scale, (17 + offset) * scale);
+      context.lineTo((-32 - index * 5) * scale, (17 + offset) * scale);
+      context.closePath();
+      context.fill();
+    });
+    context.fillRect(-6 * scale, 22 * scale, 12 * scale, 20 * scale);
+  } else if (type === "bell") {
+    context.beginPath();
+    context.moveTo(-30 * scale, 24 * scale);
+    context.quadraticCurveTo(-18 * scale, 12 * scale, -18 * scale, -10 * scale);
+    context.quadraticCurveTo(-18 * scale, -35 * scale, 0, -38 * scale);
+    context.quadraticCurveTo(18 * scale, -35 * scale, 18 * scale, -10 * scale);
+    context.quadraticCurveTo(18 * scale, 12 * scale, 30 * scale, 24 * scale);
+    context.closePath();
+    context.fill();
+    context.beginPath();
+    context.arc(0, 29 * scale, 7 * scale, 0, Math.PI * 2);
+    context.fill();
+  } else if (type === "wreath" || type === "shimenawa") {
+    context.beginPath();
+    context.arc(0, 0, 37 * scale, 0, Math.PI * 2);
+    context.arc(0, 0, 23 * scale, 0, Math.PI * 2, true);
+    context.fill("evenodd");
+    if (type === "shimenawa") {
+      context.fillRect(-25 * scale, 25 * scale, 10 * scale, 20 * scale);
+      context.fillRect(15 * scale, 25 * scale, 10 * scale, 20 * scale);
+    }
+  } else if (type === "santa") {
+    context.beginPath();
+    context.arc(0, 6 * scale, 24 * scale, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.moveTo(-27 * scale, -5 * scale);
+    context.lineTo(7 * scale, -43 * scale);
+    context.lineTo(28 * scale, -4 * scale);
+    context.closePath();
+    context.fill();
+    context.beginPath();
+    context.arc(9 * scale, -42 * scale, 7 * scale, 0, Math.PI * 2);
+    context.fill();
+  } else if (type === "reindeer") {
+    context.beginPath();
+    context.ellipse(0, 7 * scale, 25 * scale, 31 * scale, 0, 0, Math.PI * 2);
+    context.fill();
+    context.save();
+    context.rotate(-0.5);
+    context.fillRect(-31 * scale, -38 * scale, 7 * scale, 34 * scale);
+    context.restore();
+    context.save();
+    context.rotate(0.5);
+    context.fillRect(24 * scale, -38 * scale, 7 * scale, 34 * scale);
+    context.restore();
   } else if (type === "moon") {
     context.beginPath();
     context.arc(0, 0, 34 * scale, -Math.PI / 2, Math.PI / 2);
     context.arc(13 * scale, 0, 27 * scale, Math.PI / 2, -Math.PI / 2, true);
     context.closePath();
     context.fill();
-    context.stroke();
-  } else if (type === "wave") {
+  } else if (type === "ghost") {
     context.beginPath();
-    context.moveTo(-42 * scale, 0);
-    context.bezierCurveTo(-24 * scale, -24 * scale, -6 * scale, 24 * scale, 12 * scale, 0);
-    context.bezierCurveTo(24 * scale, -18 * scale, 34 * scale, -12 * scale, 44 * scale, 0);
-    context.stroke();
+    context.arc(0, -8 * scale, 31 * scale, Math.PI, 0);
+    context.lineTo(31 * scale, 34 * scale);
+    context.lineTo(16 * scale, 25 * scale);
+    context.lineTo(0, 36 * scale);
+    context.lineTo(-16 * scale, 25 * scale);
+    context.lineTo(-31 * scale, 34 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "bat") {
+    context.beginPath();
+    context.moveTo(0, 4 * scale);
+    context.lineTo(-18 * scale, -17 * scale);
+    context.lineTo(-44 * scale, -9 * scale);
+    context.lineTo(-29 * scale, 8 * scale);
+    context.lineTo(-38 * scale, 29 * scale);
+    context.lineTo(-9 * scale, 18 * scale);
+    context.lineTo(0, 35 * scale);
+    context.lineTo(9 * scale, 18 * scale);
+    context.lineTo(38 * scale, 29 * scale);
+    context.lineTo(29 * scale, 8 * scale);
+    context.lineTo(44 * scale, -9 * scale);
+    context.lineTo(18 * scale, -17 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "watermelon") {
+    context.beginPath();
+    context.arc(0, 0, 38 * scale, 0, Math.PI);
+    context.closePath();
+    context.fill();
+  } else if (type === "sunflower") {
+    for (let index = 0; index < 10; index += 1) {
+      const angle = (Math.PI * 2 * index) / 10;
+      context.beginPath();
+      context.ellipse(Math.cos(angle) * 25 * scale, Math.sin(angle) * 25 * scale, 13 * scale, 7 * scale, angle, 0, Math.PI * 2);
+      context.fill();
+    }
+    context.beginPath();
+    context.arc(0, 0, 14 * scale, 0, Math.PI * 2);
+    context.fill();
+  } else if (type === "shaved-ice") {
+    context.beginPath();
+    context.arc(0, -10 * scale, 31 * scale, Math.PI, 0);
+    context.fill();
+    context.beginPath();
+    context.moveTo(-31 * scale, -9 * scale);
+    context.lineTo(22 * scale, -9 * scale);
+    context.lineTo(13 * scale, 32 * scale);
+    context.lineTo(-19 * scale, 32 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "shell") {
+    context.beginPath();
+    context.moveTo(-38 * scale, 30 * scale);
+    context.quadraticCurveTo(-30 * scale, -34 * scale, 0, -38 * scale);
+    context.quadraticCurveTo(30 * scale, -34 * scale, 38 * scale, 30 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "acorn") {
+    context.beginPath();
+    context.ellipse(0, 7 * scale, 24 * scale, 32 * scale, -0.3, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.ellipse(-5 * scale, -18 * scale, 26 * scale, 11 * scale, -0.3, 0, Math.PI * 2);
+    context.fill();
+  } else if (type === "ginkgo") {
+    context.beginPath();
+    context.moveTo(0, 42 * scale);
+    context.lineTo(-38 * scale, -10 * scale);
+    context.quadraticCurveTo(0, -43 * scale, 38 * scale, -10 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "mushroom") {
+    context.beginPath();
+    context.arc(0, 0, 37 * scale, Math.PI, 0);
+    context.closePath();
+    context.fill();
+    context.fillRect(-11 * scale, 0, 22 * scale, 34 * scale);
+  } else if (type === "snowman") {
+    context.beginPath();
+    context.arc(0, 15 * scale, 28 * scale, 0, Math.PI * 2);
+    context.arc(0, -25 * scale, 19 * scale, 0, Math.PI * 2);
+    context.fill();
   } else if (type === "leaf") {
     context.rotate(-0.55);
     context.beginPath();
     context.ellipse(0, 0, 38 * scale, 18 * scale, 0, 0, Math.PI * 2);
     context.fill();
-    context.stroke();
-    context.beginPath();
-    context.moveTo(-30 * scale, 0);
-    context.lineTo(34 * scale, 0);
-    context.stroke();
   } else if (type === "envelope") {
-    context.strokeRect(-38 * scale, -25 * scale, 76 * scale, 52 * scale);
     context.beginPath();
-    context.moveTo(-38 * scale, -25 * scale);
-    context.lineTo(0, 5 * scale);
-    context.lineTo(38 * scale, -25 * scale);
-    context.stroke();
+    context.rect(-38 * scale, -25 * scale, 76 * scale, 52 * scale);
+    context.fill();
   } else if (type === "gift") {
     context.fillRect(-34 * scale, -23 * scale, 68 * scale, 55 * scale);
-    context.strokeRect(-34 * scale, -23 * scale, 68 * scale, 55 * scale);
-    context.beginPath();
-    context.moveTo(0, -23 * scale);
-    context.lineTo(0, 32 * scale);
-    context.moveTo(-38 * scale, -23 * scale);
-    context.lineTo(38 * scale, -23 * scale);
-    context.stroke();
+    context.fillRect(-6 * scale, -31 * scale, 12 * scale, 70 * scale);
+    context.fillRect(-40 * scale, -8 * scale, 80 * scale, 11 * scale);
   } else if (type === "cake") {
     context.fillRect(-38 * scale, -3 * scale, 76 * scale, 35 * scale);
-    context.strokeRect(-38 * scale, -3 * scale, 76 * scale, 35 * scale);
-    context.beginPath();
-    context.moveTo(0, -5 * scale);
-    context.lineTo(0, -34 * scale);
-    context.stroke();
+    context.fillRect(-3 * scale, -32 * scale, 6 * scale, 29 * scale);
     context.beginPath();
     context.arc(0, -41 * scale, 6 * scale, 0, Math.PI * 2);
     context.fill();
@@ -199,8 +305,29 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
       context.beginPath();
       context.ellipse(offset * scale, 0, 23 * scale, 32 * scale, 0, 0, Math.PI * 2);
       context.fill();
-      context.stroke();
     });
+  } else if (type === "kagami") {
+    context.beginPath();
+    context.arc(0, 17 * scale, 27 * scale, 0, Math.PI * 2);
+    context.arc(0, -19 * scale, 20 * scale, 0, Math.PI * 2);
+    context.fill();
+    context.fillRect(-34 * scale, 39 * scale, 68 * scale, 8 * scale);
+  } else if (type === "kadomatsu") {
+    context.fillRect(-17 * scale, -36 * scale, 10 * scale, 70 * scale);
+    context.fillRect(-3 * scale, -46 * scale, 10 * scale, 80 * scale);
+    context.fillRect(11 * scale, -28 * scale, 10 * scale, 62 * scale);
+    context.beginPath();
+    context.moveTo(-35 * scale, 35 * scale);
+    context.lineTo(-12 * scale, 4 * scale);
+    context.lineTo(-5 * scale, 38 * scale);
+    context.lineTo(17 * scale, 5 * scale);
+    context.lineTo(35 * scale, 35 * scale);
+    context.closePath();
+    context.fill();
+  } else if (type === "daruma") {
+    context.beginPath();
+    context.ellipse(0, 6 * scale, 32 * scale, 40 * scale, 0, 0, Math.PI * 2);
+    context.fill();
   } else if (type === "bookmark") {
     context.beginPath();
     context.moveTo(-22 * scale, -38 * scale);
@@ -210,13 +337,11 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
     context.lineTo(-22 * scale, 36 * scale);
     context.closePath();
     context.fill();
-    context.stroke();
   } else {
     context.beginPath();
     context.ellipse(-18 * scale, 0, 22 * scale, 14 * scale, -0.45, 0, Math.PI * 2);
     context.ellipse(18 * scale, 0, 22 * scale, 14 * scale, 0.45, 0, Math.PI * 2);
     context.fill();
-    context.stroke();
   }
   context.restore();
 }
@@ -243,8 +368,6 @@ function drawThemePattern(context, theme, width, height) {
   context.save();
   context.globalAlpha = 0.22;
   context.fillStyle = theme.accent;
-  context.strokeStyle = theme.accent;
-  context.lineWidth = 4;
 
   if (id === "birthday") {
     [[115, 160], [220, 95], [780, 115], [965, 280], [105, 1080], [920, 1190]].forEach(([x, y], index) => {
@@ -271,21 +394,14 @@ function drawThemePattern(context, theme, width, height) {
   } else if (id === "summer") {
     for (let y = 100; y < height; y += 38) {
       context.beginPath();
-      context.moveTo(65, y);
-      context.quadraticCurveTo(95, y - 12, 125, y);
-      context.quadraticCurveTo(155, y + 12, 185, y);
-      context.stroke();
+      context.ellipse(120, y, 52, 7, 0, 0, Math.PI * 2);
+      context.fill();
     }
   } else if (id === "winter") {
     [[110, 160], [950, 240], [125, 1100], [925, 1180]].forEach(([x, y]) => {
-      context.beginPath();
-      context.moveTo(x - 18, y);
-      context.lineTo(x + 18, y);
-      context.moveTo(x, y - 18);
-      context.lineTo(x, y + 18);
-      context.stroke();
+      drawDecoration(context, "snow", x, y, theme.accent, 0.5);
     });
-  } else if (id === "spring" || id === "autumn" || id === "celebration" || id === "gratitude") {
+  } else if (id === "spring" || id === "autumn" || id === "celebration" || id === "thanks") {
     [[100, 130], [960, 190], [110, 1170], [940, 1210]].forEach(([x, y], index) => {
       drawDecoration(context, theme.decoration, x, y, theme.accent, index % 2 ? 0.55 : 0.7);
     });
@@ -326,7 +442,9 @@ async function renderCard({
   }
 
   const themeDecorations = THEME_DECORATIONS[theme.id] || [];
-  decorationAnchors(theme.position).forEach(([x, y], index) => {
+  const anchors = decorationAnchors(theme.position);
+  if (themeDecorations.length > anchors.length) anchors.push([540, 118]);
+  anchors.forEach(([x, y], index) => {
     const decorationType = themeDecorations.length
       ? themeDecorations[index % themeDecorations.length]
       : theme.decoration;
@@ -353,8 +471,10 @@ async function renderCard({
   context.textBaseline = "top";
   if (theme.wordmark) {
     context.fillStyle = hexToRgba(theme.accent, 0.72);
-    context.font = '600 30px "Noto Sans JP", sans-serif';
-    context.fillText(theme.wordmark, 150, 145);
+    context.font = 'italic 600 48px "Segoe Script", "Brush Script MT", cursive';
+    context.textAlign = "right";
+    context.fillText(theme.wordmark, 815, 132);
+    context.textAlign = "left";
   }
   let y = 205;
   if (showDear) {
@@ -424,10 +544,13 @@ function themeStyle(theme) {
 
 function ThemeDecoration({ theme }) {
   if (theme.decoration === "none") return null;
-  const marks = THEME_MARKS[theme.id] || Array(4).fill(DECORATION_MARKS[theme.decoration]);
+  const motifs = THEME_DECORATIONS[theme.id]
+    || Array(4).fill(CUSTOM_DECORATION_TYPES[theme.decoration] || "ribbon");
   return (
     <div className={`share-decoration decor-${theme.position}`} aria-hidden="true">
-      {marks.map((mark, index) => <span key={`${mark}-${index}`}>{mark}</span>)}
+      {motifs.map((motif, index) => (
+        <span className={`silhouette-motif motif-${motif}`} key={`${motif}-${index}`} />
+      ))}
     </div>
   );
 }
@@ -598,7 +721,13 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
             >
               <span className="theme-mini-preview">
                 <span className="theme-mini-mark" />
-                <span>{DECORATION_MARKS[theme.decoration]}</span>
+                <span
+                  className={`silhouette-motif theme-mini-silhouette motif-${
+                    THEME_DECORATIONS[theme.id]?.[0]
+                    || CUSTOM_DECORATION_TYPES[theme.decoration]
+                    || "ribbon"
+                  }`}
+                />
               </span>
               <strong>{theme.label}</strong>
               <span className="theme-selected-mark" aria-hidden="true">✓</span>

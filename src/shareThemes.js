@@ -12,10 +12,6 @@ export const DECORATION_OPTIONS = [
   ["envelope", "封筒"],
   ["ribbon", "リボン"],
   ["snow", "雪"],
-  ["leaf", "葉っぱ"],
-  ["pumpkin", "かぼちゃ"],
-  ["gift", "プレゼント"],
-  ["cake", "ケーキ"],
 ];
 
 export const POSITION_OPTIONS = [

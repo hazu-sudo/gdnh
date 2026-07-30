@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatJapaneseDate } from "./BookmarkCard.jsx";
 import AttachmentEditor from "./AttachmentEditor.jsx";
+import { drawThemeMotifLayer, ThemeMotifLayer } from "./ThemeMotifs.jsx";
 import { getAttachment } from "../attachmentStore.js";
 import {
   applyAppTheme,
@@ -13,32 +14,6 @@ import {
   saveCustomTheme,
   SHARE_THEMES,
 } from "../shareThemes.js";
-
-const THEME_DECORATIONS = {
-  gentle: ["clover", "clover"],
-  thanks: ["heart", "heart"],
-  birthday: ["ribbon", "ribbon"],
-  celebration: ["star", "star"],
-  spring: ["sakura", "sakura"],
-  summer: ["sunflower", "sunflower"],
-  autumn: ["ginkgo", "ginkgo"],
-  winter: ["snow", "snow"],
-};
-
-const CUSTOM_DECORATION_TYPES = {
-  clover: "clover",
-  flower: "flower",
-  star: "sparkle",
-  heart: "heart",
-  bookmark: "bookmark",
-  envelope: "envelope",
-  ribbon: "ribbon",
-  snow: "snow",
-  leaf: "leaf",
-  pumpkin: "pumpkin",
-  gift: "gift",
-  cake: "cake",
-};
 
 function wrapCanvasText(context, text, maxWidth) {
   const lines = [];
@@ -63,284 +38,6 @@ function hexToRgba(hex, alpha) {
   const expanded = value.length === 3 ? [...value].map((part) => part + part).join("") : value;
   const number = Number.parseInt(expanded, 16);
   return `rgba(${(number >> 16) & 255}, ${(number >> 8) & 255}, ${number & 255}, ${alpha})`;
-}
-
-function decorationAnchors(position) {
-  if (position === "top") return [[155, 145], [260, 122], [365, 150]];
-  if (position === "bottom") return [[690, 1160], [800, 1132], [900, 1160]];
-  if (position === "top-left") return [[150, 150], [228, 120]];
-  return [[145, 150], [960, 1210], [930, 150], [120, 1210]];
-}
-
-function drawDecoration(context, type, x, y, color, scale = 1) {
-  if (type === "none") return;
-  context.save();
-  context.translate(x, y);
-  context.fillStyle = hexToRgba(color, 0.38);
-
-  if (type === "flower" || type === "sakura" || type === "clover") {
-    const petals = type === "clover" ? 4 : 5;
-    for (let index = 0; index < petals; index += 1) {
-      const angle = (Math.PI * 2 * index) / petals;
-      context.beginPath();
-      context.arc(Math.cos(angle) * 22 * scale, Math.sin(angle) * 22 * scale, 15 * scale, 0, Math.PI * 2);
-      context.fill();
-    }
-    context.beginPath();
-    context.arc(0, 0, 9 * scale, 0, Math.PI * 2);
-    context.fill();
-    if (type === "clover") context.fillRect(-3 * scale, 12 * scale, 7 * scale, 33 * scale);
-  } else if (type === "heart") {
-    context.beginPath();
-    context.moveTo(0, 30 * scale);
-    context.bezierCurveTo(-55 * scale, 0, -32 * scale, -40 * scale, 0, -12 * scale);
-    context.bezierCurveTo(32 * scale, -40 * scale, 55 * scale, 0, 0, 30 * scale);
-    context.fill();
-  } else if (type === "sparkle" || type === "star" || type === "snow") {
-    const points = type === "snow" ? 8 : 4;
-    context.beginPath();
-    for (let index = 0; index < points * 2; index += 1) {
-      const radius = (index % 2 ? 8 : 36) * scale;
-      const angle = -Math.PI / 2 + (Math.PI * index) / points;
-      const px = Math.cos(angle) * radius;
-      const py = Math.sin(angle) * radius;
-      if (index === 0) context.moveTo(px, py);
-      else context.lineTo(px, py);
-    }
-    context.closePath();
-    context.fill();
-  } else if (type === "cracker") {
-    context.rotate(-0.45);
-    context.beginPath();
-    context.moveTo(-31 * scale, 27 * scale);
-    context.lineTo(26 * scale, 7 * scale);
-    context.lineTo(8 * scale, -30 * scale);
-    context.closePath();
-    context.fill();
-    [[32, -22, 5], [42, 3, 4], [18, -43, 4]].forEach(([cx, cy, radius]) => {
-      context.beginPath();
-      context.arc(cx * scale, cy * scale, radius * scale, 0, Math.PI * 2);
-      context.fill();
-    });
-  } else if (type === "balloon") {
-    context.beginPath();
-    context.ellipse(0, -8 * scale, 27 * scale, 35 * scale, 0, 0, Math.PI * 2);
-    context.fill();
-    context.beginPath();
-    context.moveTo(-7 * scale, 28 * scale);
-    context.lineTo(7 * scale, 28 * scale);
-    context.lineTo(0, 40 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "tree") {
-    [-8, 10].forEach((offset, index) => {
-      context.beginPath();
-      context.moveTo(0, (-42 + offset) * scale);
-      context.lineTo((32 + index * 5) * scale, (17 + offset) * scale);
-      context.lineTo((-32 - index * 5) * scale, (17 + offset) * scale);
-      context.closePath();
-      context.fill();
-    });
-    context.fillRect(-6 * scale, 22 * scale, 12 * scale, 20 * scale);
-  } else if (type === "bell") {
-    context.beginPath();
-    context.moveTo(-30 * scale, 24 * scale);
-    context.quadraticCurveTo(-18 * scale, 12 * scale, -18 * scale, -10 * scale);
-    context.quadraticCurveTo(-18 * scale, -35 * scale, 0, -38 * scale);
-    context.quadraticCurveTo(18 * scale, -35 * scale, 18 * scale, -10 * scale);
-    context.quadraticCurveTo(18 * scale, 12 * scale, 30 * scale, 24 * scale);
-    context.closePath();
-    context.fill();
-    context.beginPath();
-    context.arc(0, 29 * scale, 7 * scale, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "wreath" || type === "shimenawa") {
-    context.beginPath();
-    context.arc(0, 0, 37 * scale, 0, Math.PI * 2);
-    context.arc(0, 0, 23 * scale, 0, Math.PI * 2, true);
-    context.fill("evenodd");
-    if (type === "shimenawa") {
-      context.fillRect(-25 * scale, 25 * scale, 10 * scale, 20 * scale);
-      context.fillRect(15 * scale, 25 * scale, 10 * scale, 20 * scale);
-    }
-  } else if (type === "santa") {
-    context.beginPath();
-    context.arc(0, 6 * scale, 24 * scale, 0, Math.PI * 2);
-    context.fill();
-    context.beginPath();
-    context.moveTo(-27 * scale, -5 * scale);
-    context.lineTo(7 * scale, -43 * scale);
-    context.lineTo(28 * scale, -4 * scale);
-    context.closePath();
-    context.fill();
-    context.beginPath();
-    context.arc(9 * scale, -42 * scale, 7 * scale, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "reindeer") {
-    context.beginPath();
-    context.ellipse(0, 7 * scale, 25 * scale, 31 * scale, 0, 0, Math.PI * 2);
-    context.fill();
-    context.save();
-    context.rotate(-0.5);
-    context.fillRect(-31 * scale, -38 * scale, 7 * scale, 34 * scale);
-    context.restore();
-    context.save();
-    context.rotate(0.5);
-    context.fillRect(24 * scale, -38 * scale, 7 * scale, 34 * scale);
-    context.restore();
-  } else if (type === "moon") {
-    context.beginPath();
-    context.arc(0, 0, 34 * scale, -Math.PI / 2, Math.PI / 2);
-    context.arc(13 * scale, 0, 27 * scale, Math.PI / 2, -Math.PI / 2, true);
-    context.closePath();
-    context.fill();
-  } else if (type === "ghost") {
-    context.beginPath();
-    context.arc(0, -8 * scale, 31 * scale, Math.PI, 0);
-    context.lineTo(31 * scale, 34 * scale);
-    context.lineTo(16 * scale, 25 * scale);
-    context.lineTo(0, 36 * scale);
-    context.lineTo(-16 * scale, 25 * scale);
-    context.lineTo(-31 * scale, 34 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "bat") {
-    context.beginPath();
-    context.moveTo(0, 4 * scale);
-    context.lineTo(-18 * scale, -17 * scale);
-    context.lineTo(-44 * scale, -9 * scale);
-    context.lineTo(-29 * scale, 8 * scale);
-    context.lineTo(-38 * scale, 29 * scale);
-    context.lineTo(-9 * scale, 18 * scale);
-    context.lineTo(0, 35 * scale);
-    context.lineTo(9 * scale, 18 * scale);
-    context.lineTo(38 * scale, 29 * scale);
-    context.lineTo(29 * scale, 8 * scale);
-    context.lineTo(44 * scale, -9 * scale);
-    context.lineTo(18 * scale, -17 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "watermelon") {
-    context.beginPath();
-    context.arc(0, 0, 38 * scale, 0, Math.PI);
-    context.closePath();
-    context.fill();
-  } else if (type === "sunflower") {
-    for (let index = 0; index < 10; index += 1) {
-      const angle = (Math.PI * 2 * index) / 10;
-      context.beginPath();
-      context.ellipse(Math.cos(angle) * 25 * scale, Math.sin(angle) * 25 * scale, 13 * scale, 7 * scale, angle, 0, Math.PI * 2);
-      context.fill();
-    }
-    context.beginPath();
-    context.arc(0, 0, 14 * scale, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "shaved-ice") {
-    context.beginPath();
-    context.arc(0, -10 * scale, 31 * scale, Math.PI, 0);
-    context.fill();
-    context.beginPath();
-    context.moveTo(-31 * scale, -9 * scale);
-    context.lineTo(22 * scale, -9 * scale);
-    context.lineTo(13 * scale, 32 * scale);
-    context.lineTo(-19 * scale, 32 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "shell") {
-    context.beginPath();
-    context.moveTo(-38 * scale, 30 * scale);
-    context.quadraticCurveTo(-30 * scale, -34 * scale, 0, -38 * scale);
-    context.quadraticCurveTo(30 * scale, -34 * scale, 38 * scale, 30 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "acorn") {
-    context.beginPath();
-    context.ellipse(0, 7 * scale, 24 * scale, 32 * scale, -0.3, 0, Math.PI * 2);
-    context.fill();
-    context.beginPath();
-    context.ellipse(-5 * scale, -18 * scale, 26 * scale, 11 * scale, -0.3, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "ginkgo") {
-    context.beginPath();
-    context.moveTo(0, 42 * scale);
-    context.lineTo(-38 * scale, -10 * scale);
-    context.quadraticCurveTo(0, -43 * scale, 38 * scale, -10 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "mushroom") {
-    context.beginPath();
-    context.arc(0, 0, 37 * scale, Math.PI, 0);
-    context.closePath();
-    context.fill();
-    context.fillRect(-11 * scale, 0, 22 * scale, 34 * scale);
-  } else if (type === "snowman") {
-    context.beginPath();
-    context.arc(0, 15 * scale, 28 * scale, 0, Math.PI * 2);
-    context.arc(0, -25 * scale, 19 * scale, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "leaf") {
-    context.rotate(-0.55);
-    context.beginPath();
-    context.ellipse(0, 0, 38 * scale, 18 * scale, 0, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "envelope") {
-    context.beginPath();
-    context.rect(-38 * scale, -25 * scale, 76 * scale, 52 * scale);
-    context.fill();
-  } else if (type === "gift") {
-    context.fillRect(-34 * scale, -23 * scale, 68 * scale, 55 * scale);
-    context.fillRect(-6 * scale, -31 * scale, 12 * scale, 70 * scale);
-    context.fillRect(-40 * scale, -8 * scale, 80 * scale, 11 * scale);
-  } else if (type === "cake") {
-    context.fillRect(-38 * scale, -3 * scale, 76 * scale, 35 * scale);
-    context.fillRect(-3 * scale, -32 * scale, 6 * scale, 29 * scale);
-    context.beginPath();
-    context.arc(0, -41 * scale, 6 * scale, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "pumpkin") {
-    [-17, 0, 17].forEach((offset) => {
-      context.beginPath();
-      context.ellipse(offset * scale, 0, 23 * scale, 32 * scale, 0, 0, Math.PI * 2);
-      context.fill();
-    });
-  } else if (type === "kagami") {
-    context.beginPath();
-    context.arc(0, 17 * scale, 27 * scale, 0, Math.PI * 2);
-    context.arc(0, -19 * scale, 20 * scale, 0, Math.PI * 2);
-    context.fill();
-    context.fillRect(-34 * scale, 39 * scale, 68 * scale, 8 * scale);
-  } else if (type === "kadomatsu") {
-    context.fillRect(-17 * scale, -36 * scale, 10 * scale, 70 * scale);
-    context.fillRect(-3 * scale, -46 * scale, 10 * scale, 80 * scale);
-    context.fillRect(11 * scale, -28 * scale, 10 * scale, 62 * scale);
-    context.beginPath();
-    context.moveTo(-35 * scale, 35 * scale);
-    context.lineTo(-12 * scale, 4 * scale);
-    context.lineTo(-5 * scale, 38 * scale);
-    context.lineTo(17 * scale, 5 * scale);
-    context.lineTo(35 * scale, 35 * scale);
-    context.closePath();
-    context.fill();
-  } else if (type === "daruma") {
-    context.beginPath();
-    context.ellipse(0, 6 * scale, 32 * scale, 40 * scale, 0, 0, Math.PI * 2);
-    context.fill();
-  } else if (type === "bookmark") {
-    context.beginPath();
-    context.moveTo(-22 * scale, -38 * scale);
-    context.lineTo(22 * scale, -38 * scale);
-    context.lineTo(22 * scale, 36 * scale);
-    context.lineTo(0, 22 * scale);
-    context.lineTo(-22 * scale, 36 * scale);
-    context.closePath();
-    context.fill();
-  } else {
-    context.beginPath();
-    context.ellipse(-18 * scale, 0, 22 * scale, 14 * scale, -0.45, 0, Math.PI * 2);
-    context.ellipse(18 * scale, 0, 22 * scale, 14 * scale, 0.45, 0, Math.PI * 2);
-    context.fill();
-  }
-  context.restore();
 }
 
 function loadCanvasImage(blob) {
@@ -388,25 +85,7 @@ async function renderCard({
     context.stroke();
   }
 
-  const themeDecorations = THEME_DECORATIONS[theme.id] || [];
-  const anchors = decorationAnchors(theme.position);
-  if (themeDecorations.length > anchors.length) anchors.push([540, 118]);
-  const activeAnchors = themeDecorations.length
-    ? anchors.slice(0, themeDecorations.length)
-    : anchors;
-  activeAnchors.forEach(([x, y], index) => {
-    const decorationType = themeDecorations.length
-      ? themeDecorations[index % themeDecorations.length]
-      : theme.decoration;
-    drawDecoration(
-      context,
-      decorationType,
-      x,
-      y,
-      theme.accent,
-      index % 2 ? 0.72 : 0.9,
-    );
-  });
+  drawThemeMotifLayer(context, theme);
 
   context.fillStyle = theme.bookmarkColor;
   context.beginPath();
@@ -490,19 +169,6 @@ function themeStyle(theme) {
     "--share-muted": theme.muted,
     "--share-bookmark": theme.bookmarkColor,
   };
-}
-
-function ThemeDecoration({ theme }) {
-  if (theme.decoration === "none") return null;
-  const motifs = THEME_DECORATIONS[theme.id]
-    || Array(4).fill(CUSTOM_DECORATION_TYPES[theme.decoration] || "ribbon");
-  return (
-    <div className={`share-decoration decor-${theme.position}`} aria-hidden="true">
-      {motifs.map((motif, index) => (
-        <span className={`silhouette-motif motif-${motif}`} key={`${motif}-${index}`} />
-      ))}
-    </div>
-  );
 }
 
 export default function SharePreview({ appTheme, bookmark, defaultSenderName, onClose }) {
@@ -634,7 +300,7 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
         className={`share-card-preview share-theme-card theme-${activeTheme.id} dear-${activeTheme.dearStyle} ${activeTheme.frame ? "has-share-frame" : ""}`}
         style={themeStyle(activeTheme)}
       >
-        <ThemeDecoration theme={activeTheme} />
+        <ThemeMotifLayer key={activeTheme.id} theme={activeTheme} />
         <span className="share-card-ribbon" aria-hidden="true" />
         <div className="share-card-content">
           {activeTheme.wordmark && <p className="share-theme-wordmark">{activeTheme.wordmark}</p>}
@@ -671,15 +337,7 @@ export default function SharePreview({ appTheme, bookmark, defaultSenderName, on
             >
               <span className="theme-mini-preview">
                 <span className="theme-mini-mark" />
-                {theme.decoration !== "none" && (
-                  <span
-                    className={`silhouette-motif theme-mini-silhouette motif-${
-                      THEME_DECORATIONS[theme.id]?.[0]
-                      || CUSTOM_DECORATION_TYPES[theme.decoration]
-                      || "ribbon"
-                    }`}
-                  />
-                )}
+                <ThemeMotifLayer compact theme={theme} />
               </span>
               <strong>{theme.label}</strong>
               <span className="theme-selected-mark" aria-hidden="true">✓</span>

@@ -2955,7 +2955,7 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   content: "";
   pointer-events: none;
 }
-.share-theme-card > *:not(.share-decoration) { position: relative; z-index: 2; }
+.share-theme-card > *:not(.theme-motif-layer) { position: relative; z-index: 2; }
 .share-theme-card .share-card-ribbon {
   z-index: 5;
   background: var(--share-bookmark);
@@ -2971,13 +2971,40 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   font-weight: 600;
   opacity: 0.82;
 }
-.share-decoration {
+.theme-motif-layer {
   position: absolute;
   z-index: 4;
   inset: 0;
   color: var(--share-accent);
-  opacity: 0.32;
   pointer-events: none;
+}
+.theme-motif {
+  position: absolute;
+  display: block;
+  width: 1.8rem;
+  height: 1.8rem;
+  opacity: 0.32;
+}
+.theme-motif svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+.theme-motif.motif-top-left { top: 1.25rem; left: 1.35rem; }
+.theme-motif.motif-bottom-right { right: 0.3rem; bottom: 0.3rem; }
+.theme-motif-layer.compact {
+  position: relative;
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+}
+.theme-motif-layer.compact .theme-motif {
+  position: static;
+  width: 1.15rem;
+  height: 1.15rem;
+  opacity: 1;
 }
 .share-card-photo {
   margin: 1.1rem 0 0;
@@ -3005,161 +3032,6 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   text-align: right;
 }
 
-.share-decoration span {
-  position: absolute;
-  font-family: Georgia, serif;
-  font-size: 1.65rem;
-  line-height: 1;
-}
-.share-decoration.decor-corners span:nth-child(1),
-.share-decoration.decor-top-left span:nth-child(1) { top: 1.25rem; left: 1.35rem; }
-.share-decoration.decor-corners span:nth-child(2) { right: 0.3rem; bottom: 0.3rem; }
-.share-decoration.decor-corners span:nth-child(3) { top: 1.4rem; right: 4.2rem; }
-.share-decoration.decor-corners span:nth-child(4) { bottom: 0.3rem; left: 0.3rem; }
-.share-decoration.decor-top span:nth-child(1) { top: 1.3rem; left: 1.35rem; }
-.share-decoration.decor-top span:nth-child(2) { top: 1rem; left: 4.15rem; }
-.share-decoration.decor-top span:nth-child(3) { top: 1.35rem; left: 6.7rem; }
-.share-decoration.decor-top span:nth-child(4) { display: none; }
-.share-decoration.decor-bottom span:nth-child(1) { right: 1.3rem; bottom: 1.25rem; }
-.share-decoration.decor-bottom span:nth-child(2) { right: 4rem; bottom: 0.95rem; }
-.share-decoration.decor-bottom span:nth-child(3) { right: 6.7rem; bottom: 1.3rem; }
-.share-decoration.decor-bottom span:nth-child(4) { display: none; }
-.share-decoration.decor-top-left span:nth-child(2) { top: 3.45rem; left: 1rem; font-size: 1.1rem; }
-.share-decoration.decor-top-left span:nth-child(n+3) { display: none; }
-.share-decoration.decor-corners span:nth-child(5) {
-  top: 1.05rem;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Filled, low-detail silhouettes used by every card theme. */
-.silhouette-motif {
-  position: absolute;
-  display: block;
-  width: 1.8rem;
-  height: 1.8rem;
-  background: currentColor;
-  clip-path: polygon(18% 18%, 82% 18%, 82% 82%, 18% 82%);
-}
-.silhouette-motif::before,
-.silhouette-motif::after {
-  position: absolute;
-  display: block;
-  background: currentColor;
-  content: "";
-}
-.motif-heart {
-  transform: rotate(45deg);
-  border-radius: 0 0 0.25rem;
-  clip-path: none;
-  width: 1.1rem;
-  height: 1.1rem;
-}
-.motif-heart::before,
-.motif-heart::after {
-  width: 1.1rem;
-  height: 1.1rem;
-  border-radius: 50%;
-}
-.motif-heart::before { top: -0.53rem; left: 0; }
-.motif-heart::after { top: 0; left: -0.53rem; }
-.motif-clover {
-  background:
-    radial-gradient(circle at 30% 30%, currentColor 0 27%, transparent 29%),
-    radial-gradient(circle at 70% 30%, currentColor 0 27%, transparent 29%),
-    radial-gradient(circle at 30% 70%, currentColor 0 27%, transparent 29%),
-    radial-gradient(circle at 70% 70%, currentColor 0 27%, transparent 29%);
-  clip-path: none;
-}
-.motif-clover::after { top: 58%; left: 48%; width: 0.15rem; height: 0.9rem; transform: rotate(-18deg); }
-.motif-flower,
-.motif-sakura,
-.motif-sunflower {
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, currentColor 0 20%, transparent 22%),
-    radial-gradient(ellipse at 50% 5%, currentColor 0 16%, transparent 18%),
-    radial-gradient(ellipse at 95% 50%, currentColor 0 16%, transparent 18%),
-    radial-gradient(ellipse at 50% 95%, currentColor 0 16%, transparent 18%),
-    radial-gradient(ellipse at 5% 50%, currentColor 0 16%, transparent 18%);
-  clip-path: none;
-}
-.motif-sakura {
-  background:
-    radial-gradient(ellipse at 50% 6%, currentColor 0 17%, transparent 19%),
-    radial-gradient(ellipse at 91% 38%, currentColor 0 17%, transparent 19%),
-    radial-gradient(ellipse at 76% 88%, currentColor 0 17%, transparent 19%),
-    radial-gradient(ellipse at 24% 88%, currentColor 0 17%, transparent 19%),
-    radial-gradient(ellipse at 9% 38%, currentColor 0 17%, transparent 19%),
-    radial-gradient(circle, currentColor 0 14%, transparent 16%);
-}
-.motif-star,
-.motif-sparkle,
-.motif-snow {
-  clip-path: polygon(50% 0, 60% 37%, 100% 50%, 60% 63%, 50% 100%, 40% 63%, 0 50%, 40% 37%);
-}
-.motif-cracker { clip-path: polygon(5% 90%, 82% 62%, 42% 8%); transform: rotate(-12deg); }
-.motif-cracker::after {
-  top: 0.05rem;
-  right: 0;
-  width: 0.3rem;
-  height: 0.3rem;
-  border-radius: 50%;
-  box-shadow: -0.55rem 0.18rem 0 currentColor, -0.18rem 0.62rem 0 -0.04rem currentColor;
-}
-.motif-balloon { width: 1.25rem; height: 1.55rem; border-radius: 50%; clip-path: none; }
-.motif-balloon::after { bottom: -0.33rem; left: 0.48rem; border-right: 0.14rem solid transparent; border-bottom: 0.34rem solid currentColor; border-left: 0.14rem solid transparent; background: transparent; }
-.motif-cake { clip-path: polygon(8% 42%, 92% 42%, 92% 88%, 8% 88%); }
-.motif-cake::before { top: 0.1rem; left: 47%; width: 0.16rem; height: 0.75rem; }
-.motif-cake::after { top: 0; left: 41%; width: 0.4rem; height: 0.4rem; border-radius: 50% 0 50% 50%; transform: rotate(-45deg); }
-.motif-gift { clip-path: polygon(5% 26%, 95% 26%, 95% 90%, 5% 90%); }
-.motif-gift::before { top: 0.45rem; left: 44%; width: 0.22rem; height: 1.25rem; }
-.motif-gift::after { top: 43%; left: 0; width: 100%; height: 0.2rem; }
-.motif-leaf { border-radius: 90% 10% 90% 10%; clip-path: none; transform: rotate(-25deg); }
-.motif-tree { clip-path: polygon(50% 0, 76% 35%, 65% 35%, 90% 72%, 58% 72%, 58% 100%, 42% 100%, 42% 72%, 10% 72%, 35% 35%, 24% 35%); }
-.motif-bell { border-radius: 50% 50% 16% 16%; clip-path: polygon(22% 10%, 78% 10%, 82% 70%, 100% 88%, 0 88%, 18% 70%); }
-.motif-bell::after { bottom: -0.16rem; left: 41%; width: 0.35rem; height: 0.35rem; border-radius: 50%; }
-.motif-wreath,
-.motif-shimenawa { border: 0.38rem solid currentColor; border-radius: 50%; background: transparent; clip-path: none; }
-.motif-shimenawa::after { right: 0.12rem; bottom: -0.43rem; left: 0.12rem; height: 0.55rem; background: linear-gradient(90deg, currentColor 0 26%, transparent 27% 73%, currentColor 74%); }
-.motif-santa { width: 1.25rem; height: 1.25rem; border-radius: 50%; clip-path: none; }
-.motif-santa::before { top: -0.7rem; left: -0.15rem; border-right: 0.75rem solid transparent; border-bottom: 0.9rem solid currentColor; border-left: 0.75rem solid transparent; background: transparent; }
-.motif-reindeer { width: 1.2rem; height: 1.45rem; border-radius: 48%; clip-path: none; }
-.motif-reindeer::before { top: -0.5rem; left: -0.35rem; width: 1.9rem; height: 0.75rem; background: linear-gradient(75deg, transparent 0 18%, currentColor 19% 28%, transparent 29% 70%, currentColor 71% 80%, transparent 81%); }
-.motif-ghost { border-radius: 48% 48% 10% 10%; clip-path: polygon(8% 100%, 8% 38%, 18% 14%, 50% 2%, 82% 14%, 92% 38%, 92% 100%, 70% 82%, 50% 100%, 30% 82%); }
-.motif-bat { clip-path: polygon(50% 34%, 67% 10%, 78% 30%, 100% 20%, 88% 54%, 100% 78%, 62% 67%, 50% 100%, 38% 67%, 0 78%, 12% 54%, 0 20%, 22% 30%, 33% 10%); }
-.motif-moon { border-radius: 50%; clip-path: polygon(50% 0, 85% 12%, 65% 25%, 55% 50%, 65% 75%, 85% 88%, 50% 100%, 14% 84%, 0 50%, 14% 16%); }
-.motif-pumpkin { border-radius: 46%; clip-path: none; box-shadow: inset 0.35rem 0 rgba(255,255,255,0.12), inset -0.35rem 0 rgba(255,255,255,0.12); }
-.motif-watermelon { border-radius: 50% 50% 8% 8%; clip-path: inset(0 0 48%); transform: rotate(180deg); }
-.motif-shaved-ice { clip-path: polygon(8% 36%, 92% 36%, 75% 100%, 25% 100%); }
-.motif-shaved-ice::before { top: -0.45rem; left: 12%; width: 76%; height: 0.95rem; border-radius: 50% 50% 0 0; }
-.motif-shell { border-radius: 50% 50% 8% 8%; clip-path: polygon(50% 0, 100% 90%, 0 90%); }
-.motif-acorn { border-radius: 48%; clip-path: none; transform: rotate(-18deg); }
-.motif-acorn::before { top: -0.12rem; left: -0.08rem; width: 1.95rem; height: 0.62rem; border-radius: 50%; }
-.motif-ginkgo { clip-path: polygon(50% 100%, 0 20%, 18% 0, 50% 30%, 82% 0, 100% 20%); }
-.motif-mushroom { clip-path: polygon(8% 50%, 18% 22%, 50% 8%, 82% 22%, 92% 50%, 62% 50%, 62% 100%, 38% 100%, 38% 50%); }
-.motif-snowman { background: transparent; clip-path: none; }
-.motif-snowman::before { right: 0.12rem; bottom: 0; left: 0.12rem; height: 1.05rem; border-radius: 50%; }
-.motif-snowman::after { top: 0; left: 0.45rem; width: 0.9rem; height: 0.9rem; border-radius: 50%; }
-.motif-kagami { background: transparent; clip-path: none; }
-.motif-kagami::before { right: 0.12rem; bottom: 0.16rem; left: 0.12rem; height: 0.95rem; border-radius: 50%; box-shadow: 0 -0.65rem 0 -0.12rem currentColor; }
-.motif-kagami::after { bottom: 0; left: 0; width: 100%; height: 0.18rem; }
-.motif-kadomatsu { clip-path: polygon(12% 100%, 24% 15%, 38% 0, 46% 100%, 56% 25%, 68% 10%, 76% 100%, 88% 35%, 100% 100%); }
-.motif-daruma { border-radius: 50% 50% 44% 44%; clip-path: none; }
-.motif-bookmark { clip-path: polygon(20% 0, 80% 0, 80% 100%, 50% 76%, 20% 100%); }
-.motif-envelope { clip-path: polygon(0 12%, 100% 12%, 100% 88%, 0 88%, 0 18%, 50% 58%, 100% 18%, 100% 88%, 0 88%); }
-.motif-ribbon { clip-path: polygon(50% 20%, 72% 0, 100% 12%, 78% 50%, 100% 88%, 72% 100%, 50% 78%, 28% 100%, 0 88%, 22% 50%, 0 12%, 28% 0); }
-.theme-mini-silhouette {
-  position: relative;
-  top: auto;
-  right: auto;
-  bottom: auto;
-  left: auto;
-  width: 1.15rem;
-  height: 1.15rem;
-  color: var(--share-accent);
-  transform: none;
-}
 
 .share-background-picker {
   display: grid;

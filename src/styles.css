@@ -2935,18 +2935,6 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   color: var(--share-ink);
   padding: 0.72rem;
 }
-.share-theme-card::before {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    radial-gradient(circle at 10% 12%, color-mix(in srgb, var(--share-accent) 30%, transparent) 0 3px, transparent 4px),
-    radial-gradient(circle at 88% 86%, color-mix(in srgb, var(--share-accent) 24%, transparent) 0 4px, transparent 5px);
-  background-size: 4rem 4rem, 5rem 5rem;
-  content: "";
-  opacity: 0.48;
-  pointer-events: none;
-}
 .share-card-content {
   position: relative;
   z-index: 2;
@@ -3017,90 +3005,6 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   text-align: right;
 }
 
-/* The pattern belongs to the card itself, not the surrounding share screen. */
-.share-theme-card.theme-gentle::before,
-.share-theme-option.theme-gentle .theme-mini-preview {
-  background-image:
-    radial-gradient(circle at 42% 42%, rgba(89, 126, 92, 0.34) 0 4px, transparent 5px),
-    radial-gradient(circle at 58% 58%, rgba(89, 126, 92, 0.24) 0 4px, transparent 5px);
-  background-size: 3.2rem 3.2rem;
-}
-.share-theme-card.theme-thanks::before,
-.share-theme-option.theme-thanks .theme-mini-preview {
-  background-image:
-    radial-gradient(ellipse at 42% 50%, rgba(185, 105, 129, 0.32) 0 4px, transparent 5px),
-    radial-gradient(ellipse at 58% 50%, rgba(185, 105, 129, 0.24) 0 4px, transparent 5px);
-  background-size: 3.5rem 3rem;
-}
-.share-theme-card.theme-birthday::before,
-.share-theme-option.theme-birthday .theme-mini-preview {
-  background-image:
-    radial-gradient(circle, #edb45f 0 3px, transparent 4px),
-    linear-gradient(35deg, transparent 46%, #d98596 47% 53%, transparent 54%);
-  background-size: 2.7rem 2.7rem, 3.4rem 3.4rem;
-}
-.share-theme-card.theme-celebration::before,
-.share-theme-option.theme-celebration .theme-mini-preview {
-  background-image:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--share-accent) 42%, transparent) 0 2px, transparent 3px),
-    radial-gradient(circle at 50% 50%, transparent 0 7px, color-mix(in srgb, #d5ad64 50%, transparent) 8px 9px, transparent 10px);
-  background-size: 3.2rem 3.2rem, 4rem 4rem;
-}
-.share-theme-card.theme-christmas::before,
-.share-theme-option.theme-christmas .theme-mini-preview {
-  background-image:
-    radial-gradient(circle, #bd7b70 0 3px, transparent 4px),
-    radial-gradient(circle, #6e9278 0 3px, transparent 4px),
-    linear-gradient(45deg, transparent 46%, rgba(255, 255, 255, 0.55) 47% 53%, transparent 54%);
-  background-position: 0 0, 1.5rem 1.5rem, 0 0;
-  background-size: 3rem 3rem, 3rem 3rem, 4.2rem 4.2rem;
-}
-.share-theme-card.theme-christmas .share-card-ribbon,
-.share-theme-option.theme-christmas .theme-mini-mark {
-  background: repeating-linear-gradient(45deg, #aa6863 0 0.42rem, #688774 0.42rem 0.84rem);
-}
-.share-theme-card.theme-halloween::before,
-.share-theme-option.theme-halloween .theme-mini-preview {
-  background-image:
-    radial-gradient(circle at 25% 40%, #c88758 0 4px, transparent 5px),
-    radial-gradient(circle at 70% 30%, #7d6687 0 2px, transparent 3px);
-  background-size: 3.8rem 3.8rem, 2.5rem 2.5rem;
-}
-.share-theme-card.theme-spring::before,
-.share-theme-option.theme-spring .theme-mini-preview {
-  background-image:
-    radial-gradient(ellipse at 50% 50%, #dda0a8 0 4px, transparent 5px),
-    radial-gradient(ellipse at 50% 50%, #97ae86 0 2px, transparent 3px);
-  background-size: 3.5rem 2.7rem, 2.7rem 3.3rem;
-}
-.share-theme-card.theme-summer::before,
-.share-theme-option.theme-summer .theme-mini-preview {
-  background-image:
-    repeating-radial-gradient(ellipse at 0 50%, transparent 0 0.7rem, rgba(91, 154, 169, 0.28) 0.75rem 0.86rem, transparent 0.92rem 1.45rem);
-  background-size: 4.5rem 2.4rem;
-}
-.share-theme-card.theme-autumn::before,
-.share-theme-option.theme-autumn .theme-mini-preview {
-  background-image:
-    radial-gradient(ellipse at 50% 50%, #b97855 0 4px, transparent 5px),
-    radial-gradient(ellipse at 50% 50%, #92704e 0 3px, transparent 4px);
-  background-size: 3.9rem 3.1rem, 3rem 4rem;
-  transform: rotate(-2deg);
-}
-.share-theme-card.theme-winter::before,
-.share-theme-option.theme-winter .theme-mini-preview {
-  background-image:
-    linear-gradient(45deg, transparent 47%, rgba(113, 141, 160, 0.28) 48% 52%, transparent 53%),
-    linear-gradient(-45deg, transparent 47%, rgba(113, 141, 160, 0.2) 48% 52%, transparent 53%);
-  background-size: 3rem 3rem;
-}
-.share-theme-card.theme-newyear::before,
-.share-theme-option.theme-newyear .theme-mini-preview {
-  background-image:
-    radial-gradient(circle, rgba(168, 94, 85, 0.28) 0 3px, transparent 4px),
-    linear-gradient(45deg, transparent 47%, rgba(111, 139, 109, 0.2) 48% 52%, transparent 53%);
-  background-size: 3.2rem 3.2rem, 4rem 4rem;
-}
 .share-decoration span {
   position: absolute;
   font-family: Georgia, serif;
@@ -3109,9 +3013,9 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
 }
 .share-decoration.decor-corners span:nth-child(1),
 .share-decoration.decor-top-left span:nth-child(1) { top: 1.25rem; left: 1.35rem; }
-.share-decoration.decor-corners span:nth-child(2) { top: 1.4rem; right: 4.2rem; }
-.share-decoration.decor-corners span:nth-child(3) { right: 1.35rem; bottom: 1.45rem; }
-.share-decoration.decor-corners span:nth-child(4) { bottom: 1.25rem; left: 1.5rem; }
+.share-decoration.decor-corners span:nth-child(2) { right: 0.3rem; bottom: 0.3rem; }
+.share-decoration.decor-corners span:nth-child(3) { top: 1.4rem; right: 4.2rem; }
+.share-decoration.decor-corners span:nth-child(4) { bottom: 0.3rem; left: 0.3rem; }
 .share-decoration.decor-top span:nth-child(1) { top: 1.3rem; left: 1.35rem; }
 .share-decoration.decor-top span:nth-child(2) { top: 1rem; left: 4.15rem; }
 .share-decoration.decor-top span:nth-child(3) { top: 1.35rem; left: 6.7rem; }
@@ -3254,28 +3158,6 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   height: 1.15rem;
   color: var(--share-accent);
   transform: none;
-}
-
-/* Each preset uses one source of identity: color only, or color plus one motif. */
-.share-theme-card.theme-simple::before,
-.share-theme-card.theme-gentle::before,
-.share-theme-card.theme-thanks::before,
-.share-theme-card.theme-birthday::before,
-.share-theme-card.theme-celebration::before,
-.share-theme-card.theme-spring::before,
-.share-theme-card.theme-summer::before,
-.share-theme-card.theme-autumn::before,
-.share-theme-card.theme-winter::before,
-.share-theme-option.theme-simple .theme-mini-preview,
-.share-theme-option.theme-gentle .theme-mini-preview,
-.share-theme-option.theme-thanks .theme-mini-preview,
-.share-theme-option.theme-birthday .theme-mini-preview,
-.share-theme-option.theme-celebration .theme-mini-preview,
-.share-theme-option.theme-spring .theme-mini-preview,
-.share-theme-option.theme-summer .theme-mini-preview,
-.share-theme-option.theme-autumn .theme-mini-preview,
-.share-theme-option.theme-winter .theme-mini-preview {
-  background-image: none;
 }
 
 .share-background-picker {

@@ -15,12 +15,12 @@ import {
 } from "../shareThemes.js";
 
 const THEME_DECORATIONS = {
-  gentle: ["clover", "clover", "clover", "clover"],
-  thanks: ["heart", "heart", "heart", "heart"],
-  spring: ["sakura", "sakura", "sakura", "sakura"],
-  summer: ["sunflower", "sunflower", "sunflower", "sunflower"],
-  autumn: ["ginkgo", "ginkgo", "ginkgo", "ginkgo"],
-  winter: ["snow", "snow", "snow", "snow"],
+  gentle: ["clover", "clover"],
+  thanks: ["heart", "heart"],
+  spring: ["sakura", "sakura"],
+  summer: ["sunflower", "sunflower"],
+  autumn: ["ginkgo", "ginkgo"],
+  winter: ["snow", "snow"],
 };
 
 const CUSTOM_DECORATION_TYPES = {
@@ -67,7 +67,7 @@ function decorationAnchors(position) {
   if (position === "top") return [[155, 145], [260, 122], [365, 150]];
   if (position === "bottom") return [[690, 1160], [800, 1132], [900, 1160]];
   if (position === "top-left") return [[150, 150], [228, 120]];
-  return [[145, 150], [930, 150], [145, 1180], [930, 1180]];
+  return [[145, 150], [960, 1210], [930, 150], [120, 1210]];
 }
 
 function drawDecoration(context, type, x, y, color, scale = 1) {
@@ -389,7 +389,10 @@ async function renderCard({
   const themeDecorations = THEME_DECORATIONS[theme.id] || [];
   const anchors = decorationAnchors(theme.position);
   if (themeDecorations.length > anchors.length) anchors.push([540, 118]);
-  anchors.forEach(([x, y], index) => {
+  const activeAnchors = themeDecorations.length
+    ? anchors.slice(0, themeDecorations.length)
+    : anchors;
+  activeAnchors.forEach(([x, y], index) => {
     const decorationType = themeDecorations.length
       ? themeDecorations[index % themeDecorations.length]
       : theme.decoration;

@@ -309,6 +309,23 @@ async function deleteAttachment(id) {
 	if (!id) return;
 	await useStore("readwrite", (store) => store.delete(id));
 }
+async function deleteAttachmentsForBookmark(bookmarkId) {
+	if (!bookmarkId) return;
+	const database = await openDatabase();
+	await new Promise((resolve, reject) => {
+		const transaction = database.transaction(STORE_NAME, "readwrite");
+		const cursorRequest = transaction.objectStore(STORE_NAME).index("bookmarkId").openCursor(IDBKeyRange.only(bookmarkId));
+		cursorRequest.onsuccess = () => {
+			const cursor = cursorRequest.result;
+			if (!cursor) return;
+			cursor.delete();
+			cursor.continue();
+		};
+		transaction.oncomplete = resolve;
+		transaction.onerror = () => reject(transaction.error);
+	});
+	database.close();
+}
 async function getAttachmentUsage() {
 	const records = await useStore("readonly", (store) => store.getAll()) || [];
 	return {
@@ -869,7 +886,271 @@ function SaveScreen({ bookmarks, initialMemo, onAttachmentsChanged, onInitialMem
 	});
 }
 //#endregion
+//#region src/shareThemes.js
+var CUSTOM_THEME_KEY = "later-open-shiori-share-backgrounds-v1";
+var DECORATION_OPTIONS = [
+	["none", "なし"],
+	["flower", "花"],
+	["star", "星"],
+	["heart", "ハート"],
+	["bookmark", "しおり"],
+	["envelope", "封筒"],
+	["ribbon", "リボン"],
+	["snow", "雪"],
+	["leaf", "葉っぱ"],
+	["pumpkin", "かぼちゃ"],
+	["gift", "プレゼント"],
+	["cake", "ケーキ"]
+];
+var POSITION_OPTIONS = [
+	["top", "上に飾る"],
+	["bottom", "下に飾る"],
+	["corners", "四隅に飾る"],
+	["top-left", "左上だけに飾る"]
+];
+var SHARE_THEMES = [
+	{
+		id: "simple",
+		label: "シンプル",
+		background: "#f4eadc",
+		paper: "#fffdf8",
+		accent: "#c97a61",
+		ink: "#453832",
+		muted: "#846f65",
+		decoration: "bookmark",
+		position: "top-left",
+		frame: false,
+		bookmarkColor: "#d17f68",
+		dearStyle: "standard"
+	},
+	{
+		id: "gentle",
+		label: "やさしい",
+		background: "#f7e9e3",
+		paper: "#fffaf6",
+		accent: "#cf8590",
+		ink: "#49393a",
+		muted: "#8c6d70",
+		decoration: "heart",
+		position: "corners",
+		frame: true,
+		bookmarkColor: "#d99096",
+		dearStyle: "soft"
+	},
+	{
+		id: "blue",
+		label: "青いしおり",
+		background: "#dfecef",
+		paper: "#f9fcfc",
+		accent: "#678da0",
+		ink: "#31444b",
+		muted: "#698089",
+		decoration: "bookmark",
+		position: "top",
+		frame: true,
+		bookmarkColor: "#6f98aa",
+		dearStyle: "minimal"
+	},
+	{
+		id: "warm",
+		label: "あたたかい",
+		background: "#f2dfc7",
+		paper: "#fff8ed",
+		accent: "#b96d4f",
+		ink: "#4d372f",
+		muted: "#8b6a5b",
+		decoration: "ribbon",
+		position: "bottom",
+		frame: true,
+		bookmarkColor: "#c8785c",
+		dearStyle: "standard"
+	},
+	{
+		id: "birthday",
+		label: "誕生日",
+		background: "#f8e5da",
+		paper: "#fffaf5",
+		accent: "#d27982",
+		ink: "#49373a",
+		muted: "#8e6b70",
+		decoration: "cake",
+		position: "corners",
+		frame: true,
+		bookmarkColor: "#d88d6d",
+		dearStyle: "soft"
+	},
+	{
+		id: "celebration",
+		label: "お祝い",
+		background: "#f6ead1",
+		paper: "#fffcf5",
+		accent: "#bd8460",
+		ink: "#473b34",
+		muted: "#887569",
+		decoration: "star",
+		position: "corners",
+		frame: true,
+		bookmarkColor: "#cf8e68",
+		dearStyle: "standard"
+	},
+	{
+		id: "gratitude",
+		label: "感謝",
+		background: "#e7eee2",
+		paper: "#fbfdf8",
+		accent: "#78906c",
+		ink: "#384234",
+		muted: "#74806e",
+		decoration: "flower",
+		position: "bottom",
+		frame: true,
+		bookmarkColor: "#8b9e72",
+		dearStyle: "soft"
+	},
+	{
+		id: "spring",
+		label: "春",
+		background: "#f6e4e5",
+		paper: "#fffafa",
+		accent: "#ce818d",
+		ink: "#49383c",
+		muted: "#896d72",
+		decoration: "flower",
+		position: "corners",
+		frame: false,
+		bookmarkColor: "#dd919a",
+		dearStyle: "soft"
+	},
+	{
+		id: "summer",
+		label: "夏",
+		background: "#dceef0",
+		paper: "#f8fdfd",
+		accent: "#5f98a5",
+		ink: "#2f464b",
+		muted: "#68868c",
+		decoration: "star",
+		position: "top",
+		frame: true,
+		bookmarkColor: "#6fa7b1",
+		dearStyle: "minimal"
+	},
+	{
+		id: "autumn",
+		label: "秋",
+		background: "#eee0cc",
+		paper: "#fff9f0",
+		accent: "#a66d4e",
+		ink: "#49382f",
+		muted: "#836b5c",
+		decoration: "leaf",
+		position: "corners",
+		frame: true,
+		bookmarkColor: "#b77552",
+		dearStyle: "standard"
+	},
+	{
+		id: "winter",
+		label: "冬",
+		background: "#e3ebef",
+		paper: "#fbfdff",
+		accent: "#718da0",
+		ink: "#35444d",
+		muted: "#6d808a",
+		decoration: "snow",
+		position: "corners",
+		frame: false,
+		bookmarkColor: "#86a4b4",
+		dearStyle: "minimal"
+	},
+	{
+		id: "christmas",
+		label: "クリスマス",
+		background: "#e4ece5",
+		paper: "#fffdf8",
+		accent: "#5f806b",
+		ink: "#34443a",
+		muted: "#6b7d71",
+		decoration: "gift",
+		position: "corners",
+		frame: true,
+		bookmarkColor: "#ad6f66",
+		dearStyle: "standard"
+	},
+	{
+		id: "halloween",
+		label: "ハロウィン",
+		background: "#e9dfeb",
+		paper: "#fcf8fd",
+		accent: "#7d6687",
+		ink: "#403544",
+		muted: "#786c7c",
+		decoration: "pumpkin",
+		position: "bottom",
+		frame: true,
+		bookmarkColor: "#bd7953",
+		dearStyle: "standard"
+	}
+];
+var DEFAULT_CUSTOM_THEME = {
+	id: "custom",
+	label: "オリジナル背景",
+	background: "#f3e7dc",
+	paper: "#fffaf5",
+	accent: "#c87e68",
+	ink: "#463832",
+	muted: "#826f67",
+	decoration: "flower",
+	position: "corners",
+	frame: true,
+	bookmarkColor: "#d18470",
+	dearStyle: "standard"
+};
+function normalizeTheme(theme) {
+	if (!theme || typeof theme !== "object") return null;
+	return {
+		...DEFAULT_CUSTOM_THEME,
+		...theme,
+		id: String(theme.id || `custom-${uniqueId()}`),
+		label: String(theme.label || "マイ背景")
+	};
+}
+function loadCustomThemes() {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(CUSTOM_THEME_KEY) || "[]");
+		return Array.isArray(parsed) ? parsed.map(normalizeTheme).filter(Boolean).slice(0, 20) : [];
+	} catch {
+		return [];
+	}
+}
+function saveCustomTheme(theme) {
+	const saved = {
+		...normalizeTheme(theme),
+		id: `custom-${uniqueId()}`
+	};
+	const themes = [...loadCustomThemes(), saved].slice(-20);
+	localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(themes));
+	return {
+		saved,
+		themes
+	};
+}
+//#endregion
 //#region src/components/SharePreview.jsx
+var DECORATION_MARKS = {
+	none: "",
+	flower: "✿",
+	star: "✦",
+	heart: "♡",
+	bookmark: "▮",
+	envelope: "✉",
+	ribbon: "◇",
+	snow: "❄",
+	leaf: "◒",
+	pumpkin: "○",
+	gift: "□",
+	cake: "▱"
+};
 function wrapCanvasText(context, text, maxWidth) {
 	const lines = [];
 	String(text || "メモなし").split(/\r?\n/).forEach((paragraph) => {
@@ -885,18 +1166,158 @@ function wrapCanvasText(context, text, maxWidth) {
 	});
 	return lines.slice(0, 10);
 }
-function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetName }) {
+function hexToRgba(hex, alpha) {
+	const value = String(hex || "#000000").replace("#", "");
+	const expanded = value.length === 3 ? [...value].map((part) => part + part).join("") : value;
+	const number = Number.parseInt(expanded, 16);
+	return `rgba(${number >> 16 & 255}, ${number >> 8 & 255}, ${number & 255}, ${alpha})`;
+}
+function decorationAnchors(position) {
+	if (position === "top") return [
+		[155, 145],
+		[260, 122],
+		[365, 150]
+	];
+	if (position === "bottom") return [
+		[690, 1160],
+		[800, 1132],
+		[900, 1160]
+	];
+	if (position === "top-left") return [[150, 150], [228, 120]];
+	return [
+		[145, 150],
+		[930, 150],
+		[145, 1180],
+		[930, 1180]
+	];
+}
+function drawDecoration(context, type, x, y, color, scale = 1) {
+	if (type === "none") return;
+	context.save();
+	context.translate(x, y);
+	context.strokeStyle = color;
+	context.fillStyle = hexToRgba(color, .2);
+	context.lineWidth = 7 * scale;
+	context.lineCap = "round";
+	context.lineJoin = "round";
+	if (type === "flower") {
+		for (let index = 0; index < 5; index += 1) {
+			const angle = Math.PI * 2 * index / 5;
+			context.beginPath();
+			context.arc(Math.cos(angle) * 22 * scale, Math.sin(angle) * 22 * scale, 15 * scale, 0, Math.PI * 2);
+			context.fill();
+			context.stroke();
+		}
+		context.beginPath();
+		context.arc(0, 0, 9 * scale, 0, Math.PI * 2);
+		context.fillStyle = color;
+		context.fill();
+	} else if (type === "heart") {
+		context.beginPath();
+		context.moveTo(0, 30 * scale);
+		context.bezierCurveTo(-55 * scale, 0, -32 * scale, -40 * scale, 0, -12 * scale);
+		context.bezierCurveTo(32 * scale, -40 * scale, 55 * scale, 0, 0, 30 * scale);
+		context.fill();
+		context.stroke();
+	} else if (type === "star" || type === "snow") {
+		const points = type === "star" ? 5 : 8;
+		context.beginPath();
+		for (let index = 0; index < points * 2; index += 1) {
+			const radius = (index % 2 ? 13 : 37) * scale;
+			const angle = -Math.PI / 2 + Math.PI * index / points;
+			const px = Math.cos(angle) * radius;
+			const py = Math.sin(angle) * radius;
+			if (index === 0) context.moveTo(px, py);
+			else context.lineTo(px, py);
+		}
+		context.closePath();
+		context.fill();
+		context.stroke();
+	} else if (type === "leaf") {
+		context.rotate(-.55);
+		context.beginPath();
+		context.ellipse(0, 0, 38 * scale, 18 * scale, 0, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+		context.beginPath();
+		context.moveTo(-30 * scale, 0);
+		context.lineTo(34 * scale, 0);
+		context.stroke();
+	} else if (type === "envelope") {
+		context.strokeRect(-38 * scale, -25 * scale, 76 * scale, 52 * scale);
+		context.beginPath();
+		context.moveTo(-38 * scale, -25 * scale);
+		context.lineTo(0, 5 * scale);
+		context.lineTo(38 * scale, -25 * scale);
+		context.stroke();
+	} else if (type === "gift") {
+		context.fillRect(-34 * scale, -23 * scale, 68 * scale, 55 * scale);
+		context.strokeRect(-34 * scale, -23 * scale, 68 * scale, 55 * scale);
+		context.beginPath();
+		context.moveTo(0, -23 * scale);
+		context.lineTo(0, 32 * scale);
+		context.moveTo(-38 * scale, -23 * scale);
+		context.lineTo(38 * scale, -23 * scale);
+		context.stroke();
+	} else if (type === "cake") {
+		context.fillRect(-38 * scale, -3 * scale, 76 * scale, 35 * scale);
+		context.strokeRect(-38 * scale, -3 * scale, 76 * scale, 35 * scale);
+		context.beginPath();
+		context.moveTo(0, -5 * scale);
+		context.lineTo(0, -34 * scale);
+		context.stroke();
+		context.beginPath();
+		context.arc(0, -41 * scale, 6 * scale, 0, Math.PI * 2);
+		context.fill();
+	} else if (type === "pumpkin") [
+		-17,
+		0,
+		17
+	].forEach((offset) => {
+		context.beginPath();
+		context.ellipse(offset * scale, 0, 23 * scale, 32 * scale, 0, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+	});
+	else if (type === "bookmark") {
+		context.beginPath();
+		context.moveTo(-22 * scale, -38 * scale);
+		context.lineTo(22 * scale, -38 * scale);
+		context.lineTo(22 * scale, 36 * scale);
+		context.lineTo(0, 22 * scale);
+		context.lineTo(-22 * scale, 36 * scale);
+		context.closePath();
+		context.fill();
+		context.stroke();
+	} else {
+		context.beginPath();
+		context.ellipse(-18 * scale, 0, 22 * scale, 14 * scale, -.45, 0, Math.PI * 2);
+		context.ellipse(18 * scale, 0, 22 * scale, 14 * scale, .45, 0, Math.PI * 2);
+		context.fill();
+		context.stroke();
+	}
+	context.restore();
+}
+function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetName, theme }) {
 	const canvas = document.createElement("canvas");
 	canvas.width = 1080;
 	canvas.height = 1350;
 	const context = canvas.getContext("2d");
-	context.fillStyle = "#f4e7d3";
+	context.fillStyle = theme.background;
 	context.fillRect(0, 0, canvas.width, canvas.height);
-	context.fillStyle = "#fffaf1";
+	context.fillStyle = theme.paper;
 	context.beginPath();
 	context.roundRect(72, 72, 936, 1206, 42);
 	context.fill();
-	context.fillStyle = "#d97d65";
+	if (theme.frame) {
+		context.strokeStyle = hexToRgba(theme.accent, .55);
+		context.lineWidth = 5;
+		context.stroke();
+	}
+	decorationAnchors(theme.position).forEach(([x, y], index) => {
+		drawDecoration(context, theme.decoration, x, y, theme.accent, index % 2 ? .72 : .9);
+	});
+	context.fillStyle = theme.bookmarkColor;
 	context.beginPath();
 	context.moveTo(850, 72);
 	context.lineTo(950, 72);
@@ -905,30 +1326,54 @@ function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetNam
 	context.lineTo(850, 238);
 	context.closePath();
 	context.fill();
-	context.fillStyle = "#6e554b";
 	context.textBaseline = "top";
-	context.font = "600 38px \"Noto Sans JP\", sans-serif";
-	let y = 170;
+	let y = 225;
 	if (showDear) {
+		context.fillStyle = theme.accent;
+		context.font = theme.dearStyle === "minimal" ? "500 31px \"Noto Sans JP\", sans-serif" : "600 38px \"Noto Sans JP\", sans-serif";
 		context.fillText(`Dear ${targetName || "あなたへ"}`, 150, y);
-		y += 120;
+		y += 115;
 	}
-	context.fillStyle = "#3f342f";
+	context.fillStyle = theme.ink;
 	context.font = "500 48px \"Noto Sans JP\", sans-serif";
 	wrapCanvasText(context, memo, 760).forEach((line) => {
 		context.fillText(line, 150, y);
 		y += 78;
 	});
-	context.fillStyle = "#9d8a7d";
+	context.fillStyle = hexToRgba(theme.accent, .45);
 	context.fillRect(150, 1050, 760, 2);
+	context.fillStyle = theme.muted;
 	context.font = "500 32px \"Noto Sans JP\", sans-serif";
 	context.fillText(formatJapaneseDate(createdAt), 150, 1100);
 	if (showFrom) {
 		context.textAlign = "right";
-		context.fillStyle = "#6e554b";
+		context.fillStyle = theme.accent;
 		context.fillText(`From ${senderName || "名前なし"}`, 910, 1160);
 	}
 	return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+function themeStyle(theme) {
+	return {
+		"--share-bg": theme.background,
+		"--share-paper": theme.paper,
+		"--share-accent": theme.accent,
+		"--share-ink": theme.ink,
+		"--share-muted": theme.muted,
+		"--share-bookmark": theme.bookmarkColor
+	};
+}
+function ThemeDecoration({ theme }) {
+	if (theme.decoration === "none") return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: `share-decoration decor-${theme.position}`,
+		"aria-hidden": "true",
+		children: [
+			0,
+			1,
+			2,
+			3
+		].map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: DECORATION_MARKS[theme.decoration] }, item))
+	});
 }
 function SharePreview({ bookmark, defaultSenderName, onClose }) {
 	const [targetName, setTargetName] = (0, import_react.useState)(bookmark.targetName);
@@ -939,6 +1384,12 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 	const [attachment, setAttachment] = (0, import_react.useState)(null);
 	const [includeAttachment, setIncludeAttachment] = (0, import_react.useState)(false);
 	const [message, setMessage] = (0, import_react.useState)("");
+	const [selectedThemeId, setSelectedThemeId] = (0, import_react.useState)("simple");
+	const [customThemes, setCustomThemes] = (0, import_react.useState)(loadCustomThemes);
+	const [customDraft, setCustomDraft] = (0, import_react.useState)(DEFAULT_CUSTOM_THEME);
+	const [customName, setCustomName] = (0, import_react.useState)("");
+	const availableThemes = (0, import_react.useMemo)(() => [...SHARE_THEMES, ...customThemes], [customThemes]);
+	const activeTheme = selectedThemeId === "custom" ? customDraft : availableThemes.find((theme) => theme.id === selectedThemeId) || SHARE_THEMES[0];
 	(0, import_react.useEffect)(() => {
 		let active = true;
 		getAttachment(bookmark.attachmentId).then((item) => {
@@ -948,6 +1399,22 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 			active = false;
 		};
 	}, [bookmark.attachmentId]);
+	function updateCustomTheme(key, value) {
+		setCustomDraft((current) => ({
+			...current,
+			[key]: value
+		}));
+	}
+	function storeCustomTheme() {
+		const { saved, themes } = saveCustomTheme({
+			...customDraft,
+			label: customName.trim() || `マイ背景${customThemes.length + 1}`
+		});
+		setCustomThemes(themes);
+		setSelectedThemeId(saved.id);
+		setCustomName("");
+		setMessage(`「${saved.label}」を保存しました`);
+	}
 	async function shareCard() {
 		const blob = await renderCard({
 			createdAt: bookmark.createdAt,
@@ -955,7 +1422,8 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 			senderName,
 			showDear,
 			showFrom,
-			targetName
+			targetName,
+			theme: activeTheme
 		});
 		if (!blob) return;
 		const cardFile = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
@@ -987,7 +1455,7 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 			attachmentAnchor.click();
 			URL.revokeObjectURL(attachmentUrl);
 		}
-		setMessage("画像として保存しました");
+		setMessage("共有カードを画像として保存しました");
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 		className: "screen share-screen",
@@ -1007,8 +1475,10 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				className: "share-card-preview",
+				className: `share-card-preview share-theme-card dear-${activeTheme.dearStyle} ${activeTheme.frame ? "has-share-frame" : ""}`,
+				style: themeStyle(activeTheme),
 				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ThemeDecoration, { theme: activeTheme }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 						className: "share-card-ribbon",
 						"aria-hidden": "true"
@@ -1025,6 +1495,133 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+				className: "share-background-picker",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "section-title-row",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "section-kicker",
+							children: "MESSAGE CARD"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "背景を選ぶ" })] })
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "share-theme-grid",
+						"aria-label": "共有カードの背景",
+						children: [availableThemes.map((theme) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							"aria-pressed": selectedThemeId === theme.id,
+							className: "share-theme-option",
+							onClick: () => setSelectedThemeId(theme.id),
+							style: themeStyle(theme),
+							type: "button",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "theme-mini-preview",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "theme-mini-mark" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: DECORATION_MARKS[theme.decoration] })]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: theme.label })]
+						}, theme.id)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							"aria-pressed": selectedThemeId === "custom",
+							className: "share-theme-option custom-theme-option",
+							onClick: () => setSelectedThemeId("custom"),
+							style: themeStyle(customDraft),
+							type: "button",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "theme-mini-preview",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "custom-plus",
+									children: "＋"
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "自分で作る" })]
+						})]
+					}),
+					selectedThemeId === "custom" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "custom-background-builder",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+								className: "simple-field",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "背景の名前" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									maxLength: "18",
+									onChange: (event) => setCustomName(event.target.value),
+									placeholder: `マイ背景${customThemes.length + 1}`,
+									value: customName
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "custom-color-row",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "背景色" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+										type: "color",
+										value: customDraft.background,
+										onChange: (event) => updateCustomTheme("background", event.target.value)
+									})] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "アクセント色" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+										type: "color",
+										value: customDraft.accent,
+										onChange: (event) => updateCustomTheme("accent", event.target.value)
+									})] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "しおりの色" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+										type: "color",
+										value: customDraft.bookmarkColor,
+										onChange: (event) => updateCustomTheme("bookmarkColor", event.target.value)
+									})] })
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "custom-select-grid",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "飾り" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+										value: customDraft.decoration,
+										onChange: (event) => updateCustomTheme("decoration", event.target.value),
+										children: DECORATION_OPTIONS.map(([value, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+											value,
+											children: label
+										}, value))
+									})] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "飾りの位置" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("select", {
+										value: customDraft.position,
+										onChange: (event) => updateCustomTheme("position", event.target.value),
+										children: POSITION_OPTIONS.map(([value, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+											value,
+											children: label
+										}, value))
+									})] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Dear / From" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
+										value: customDraft.dearStyle,
+										onChange: (event) => updateCustomTheme("dearStyle", event.target.value),
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+												value: "standard",
+												children: "しっかり"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+												value: "soft",
+												children: "やわらかく"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+												value: "minimal",
+												children: "ひかえめ"
+											})
+										]
+									})] })
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+								className: "custom-frame-toggle",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+									checked: customDraft.frame,
+									onChange: (event) => updateCustomTheme("frame", event.target.checked),
+									type: "checkbox"
+								}), "フレームを付ける"]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								className: "save-custom-theme-button",
+								onClick: storeCustomTheme,
+								type: "button",
+								children: "この背景を保存"
+							})
+						]
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				className: "share-editor",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
@@ -1036,7 +1633,7 @@ function SharePreview({ bookmark, defaultSenderName, onClose }) {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
 						className: "simple-field",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "文章" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "文面" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
 							maxLength: "180",
 							onChange: (event) => setMemo(event.target.value),
 							rows: "4",
@@ -1143,7 +1740,7 @@ function memoPreview(memo) {
 	if (!firstLine) return "メモなし";
 	return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
 }
-function DetailView({ bookmark, onAttachmentsChanged, onBack, onUpdateBookmark, onUpdateStatus, senderName }) {
+function DetailView({ bookmark, onAttachmentsChanged, onBack, onDeleteBookmark, onUpdateBookmark, onUpdateStatus, senderName }) {
 	const [editing, setEditing] = (0, import_react.useState)(false);
 	const [sharing, setSharing] = (0, import_react.useState)(false);
 	const [targetName, setTargetName] = (0, import_react.useState)(bookmark.targetName);
@@ -1158,6 +1755,8 @@ function DetailView({ bookmark, onAttachmentsChanged, onBack, onUpdateBookmark, 
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = (0, import_react.useState)(false);
 	const [unsavedDialog, setUnsavedDialog] = (0, import_react.useState)("");
 	const [saving, setSaving] = (0, import_react.useState)(false);
+	const [bookmarkDeleteOpen, setBookmarkDeleteOpen] = (0, import_react.useState)(false);
+	const [deletingBookmark, setDeletingBookmark] = (0, import_react.useState)(false);
 	(0, import_react.useEffect)(() => {
 		let active = true;
 		getAttachment(bookmark.attachmentId).then((item) => {
@@ -1429,6 +2028,17 @@ function DetailView({ bookmark, onAttachmentsChanged, onBack, onUpdateBookmark, 
 					children: saving ? "写真・資料を保存しています" : "変更を保存"
 				})]
 			}) : null,
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+				className: "delete-bookmark-button",
+				disabled: deletingBookmark || saving,
+				onClick: () => setBookmarkDeleteOpen(true),
+				type: "button",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+					viewBox: "0 0 24 24",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M5 7h14M9 7V4h6v3M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14" })
+				}), "このしおりを削除"]
+			}),
 			dateOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DateWheel, {
 				date: createdAt,
 				onCancel: () => setDateOpen(false),
@@ -1510,17 +2120,48 @@ function DetailView({ bookmark, onAttachmentsChanged, onBack, onUpdateBookmark, 
 						})
 					]
 				})
+			}),
+			bookmarkDeleteOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "modal-backdrop",
+				onClick: () => setBookmarkDeleteOpen(false),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+					className: "confirm-dialog delete-bookmark-dialog",
+					onClick: (event) => event.stopPropagation(),
+					role: "dialog",
+					"aria-modal": "true",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { children: "このしおりを削除しますか？" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "日付、宛先、ひとことメモ、状態、添付した写真・資料も一緒に削除されます。" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "secondary-button",
+							disabled: deletingBookmark,
+							onClick: () => setBookmarkDeleteOpen(false),
+							type: "button",
+							children: "キャンセル"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							className: "danger-delete-button",
+							disabled: deletingBookmark,
+							onClick: async () => {
+								setDeletingBookmark(true);
+								await onDeleteBookmark(bookmark.id);
+							},
+							type: "button",
+							children: deletingBookmark ? "削除しています" : "削除する"
+						})] })
+					]
+				})
 			})
 		]
 	});
 }
-function SearchScreen({ bookmarks, onAttachmentsChanged, onUpdateBookmark, onUpdateStatus, senderName }) {
+function SearchScreen({ bookmarks, onAttachmentsChanged, onDeleteBookmark, onUpdateBookmark, onUpdateStatus, senderName }) {
 	const [mode, setMode] = (0, import_react.useState)("");
 	const [chooserOpen, setChooserOpen] = (0, import_react.useState)(false);
 	const [calendarMonth, setCalendarMonth] = (0, import_react.useState)(monthKey$1(/* @__PURE__ */ new Date()));
 	const [selectedDate, setSelectedDate] = (0, import_react.useState)("");
 	const [selectedTarget, setSelectedTarget] = (0, import_react.useState)("");
 	const [selectedId, setSelectedId] = (0, import_react.useState)("");
+	const [notice, setNotice] = (0, import_react.useState)("");
 	const today = dateKey$1(/* @__PURE__ */ new Date());
 	const days = (0, import_react.useMemo)(() => buildMonth(calendarMonth), [calendarMonth]);
 	const selectedBookmark = bookmarks.find((item) => item.id === selectedId);
@@ -1558,6 +2199,12 @@ function SearchScreen({ bookmarks, onAttachmentsChanged, onUpdateBookmark, onUpd
 		bookmark: selectedBookmark,
 		onAttachmentsChanged,
 		onBack: () => setSelectedId(""),
+		onDeleteBookmark: async (id) => {
+			await onDeleteBookmark(id);
+			setSelectedId("");
+			setNotice("しおりを削除しました");
+			window.setTimeout(() => setNotice(""), 3200);
+		},
 		onUpdateBookmark,
 		onUpdateStatus,
 		senderName
@@ -1718,6 +2365,11 @@ function SearchScreen({ bookmarks, onAttachmentsChanged, onUpdateBookmark, onUpd
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 		className: "screen search-screen",
 		children: [
+			notice && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "toast-notice",
+				role: "status",
+				children: notice
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
 				className: "search-heading",
 				children: [
@@ -2913,6 +3565,13 @@ function App() {
 		saveBookmarks(next);
 		setBookmarks(next);
 	}
+	async function deleteBookmark(id) {
+		const next = bookmarks.filter((item) => item.id !== id);
+		saveBookmarks(next);
+		setBookmarks(next);
+		await deleteAttachmentsForBookmark(id).catch(() => {});
+		setAttachmentRevision((current) => current + 1);
+	}
 	function updateFontSize(size) {
 		setFontSize(size);
 		saveFontSize(size);
@@ -2956,6 +3615,7 @@ function App() {
 			}),
 			activeTab === "search" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SearchScreen, {
 				bookmarks,
+				onDeleteBookmark: deleteBookmark,
 				onUpdateBookmark: updateBookmark,
 				onUpdateStatus: updateStatus,
 				onAttachmentsChanged: () => setAttachmentRevision((current) => current + 1),

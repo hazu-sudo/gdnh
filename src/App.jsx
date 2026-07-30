@@ -138,6 +138,7 @@ export default function App() {
           onUpdateStatus={updateStatus}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           senderName={senderName}
+          theme={theme}
         />
       )}
       {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}

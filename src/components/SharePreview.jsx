@@ -3,6 +3,9 @@ import { formatJapaneseDate } from "./BookmarkCard.jsx";
 import AttachmentEditor from "./AttachmentEditor.jsx";
 import { getAttachment } from "../attachmentStore.js";
 import {
+  applyAppTheme,
+  applyCelebrationColor,
+  CELEBRATION_COLORS,
   DECORATION_OPTIONS,
   DEFAULT_CUSTOM_THEME,
   loadCustomThemes,
@@ -14,6 +17,7 @@ import {
 const DECORATION_MARKS = {
   none: "",
   flower: "✿",
+  clover: "♣",
   star: "✦",
   heart: "♡",
   bookmark: "▮",
@@ -24,9 +28,12 @@ const DECORATION_MARKS = {
   pumpkin: "○",
   gift: "□",
   cake: "▱",
+  wave: "≈",
 };
 
 const THEME_MARKS = {
+  gentle: ["♣", "♣", "♣", "♣"],
+  thanks: ["♡", "♡", "♡", "♡"],
   birthday: ["▱", "✦", "□", "○"],
   celebration: ["✿", "◇", "✦", "✿"],
   christmas: ["△", "❄", "○", "□"],
@@ -38,6 +45,8 @@ const THEME_MARKS = {
 };
 
 const THEME_DECORATIONS = {
+  gentle: ["clover", "clover", "clover", "clover"],
+  thanks: ["heart", "heart", "heart", "heart"],
   birthday: ["cake", "star", "gift", "star"],
   celebration: ["flower", "ribbon", "star", "flower"],
   christmas: ["tree", "snow", "star", "gift"],
@@ -90,9 +99,10 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
   context.lineCap = "round";
   context.lineJoin = "round";
 
-  if (type === "flower") {
-    for (let index = 0; index < 5; index += 1) {
-      const angle = (Math.PI * 2 * index) / 5;
+  if (type === "flower" || type === "clover") {
+    const petals = type === "clover" ? 4 : 5;
+    for (let index = 0; index < petals; index += 1) {
+      const angle = (Math.PI * 2 * index) / petals;
       context.beginPath();
       context.arc(Math.cos(angle) * 22 * scale, Math.sin(angle) * 22 * scale, 15 * scale, 0, Math.PI * 2);
       context.fill();
@@ -341,6 +351,11 @@ async function renderCard({
   context.fill();
 
   context.textBaseline = "top";
+  if (theme.wordmark) {
+    context.fillStyle = hexToRgba(theme.accent, 0.72);
+    context.font = '600 30px "Noto Sans JP", sans-serif';
+    context.fillText(theme.wordmark, 150, 145);
+  }
   let y = 205;
   if (showDear) {
     context.fillStyle = theme.accent;
@@ -417,7 +432,7 @@ function ThemeDecoration({ theme }) {
   );
 }
 
-export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
+export default function SharePreview({ appTheme, bookmark, defaultSenderName, onClose }) {
   const [targetName, setTargetName] = useState(bookmark.targetName);
   const [memo, setMemo] = useState(bookmark.memo);
   const [senderName, setSenderName] = useState(defaultSenderName);
@@ -431,11 +446,25 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
   const [customThemes, setCustomThemes] = useState(loadCustomThemes);
   const [customDraft, setCustomDraft] = useState(DEFAULT_CUSTOM_THEME);
   const [customName, setCustomName] = useState("");
+  const [eventColors, setEventColors] = useState({
+    birthday: "pink",
+    celebration: "orange",
+  });
 
-  const availableThemes = useMemo(() => [...SHARE_THEMES, ...customThemes], [customThemes]);
+  const availableThemes = useMemo(
+    () => SHARE_THEMES.map((theme) => applyAppTheme(theme, appTheme)),
+    [appTheme],
+  );
   const activeTheme = selectedThemeId === "custom"
     ? customDraft
-    : availableThemes.find((theme) => theme.id === selectedThemeId) || SHARE_THEMES[0];
+    : (() => {
+      const selected = availableThemes.find((theme) => theme.id === selectedThemeId)
+        || customThemes.find((theme) => theme.id === selectedThemeId)
+        || availableThemes[0];
+      return selected.id === "birthday" || selected.id === "celebration"
+        ? applyCelebrationColor(selected, eventColors[selected.id])
+        : selected;
+    })();
 
   useEffect(() => {
     let active = true;
@@ -457,6 +486,10 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
 
   function updateCustomTheme(key, value) {
     setCustomDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateEventColor(colorId) {
+    setEventColors((current) => ({ ...current, [selectedThemeId]: colorId }));
   }
 
   function storeCustomTheme() {
@@ -531,6 +564,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
         <ThemeDecoration theme={activeTheme} />
         <span className="share-card-ribbon" aria-hidden="true" />
         <div className="share-card-content">
+          {activeTheme.wordmark && <p className="share-theme-wordmark">{activeTheme.wordmark}</p>}
           {showDear && <p className="share-dear">Dear {targetName || "あなたへ"}</p>}
           <p className={memo ? "share-message" : "share-message empty-value"}>{memo || "メモなし"}</p>
           {includeAttachment && attachmentPreviewUrl && (
@@ -583,6 +617,27 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
           </button>
         </div>
 
+        {(selectedThemeId === "birthday" || selectedThemeId === "celebration") && (
+          <div className="event-color-picker">
+            <strong>飾りの色</strong>
+            <div aria-label={`${activeTheme.label}の色`} role="group">
+              {CELEBRATION_COLORS.map((color) => (
+                <button
+                  aria-label={color.label}
+                  aria-pressed={eventColors[selectedThemeId] === color.id}
+                  key={color.id}
+                  onClick={() => updateEventColor(color.id)}
+                  style={{ "--swatch-color": color.accent }}
+                  title={color.label}
+                  type="button"
+                >
+                  <span aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {selectedThemeId === "custom" && (
           <div className="custom-background-builder">
             <label className="simple-field">
@@ -598,6 +653,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
               <label><span>背景色</span><input type="color" value={customDraft.background} onChange={(event) => updateCustomTheme("background", event.target.value)} /></label>
               <label><span>アクセント色</span><input type="color" value={customDraft.accent} onChange={(event) => updateCustomTheme("accent", event.target.value)} /></label>
               <label><span>しおりの色</span><input type="color" value={customDraft.bookmarkColor} onChange={(event) => updateCustomTheme("bookmarkColor", event.target.value)} /></label>
+              <label><span>日付の色</span><input type="color" value={customDraft.muted} onChange={(event) => updateCustomTheme("muted", event.target.value)} /></label>
             </div>
             <div className="custom-select-grid">
               <label>
@@ -628,6 +684,26 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
             <button className="save-custom-theme-button" onClick={storeCustomTheme} type="button">
               この背景を保存
             </button>
+          </div>
+        )}
+
+        {customThemes.length > 0 && (
+          <div className="saved-theme-picker">
+            <strong>保存した背景</strong>
+            <div>
+              {customThemes.map((theme) => (
+                <button
+                  aria-pressed={selectedThemeId === theme.id}
+                  key={theme.id}
+                  onClick={() => setSelectedThemeId(theme.id)}
+                  style={themeStyle(theme)}
+                  type="button"
+                >
+                  <span className="saved-theme-color" />
+                  {theme.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </section>

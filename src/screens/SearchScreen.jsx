@@ -52,6 +52,7 @@ function DetailView({
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
+  theme,
 }) {
   const [editing, setEditing] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -85,6 +86,7 @@ function DetailView({
     return (
       <SharePreview
         bookmark={bookmark}
+        appTheme={theme}
         defaultSenderName={senderName}
         onClose={() => setSharing(false)}
       />
@@ -278,6 +280,14 @@ function DetailView({
               話した
             </button>
             <button
+              aria-pressed={currentStatus === "sent"}
+              className={currentStatus === "sent" ? "status-choice sent active" : "status-choice sent"}
+              onClick={() => changeStatus("sent")}
+              type="button"
+            >
+              送った
+            </button>
+            <button
               aria-pressed={currentStatus === "unresolved"}
               className={currentStatus === "unresolved" ? "status-choice unresolved active" : "status-choice unresolved"}
               onClick={() => changeStatus("unresolved")}
@@ -385,6 +395,7 @@ export default function SearchScreen({
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
+  theme,
 }) {
   const [mode, setMode] = useState("");
   const [chooserOpen, setChooserOpen] = useState(false);
@@ -440,6 +451,7 @@ export default function SearchScreen({
         onUpdateBookmark={onUpdateBookmark}
         onUpdateStatus={onUpdateStatus}
         senderName={senderName}
+        theme={theme}
       />
     );
   }

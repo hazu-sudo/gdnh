@@ -11,6 +11,7 @@ export const STATUS_LABELS = {
   unresolved: "未選択",
   pending: "保留",
   resolved: "話した",
+  sent: "送った",
 };
 
 export function createSampleBookmarks() {

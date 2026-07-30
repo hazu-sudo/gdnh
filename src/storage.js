@@ -7,6 +7,7 @@ const statusMigration = {
   pending: "pending",
   unresolved: "unresolved",
   resolved: "resolved",
+  sent: "sent",
 };
 const FONT_SIZE_KEY = "later-open-shiori-font-size-v1";
 const THEME_KEY = "later-open-shiori-theme-v1";

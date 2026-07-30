@@ -26,6 +26,7 @@ function getStats(bookmarks) {
   return {
     total: bookmarks.length,
     resolved: bookmarks.filter((item) => item.status === "resolved").length,
+    sent: bookmarks.filter((item) => item.status === "sent").length,
     pending: bookmarks.filter((item) => item.status === "pending").length,
     unresolved: bookmarks.filter((item) => item.status === "unresolved").length,
   };
@@ -208,7 +209,7 @@ export default function ReflectionScreen({ bookmarks }) {
 
         <div className="chart-legend" aria-label="グラフの凡例">
           <span><i className="legend-resolved" />話せた</span>
-          <span><i className="legend-remaining" />まだ話していない・保留中</span>
+          <span><i className="legend-remaining" />話した以外のしおり</span>
         </div>
       </section>
 
@@ -224,6 +225,7 @@ export default function ReflectionScreen({ bookmarks }) {
             <dl>
               <div><dt>挟んだしおり</dt><dd>{selectedMonthData.total}<small>枚</small></dd></div>
               <div><dt>話せたしおり</dt><dd>{selectedMonthData.resolved}<small>枚</small></dd></div>
+              <div><dt>送ったしおり</dt><dd>{selectedMonthData.sent}<small>枚</small></dd></div>
               <div><dt>保留中</dt><dd>{selectedMonthData.pending}<small>枚</small></dd></div>
               <div><dt>まだ選択していない</dt><dd>{selectedMonthData.unresolved}<small>枚</small></dd></div>
             </dl>

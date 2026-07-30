@@ -26,6 +26,28 @@ const DECORATION_MARKS = {
   cake: "▱",
 };
 
+const THEME_MARKS = {
+  birthday: ["▱", "✦", "□", "○"],
+  celebration: ["✿", "◇", "✦", "✿"],
+  christmas: ["△", "❄", "○", "□"],
+  halloween: ["○", "☾", "✦", "○"],
+  spring: ["✿", "◒", "✿", "◦"],
+  summer: ["≈", "✦", "☼", "≈"],
+  autumn: ["◒", "●", "◒", "●"],
+  winter: ["❄", "✦", "❄", "·"],
+};
+
+const THEME_DECORATIONS = {
+  birthday: ["cake", "star", "gift", "star"],
+  celebration: ["flower", "ribbon", "star", "flower"],
+  christmas: ["tree", "snow", "star", "gift"],
+  halloween: ["pumpkin", "moon", "star", "pumpkin"],
+  spring: ["flower", "leaf", "flower", "leaf"],
+  summer: ["wave", "star", "flower", "wave"],
+  autumn: ["leaf", "pumpkin", "leaf", "leaf"],
+  winter: ["snow", "star", "snow", "star"],
+};
+
 function wrapCanvasText(context, text, maxWidth) {
   const lines = [];
   String(text || "メモなし").split(/\r?\n/).forEach((paragraph) => {
@@ -101,6 +123,31 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
     context.closePath();
     context.fill();
     context.stroke();
+  } else if (type === "tree") {
+    context.beginPath();
+    context.moveTo(0, -42 * scale);
+    context.lineTo(36 * scale, 28 * scale);
+    context.lineTo(-36 * scale, 28 * scale);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    context.beginPath();
+    context.moveTo(0, 28 * scale);
+    context.lineTo(0, 42 * scale);
+    context.stroke();
+  } else if (type === "moon") {
+    context.beginPath();
+    context.arc(0, 0, 34 * scale, -Math.PI / 2, Math.PI / 2);
+    context.arc(13 * scale, 0, 27 * scale, Math.PI / 2, -Math.PI / 2, true);
+    context.closePath();
+    context.fill();
+    context.stroke();
+  } else if (type === "wave") {
+    context.beginPath();
+    context.moveTo(-42 * scale, 0);
+    context.bezierCurveTo(-24 * scale, -24 * scale, -6 * scale, 24 * scale, 12 * scale, 0);
+    context.bezierCurveTo(24 * scale, -18 * scale, 34 * scale, -12 * scale, 44 * scale, 0);
+    context.stroke();
   } else if (type === "leaf") {
     context.rotate(-0.55);
     context.beginPath();
@@ -164,7 +211,92 @@ function drawDecoration(context, type, x, y, color, scale = 1) {
   context.restore();
 }
 
-function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetName, theme }) {
+function loadCanvasImage(blob) {
+  if (!blob) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    image.src = url;
+  });
+}
+
+function drawThemePattern(context, theme, width, height) {
+  const id = theme.id;
+  context.save();
+  context.globalAlpha = 0.22;
+  context.fillStyle = theme.accent;
+  context.strokeStyle = theme.accent;
+  context.lineWidth = 4;
+
+  if (id === "birthday") {
+    [[115, 160], [220, 95], [780, 115], [965, 280], [105, 1080], [920, 1190]].forEach(([x, y], index) => {
+      context.beginPath();
+      if (index % 2) context.arc(x, y, 10, 0, Math.PI * 2);
+      else context.fillRect(x - 7, y - 18, 14, 36);
+      context.fill();
+    });
+  } else if (id === "christmas") {
+    for (let x = 105; x < width; x += 120) {
+      context.beginPath();
+      context.arc(x, 105, 9, 0, Math.PI * 2);
+      context.fill();
+      context.beginPath();
+      context.arc(x + 55, height - 105, 7, 0, Math.PI * 2);
+      context.fill();
+    }
+  } else if (id === "halloween") {
+    [[105, 150, 20], [945, 160, 12], [125, 1190, 13], [930, 1130, 18]].forEach(([x, y, radius]) => {
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fill();
+    });
+  } else if (id === "summer") {
+    for (let y = 100; y < height; y += 38) {
+      context.beginPath();
+      context.moveTo(65, y);
+      context.quadraticCurveTo(95, y - 12, 125, y);
+      context.quadraticCurveTo(155, y + 12, 185, y);
+      context.stroke();
+    }
+  } else if (id === "winter") {
+    [[110, 160], [950, 240], [125, 1100], [925, 1180]].forEach(([x, y]) => {
+      context.beginPath();
+      context.moveTo(x - 18, y);
+      context.lineTo(x + 18, y);
+      context.moveTo(x, y - 18);
+      context.lineTo(x, y + 18);
+      context.stroke();
+    });
+  } else if (id === "spring" || id === "autumn" || id === "celebration" || id === "gratitude") {
+    [[100, 130], [960, 190], [110, 1170], [940, 1210]].forEach(([x, y], index) => {
+      drawDecoration(context, theme.decoration, x, y, theme.accent, index % 2 ? 0.55 : 0.7);
+    });
+  } else {
+    context.fillStyle = hexToRgba(theme.accent, 0.18);
+    for (let x = 70; x < width; x += 80) context.fillRect(x, 78, 34, 3);
+  }
+  context.restore();
+}
+
+async function renderCard({
+  attachment,
+  createdAt,
+  includeAttachment,
+  memo,
+  senderName,
+  showDear,
+  showFrom,
+  targetName,
+  theme,
+}) {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
   canvas.height = 1350;
@@ -172,9 +304,10 @@ function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetNam
 
   context.fillStyle = theme.background;
   context.fillRect(0, 0, canvas.width, canvas.height);
+  drawThemePattern(context, theme, canvas.width, canvas.height);
   context.fillStyle = theme.paper;
   context.beginPath();
-  context.roundRect(72, 72, 936, 1206, 42);
+  context.roundRect(92, 96, 896, 1158, 36);
   context.fill();
   if (theme.frame) {
     context.strokeStyle = hexToRgba(theme.accent, 0.55);
@@ -182,8 +315,19 @@ function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetNam
     context.stroke();
   }
 
+  const themeDecorations = THEME_DECORATIONS[theme.id] || [];
   decorationAnchors(theme.position).forEach(([x, y], index) => {
-    drawDecoration(context, theme.decoration, x, y, theme.accent, index % 2 ? 0.72 : 0.9);
+    const decorationType = themeDecorations.length
+      ? themeDecorations[index % themeDecorations.length]
+      : theme.decoration;
+    drawDecoration(
+      context,
+      decorationType,
+      x,
+      y,
+      theme.accent,
+      index % 2 ? 0.72 : 0.9,
+    );
   });
 
   context.fillStyle = theme.bookmarkColor;
@@ -197,7 +341,7 @@ function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetNam
   context.fill();
 
   context.textBaseline = "top";
-  let y = 225;
+  let y = 205;
   if (showDear) {
     context.fillStyle = theme.accent;
     context.font = theme.dearStyle === "minimal"
@@ -209,11 +353,34 @@ function renderCard({ createdAt, memo, senderName, showDear, showFrom, targetNam
 
   context.fillStyle = theme.ink;
   context.font = '500 48px "Noto Sans JP", sans-serif';
-  const lines = wrapCanvasText(context, memo, 760);
+  const imageAttachment = includeAttachment && attachment?.type?.startsWith("image/")
+    ? await loadCanvasImage(attachment.blob)
+    : null;
+  const lines = wrapCanvasText(context, memo, 760).slice(0, imageAttachment ? 5 : 10);
   lines.forEach((line) => {
     context.fillText(line, 150, y);
     y += 78;
   });
+
+  if (imageAttachment) {
+    const maxWidth = 760;
+    const maxHeight = Math.max(210, Math.min(330, 1020 - y));
+    const scale = Math.min(maxWidth / imageAttachment.width, maxHeight / imageAttachment.height);
+    const drawWidth = imageAttachment.width * scale;
+    const drawHeight = imageAttachment.height * scale;
+    const drawX = 150 + (maxWidth - drawWidth) / 2;
+    const drawY = y + 24;
+    context.fillStyle = theme.background;
+    context.beginPath();
+    context.roundRect(drawX - 12, drawY - 12, drawWidth + 24, drawHeight + 24, 22);
+    context.fill();
+    context.save();
+    context.beginPath();
+    context.roundRect(drawX, drawY, drawWidth, drawHeight, 14);
+    context.clip();
+    context.drawImage(imageAttachment, drawX, drawY, drawWidth, drawHeight);
+    context.restore();
+  }
 
   context.fillStyle = hexToRgba(theme.accent, 0.45);
   context.fillRect(150, 1050, 760, 2);
@@ -242,9 +409,10 @@ function themeStyle(theme) {
 
 function ThemeDecoration({ theme }) {
   if (theme.decoration === "none") return null;
+  const marks = THEME_MARKS[theme.id] || Array(4).fill(DECORATION_MARKS[theme.decoration]);
   return (
     <div className={`share-decoration decor-${theme.position}`} aria-hidden="true">
-      {[0, 1, 2, 3].map((item) => <span key={item}>{DECORATION_MARKS[theme.decoration]}</span>)}
+      {marks.map((mark, index) => <span key={`${mark}-${index}`}>{mark}</span>)}
     </div>
   );
 }
@@ -256,6 +424,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
   const [showDear, setShowDear] = useState(true);
   const [showFrom, setShowFrom] = useState(true);
   const [attachment, setAttachment] = useState(null);
+  const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState("");
   const [includeAttachment, setIncludeAttachment] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedThemeId, setSelectedThemeId] = useState("simple");
@@ -276,6 +445,16 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
     return () => { active = false; };
   }, [bookmark.attachmentId]);
 
+  useEffect(() => {
+    if (!attachment?.blob || !attachment.type?.startsWith("image/")) {
+      setAttachmentPreviewUrl("");
+      return undefined;
+    }
+    const url = URL.createObjectURL(attachment.blob);
+    setAttachmentPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [attachment]);
+
   function updateCustomTheme(key, value) {
     setCustomDraft((current) => ({ ...current, [key]: value }));
   }
@@ -293,7 +472,9 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
 
   async function shareCard() {
     const blob = await renderCard({
+      attachment,
       createdAt: bookmark.createdAt,
+      includeAttachment,
       memo,
       senderName,
       showDear,
@@ -304,7 +485,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
     if (!blob) return;
     const cardFile = new File([blob], "ato-de-hiraku-shiori.png", { type: "image/png" });
     const files = [cardFile];
-    if (includeAttachment && attachment?.blob) {
+    if (includeAttachment && attachment?.blob && !attachment.type?.startsWith("image/")) {
       files.push(new File([attachment.blob], attachment.name, { type: attachment.type }));
     }
 
@@ -324,7 +505,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
     anchor.download = cardFile.name;
     anchor.click();
     URL.revokeObjectURL(url);
-    if (includeAttachment && attachment?.blob) {
+    if (includeAttachment && attachment?.blob && !attachment.type?.startsWith("image/")) {
       const attachmentUrl = URL.createObjectURL(attachment.blob);
       const attachmentAnchor = document.createElement("a");
       attachmentAnchor.href = attachmentUrl;
@@ -344,17 +525,24 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
       </header>
 
       <section
-        className={`share-card-preview share-theme-card dear-${activeTheme.dearStyle} ${activeTheme.frame ? "has-share-frame" : ""}`}
+        className={`share-card-preview share-theme-card theme-${activeTheme.id} dear-${activeTheme.dearStyle} ${activeTheme.frame ? "has-share-frame" : ""}`}
         style={themeStyle(activeTheme)}
       >
         <ThemeDecoration theme={activeTheme} />
         <span className="share-card-ribbon" aria-hidden="true" />
-        {showDear && <p className="share-dear">Dear {targetName || "あなたへ"}</p>}
-        <p className={memo ? "share-message" : "share-message empty-value"}>{memo || "メモなし"}</p>
-        <footer>
-          <time>{formatJapaneseDate(bookmark.createdAt)}</time>
-          {showFrom && <p>From {senderName || "名前なし"}</p>}
-        </footer>
+        <div className="share-card-content">
+          {showDear && <p className="share-dear">Dear {targetName || "あなたへ"}</p>}
+          <p className={memo ? "share-message" : "share-message empty-value"}>{memo || "メモなし"}</p>
+          {includeAttachment && attachmentPreviewUrl && (
+            <figure className="share-card-photo">
+              <img alt="" src={attachmentPreviewUrl} />
+            </figure>
+          )}
+          <footer>
+            <time>{formatJapaneseDate(bookmark.createdAt)}</time>
+            {showFrom && <p>From {senderName || "名前なし"}</p>}
+          </footer>
+        </div>
       </section>
 
       <section className="share-background-picker">
@@ -368,7 +556,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
           {availableThemes.map((theme) => (
             <button
               aria-pressed={selectedThemeId === theme.id}
-              className="share-theme-option"
+              className={`share-theme-option theme-${theme.id}`}
               key={theme.id}
               onClick={() => setSelectedThemeId(theme.id)}
               style={themeStyle(theme)}
@@ -379,17 +567,19 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
                 <span>{DECORATION_MARKS[theme.decoration]}</span>
               </span>
               <strong>{theme.label}</strong>
+              <span className="theme-selected-mark" aria-hidden="true">✓</span>
             </button>
           ))}
           <button
             aria-pressed={selectedThemeId === "custom"}
-            className="share-theme-option custom-theme-option"
+            className="share-theme-option custom-theme-option theme-custom"
             onClick={() => setSelectedThemeId("custom")}
             style={themeStyle(customDraft)}
             type="button"
           >
             <span className="theme-mini-preview"><span className="custom-plus">＋</span></span>
             <strong>自分で作る</strong>
+            <span className="theme-selected-mark" aria-hidden="true">✓</span>
           </button>
         </div>
 
@@ -464,9 +654,13 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
             <AttachmentEditor attachment={attachment} readOnly />
             <label>
               <input checked={includeAttachment} onChange={(event) => setIncludeAttachment(event.target.checked)} type="checkbox" />
-              この写真・資料も共有する
+              {attachment.type?.startsWith("image/") ? "写真をカードに含める" : "この資料も共有する"}
             </label>
-            <small>選択した場合だけ、共有先へ添付します。</small>
+            <small>
+              {attachment.type?.startsWith("image/")
+                ? "写真の周囲に選んだテーマを残して、カード画像に入れます。"
+                : "選択した場合だけ、共有先へ添付します。"}
+            </small>
           </div>
         )}
       </section>
@@ -476,7 +670,7 @@ export default function SharePreview({ bookmark, defaultSenderName, onClose }) {
         <button className="secondary-button" onClick={onClose} type="button">キャンセル</button>
         <button className="primary-button" onClick={shareCard} type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4M5 12v7h14v-7" /></svg>
-          端末で共有
+          共有する
         </button>
       </div>
     </main>

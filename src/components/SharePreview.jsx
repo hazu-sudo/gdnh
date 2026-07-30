@@ -17,6 +17,8 @@ import {
 const THEME_DECORATIONS = {
   gentle: ["clover", "clover"],
   thanks: ["heart", "heart"],
+  birthday: ["ribbon", "ribbon"],
+  celebration: ["star", "star"],
   spring: ["sakura", "sakura"],
   summer: ["sunflower", "sunflower"],
   autumn: ["ginkgo", "ginkgo"],

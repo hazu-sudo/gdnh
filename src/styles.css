@@ -3093,6 +3093,7 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
     radial-gradient(ellipse at 9% 38%, currentColor 0 17%, transparent 19%),
     radial-gradient(circle, currentColor 0 14%, transparent 16%);
 }
+.motif-star,
 .motif-sparkle,
 .motif-snow {
   clip-path: polygon(50% 0, 60% 37%, 100% 50%, 60% 63%, 50% 100%, 40% 63%, 0 50%, 40% 37%);

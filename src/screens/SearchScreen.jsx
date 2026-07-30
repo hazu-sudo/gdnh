@@ -48,6 +48,7 @@ function DetailView({
   bookmark,
   onAttachmentsChanged,
   onBack,
+  onDeleteBookmark,
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
@@ -66,6 +67,8 @@ function DetailView({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [unsavedDialog, setUnsavedDialog] = useState("");
   const [saving, setSaving] = useState(false);
+  const [bookmarkDeleteOpen, setBookmarkDeleteOpen] = useState(false);
+  const [deletingBookmark, setDeletingBookmark] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -293,6 +296,15 @@ function DetailView({
           </button>
         </section>
       ) : null}
+      <button
+        className="delete-bookmark-button"
+        disabled={deletingBookmark || saving}
+        onClick={() => setBookmarkDeleteOpen(true)}
+        type="button"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14" /></svg>
+        このしおりを削除
+      </button>
       {dateOpen && (
         <DateWheel
           date={createdAt}
@@ -340,6 +352,28 @@ function DetailView({
           </section>
         </div>
       )}
+      {bookmarkDeleteOpen && (
+        <div className="modal-backdrop" onClick={() => setBookmarkDeleteOpen(false)}>
+          <section className="confirm-dialog delete-bookmark-dialog" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <h2>このしおりを削除しますか？</h2>
+            <p>日付、宛先、ひとことメモ、状態、添付した写真・資料も一緒に削除されます。</p>
+            <div>
+              <button className="secondary-button" disabled={deletingBookmark} onClick={() => setBookmarkDeleteOpen(false)} type="button">キャンセル</button>
+              <button
+                className="danger-delete-button"
+                disabled={deletingBookmark}
+                onClick={async () => {
+                  setDeletingBookmark(true);
+                  await onDeleteBookmark(bookmark.id);
+                }}
+                type="button"
+              >
+                {deletingBookmark ? "削除しています" : "削除する"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
@@ -347,6 +381,7 @@ function DetailView({
 export default function SearchScreen({
   bookmarks,
   onAttachmentsChanged,
+  onDeleteBookmark,
   onUpdateBookmark,
   onUpdateStatus,
   senderName,
@@ -357,6 +392,7 @@ export default function SearchScreen({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTarget, setSelectedTarget] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [notice, setNotice] = useState("");
   const today = dateKey(new Date());
   const days = useMemo(() => buildMonth(calendarMonth), [calendarMonth]);
   const selectedBookmark = bookmarks.find((item) => item.id === selectedId);
@@ -395,6 +431,12 @@ export default function SearchScreen({
         bookmark={selectedBookmark}
         onAttachmentsChanged={onAttachmentsChanged}
         onBack={() => setSelectedId("")}
+        onDeleteBookmark={async (id) => {
+          await onDeleteBookmark(id);
+          setSelectedId("");
+          setNotice("しおりを削除しました");
+          window.setTimeout(() => setNotice(""), 3200);
+        }}
         onUpdateBookmark={onUpdateBookmark}
         onUpdateStatus={onUpdateStatus}
         senderName={senderName}
@@ -506,6 +548,7 @@ export default function SearchScreen({
 
   return (
     <main className="screen search-screen">
+      {notice && <div className="toast-notice" role="status">{notice}</div>}
       <header className="search-heading">
         <button className="portal-back-button" onClick={returnToPortal} type="button">
           <span aria-hidden="true">‹</span> 探し方へ戻る

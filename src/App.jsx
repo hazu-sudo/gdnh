@@ -5,6 +5,7 @@ import SearchScreen from "./screens/SearchScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReflectionScreen from "./screens/ReflectionScreen.jsx";
 import HintScreen from "./screens/HintScreen.jsx";
+import { deleteAttachmentsForBookmark } from "./attachmentStore.js";
 import {
   loadHintIntroSeen,
   loadHintVisibility,
@@ -72,6 +73,14 @@ export default function App() {
     setBookmarks(next);
   }
 
+  async function deleteBookmark(id) {
+    const next = bookmarks.filter((item) => item.id !== id);
+    saveBookmarks(next);
+    setBookmarks(next);
+    await deleteAttachmentsForBookmark(id).catch(() => {});
+    setAttachmentRevision((current) => current + 1);
+  }
+
   function updateFontSize(size) {
     setFontSize(size);
     saveFontSize(size);
@@ -124,6 +133,7 @@ export default function App() {
       {activeTab === "search" && (
         <SearchScreen
           bookmarks={bookmarks}
+          onDeleteBookmark={deleteBookmark}
           onUpdateBookmark={updateBookmark}
           onUpdateStatus={updateStatus}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}

@@ -33,7 +33,7 @@ ${css}
   </head>
   <body>
     <div id="root"></div>
-    <script>
+    <script type="module">
 ${js}
     </script>
   </body>

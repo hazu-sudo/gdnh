@@ -1477,6 +1477,11 @@ html[data-theme-color="mono"] { --coral: #404040; --coral-deep: #202020; --coral
   overflow-wrap: anywhere;
   font-size: 0.7rem;
 }
+.theme-selected-label {
+  color: var(--coral-deep);
+  font-size: 0.56rem;
+  font-weight: 800;
+}
 .theme-option > small {
   position: absolute;
   top: 5px;

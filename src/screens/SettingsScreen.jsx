@@ -33,12 +33,12 @@ function ToggleSetting({ checked, description, label, onChange }) {
 export default function SettingsScreen({
   accountEmail,
   attachmentRevision,
-  backgroundColor,
+  colorTheme,
   cloudConfigured,
   fontSize,
   hintIntroSeen,
   lastSyncAt,
-  onBackgroundColorChange,
+  onColorThemeChange,
   onFontSizeChange,
   onHintIntroSeen,
   onHintVisibilityChange,
@@ -46,12 +46,10 @@ export default function SettingsScreen({
   onSenderNameChange,
   onSignOut,
   onSyncNow,
-  onThemeColorChange,
   senderName,
   showHints,
   showReflection,
   syncStatus,
-  themeColor,
 }) {
   const [showHintDialog, setShowHintDialog] = useState(false);
   const [attachmentUsage, setAttachmentUsage] = useState({ bytes: 0, bookmarkCount: 0, fileCount: 0 });
@@ -137,52 +135,30 @@ export default function SettingsScreen({
         <div className="settings-panel">
           <div className="settings-title">
             <span className="settings-icon color-icon" aria-hidden="true"><i /><i /><i /></span>
-            <div><h3>背景色</h3><p>画面全体のやわらかなベース色です</p></div>
+            <div><h3>カラーテーマ</h3><p>背景とボタンの色が、同じ色合いで変わります</p></div>
           </div>
-          <div className="theme-options" role="radiogroup" aria-label="背景色">
+          <div className="theme-options" role="radiogroup" aria-label="カラーテーマ">
             {APP_COLOR_OPTIONS.map((item) => (
               <button
-                aria-checked={backgroundColor === item.id}
-                className={backgroundColor === item.id ? "theme-option active" : "theme-option"}
+                aria-checked={colorTheme === item.id}
+                className={colorTheme === item.id ? "theme-option active" : "theme-option"}
                 key={item.id}
-                onClick={() => onBackgroundColorChange(item.id)}
+                onClick={() => onColorThemeChange(item.id)}
                 role="radio"
                 type="button"
               >
                 <span
-                  className="theme-swatch background-swatch"
-                  style={{ "--swatch-bg": item.background.canvas, "--swatch-accent": item.background.paper }}
+                  className="theme-swatch"
+                  style={{ "--swatch-bg": item.background.canvas, "--swatch-accent": item.accent.main }}
                   aria-hidden="true"
                 ><i /></span>
                 <strong>{item.label}</strong>
-                {backgroundColor === item.id && <small aria-hidden="true">✓</small>}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="settings-panel">
-          <div className="settings-title">
-            <span className="settings-icon accent-icon" aria-hidden="true">✓</span>
-            <div><h3>テーマカラー</h3><p>ボタンやアイコン、選択状態に使う色です</p></div>
-          </div>
-          <div className="theme-options" role="radiogroup" aria-label="テーマカラー">
-            {APP_COLOR_OPTIONS.map((item) => (
-              <button
-                aria-checked={themeColor === item.id}
-                className={themeColor === item.id ? "theme-option active" : "theme-option"}
-                key={item.id}
-                onClick={() => onThemeColorChange(item.id)}
-                role="radio"
-                type="button"
-              >
-                <span
-                  className="theme-swatch accent-swatch"
-                  style={{ "--swatch-bg": item.accent.soft, "--swatch-accent": item.accent.main }}
-                  aria-hidden="true"
-                ><i /></span>
-                <strong>{item.label}</strong>
-                {themeColor === item.id && <small aria-hidden="true">✓</small>}
+                {colorTheme === item.id && (
+                  <>
+                    <small aria-hidden="true">✓</small>
+                    <span className="theme-selected-label">選択中</span>
+                  </>
+                )}
               </button>
             ))}
           </div>

@@ -13,6 +13,7 @@ const FONT_SIZE_KEY = "later-open-shiori-font-size-v1";
 const THEME_KEY = "later-open-shiori-theme-v1";
 const BACKGROUND_COLOR_KEY = "later-open-shiori-background-color-v1";
 const THEME_COLOR_KEY = "later-open-shiori-theme-color-v1";
+const COLOR_THEME_KEY = "later-open-shiori-color-theme-v1";
 const REFLECTION_KEY = "later-open-shiori-reflection-v1";
 const HINTS_KEY = "later-open-shiori-hints-visible-v1";
 const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
@@ -100,6 +101,22 @@ export function saveThemeColor(color) {
   if (validThemes.has(color)) localStorage.setItem(THEME_COLOR_KEY, color);
 }
 
+export function loadColorTheme() {
+  const stored = localStorage.getItem(COLOR_THEME_KEY);
+  if (validThemes.has(stored)) return stored;
+  const previousThemeColor = localStorage.getItem(THEME_COLOR_KEY);
+  if (validThemes.has(previousThemeColor)) return previousThemeColor;
+  const previousBackgroundColor = localStorage.getItem(BACKGROUND_COLOR_KEY);
+  return validThemes.has(previousBackgroundColor) ? previousBackgroundColor : loadTheme();
+}
+
+export function saveColorTheme(color) {
+  if (!validThemes.has(color)) return;
+  localStorage.setItem(COLOR_THEME_KEY, color);
+  saveBackgroundColor(color);
+  saveThemeColor(color);
+}
+
 export function loadReflectionVisibility() {
   return localStorage.getItem(REFLECTION_KEY) !== "off";
 }
@@ -154,8 +171,7 @@ export function saveHintCache(hints, notify = true) {
 export function loadSettingsSnapshot() {
   return {
     fontSize: loadFontSize(),
-    backgroundColor: loadBackgroundColor(),
-    themeColor: loadThemeColor(),
+    colorTheme: loadColorTheme(),
     showReflection: loadReflectionVisibility(),
     showHints: loadHintVisibility(),
     hintIntroSeen: loadHintIntroSeen(),
@@ -167,8 +183,7 @@ export function loadSettingsSnapshot() {
 
 export function saveSettingsSnapshot(settings) {
   saveFontSize(settings.fontSize);
-  saveBackgroundColor(settings.backgroundColor);
-  saveThemeColor(settings.themeColor);
+  saveColorTheme(settings.colorTheme);
   saveReflectionVisibility(settings.showReflection);
   saveHintVisibility(settings.showHints);
   if (settings.hintIntroSeen) saveHintIntroSeen();

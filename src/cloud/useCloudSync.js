@@ -21,12 +21,16 @@ const CACHE_PREFIX = "later-open-shiori-cloud-cache-v1:";
 const isSample = (bookmark) => String(bookmark.id).startsWith("sample-");
 
 function mergeSettings(localSettings, storedSettings = {}) {
-  const legacyColor = storedSettings.theme;
+  const colorTheme = storedSettings.colorTheme
+    || storedSettings.themeColor
+    || storedSettings.backgroundColor
+    || storedSettings.theme
+    || localSettings.colorTheme
+    || "orange";
   return {
     ...localSettings,
     ...storedSettings,
-    backgroundColor: storedSettings.backgroundColor || legacyColor || localSettings.backgroundColor || "orange",
-    themeColor: storedSettings.themeColor || legacyColor || localSettings.themeColor || "orange",
+    colorTheme,
   };
 }
 

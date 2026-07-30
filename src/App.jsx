@@ -17,8 +17,7 @@ export default function App() {
 
   const {
     fontSize = "standard",
-    backgroundColor = sync.settings.theme || "orange",
-    themeColor = sync.settings.theme || "orange",
+    colorTheme = sync.settings.themeColor || sync.settings.backgroundColor || sync.settings.theme || "orange",
     showReflection = true,
     showHints = false,
     hintIntroSeen = false,
@@ -30,10 +29,10 @@ export default function App() {
   }, [fontSize]);
 
   useEffect(() => {
-    document.documentElement.dataset.backgroundColor = backgroundColor;
-    document.documentElement.dataset.themeColor = themeColor;
+    document.documentElement.dataset.backgroundColor = colorTheme;
+    document.documentElement.dataset.themeColor = colorTheme;
     delete document.documentElement.dataset.theme;
-  }, [backgroundColor, themeColor]);
+  }, [colorTheme]);
 
   if (sync.cloudConfigured && !sync.authReady) {
     return <div className="app-loading" role="status">しおりを開いています…</div>;
@@ -94,8 +93,8 @@ export default function App() {
           onUpdateStatus={sync.updateStatus}
           onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
           senderName={senderName}
-          backgroundColor={backgroundColor}
-          themeColor={themeColor}
+          backgroundColor={colorTheme}
+          themeColor={colorTheme}
         />
       )}
       {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}
@@ -106,12 +105,12 @@ export default function App() {
         <SettingsScreen
           accountEmail={sync.user?.email || ""}
           attachmentRevision={attachmentRevision}
-          backgroundColor={backgroundColor}
+          colorTheme={colorTheme}
           cloudConfigured={sync.cloudConfigured}
           fontSize={fontSize}
           hintIntroSeen={hintIntroSeen}
           lastSyncAt={sync.lastSyncAt}
-          onBackgroundColorChange={(color) => sync.updateSettings({ backgroundColor: color })}
+          onColorThemeChange={(color) => sync.updateSettings({ colorTheme: color })}
           onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
           onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
           onHintVisibilityChange={updateHintVisibility}
@@ -119,12 +118,10 @@ export default function App() {
           onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
           onSignOut={sync.signOut}
           onSyncNow={() => sync.pullCloud({ allowMigration: false })}
-          onThemeColorChange={(color) => sync.updateSettings({ themeColor: color })}
           senderName={senderName}
           showHints={showHints}
           showReflection={showReflection}
           syncStatus={sync.syncStatus}
-          themeColor={themeColor}
         />
       )}
       <BottomNav

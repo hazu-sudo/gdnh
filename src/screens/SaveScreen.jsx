@@ -142,6 +142,10 @@ export default function SaveScreen({
   const [pendingFile, setPendingFile] = useState(null);
   const [attachmentError, setAttachmentError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [inserting, setInserting] = useState(false);
+  const insertTimer = useRef(null);
+
+  useEffect(() => () => window.clearTimeout(insertTimer.current), []);
 
   useEffect(() => {
     if (!initialMemo) return;
@@ -182,7 +186,14 @@ export default function SaveScreen({
       setMemo("");
       setPendingFile(null);
       setDate(formatToday());
-      setSaved(true);
+      setSaved(false);
+      setInserting(true);
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      window.clearTimeout(insertTimer.current);
+      insertTimer.current = window.setTimeout(() => {
+        setInserting(false);
+        setSaved(true);
+      }, reducedMotion ? 60 : 980);
       if (storedAttachment) onAttachmentsChanged?.();
     } catch (error) {
       if (storedAttachment?.id) await deleteAttachment(storedAttachment.id).catch(() => {});
@@ -207,7 +218,13 @@ export default function SaveScreen({
         <p>話したいことを忘れないように。思いを自由にしおりに残す。</p>
       </section>
 
-      <form className="quick-form" onSubmit={submit}>
+      <form
+        aria-busy={saving || inserting}
+        className={inserting ? "quick-form bookmark-composer is-inserting" : "quick-form bookmark-composer"}
+        onSubmit={submit}
+      >
+        <span className="composer-ribbon" aria-hidden="true" />
+        <span className="composer-hole" aria-hidden="true" />
         <div className="simple-field">
           <span>日付</span>
           <button className="date-trigger form-date-trigger" onClick={() => setDateOpen(true)} type="button">
@@ -294,13 +311,20 @@ export default function SaveScreen({
             <p><strong>しおりを挟みました</strong><small>あとで、日付か話す相手から開けます。</small></p>
           </div>
         )}
-        <button className="primary-button quick-save" disabled={saving} type="submit">
+        <button className="primary-button quick-save" disabled={saving || inserting} type="submit">
           <span className="mini-ribbon" aria-hidden="true" />
           {saving
             ? (pendingFile?.type.startsWith("image/") ? "写真をしおりに挟んでいます" : "資料を保存しています")
             : "挟む"}
         </button>
         {saved && <button className="text-button centered" onClick={onShowBookmarks} type="button">挟んだしおりを見る</button>}
+        {inserting && (
+          <div className="insert-book-animation" role="status">
+            <span className="moving-bookmark" aria-hidden="true" />
+            <span className="receiving-book" aria-hidden="true"><i /><i /></span>
+            <strong>しおりを本に挟んでいます</strong>
+          </div>
+        )}
       </form>
 
       {dateOpen && (

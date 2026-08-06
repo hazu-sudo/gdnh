@@ -120,7 +120,7 @@ export function drawThemeMotifLayer(context, theme) {
   context.save();
   context.fillStyle = theme.accent;
   context.globalAlpha = 0.32;
-  drawMotif(context, motif, 145, 150, 72);
-  drawMotif(context, motif, 960, 1210, 72);
+  drawMotif(context, motif, 150, 165, 72);
+  drawMotif(context, motif, 900, 1095, 72);
   context.restore();
 }

@@ -488,10 +488,11 @@ export default function SearchScreen({
           <header className="portal-heading">
             <p className="eyebrow">FIND A SHIORI</p>
             <h1>しおりを探す</h1>
-            <p>これまで挟んだ気持ちが、ここで静かに待っています。</p>
+            <p>本の目次をたどるように、日付か話したい相手から開けます。</p>
           </header>
 
           <div className="floating-bookmarks" aria-hidden="true">
+            <div className="portal-open-book"><span /><span /></div>
             {floatingBookmarks.length > 0 ? floatingBookmarks.map((bookmark, index) => (
               <div className={`floating-shiori bubble-${index + 1}`} key={bookmark.id}>
                 <span className="floating-ribbon" />

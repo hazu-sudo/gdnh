@@ -42,12 +42,14 @@ export default function SettingsScreen({
   onFontSizeChange,
   onHintIntroSeen,
   onHintVisibilityChange,
+  onBookIntroChange,
   onReflectionChange,
   onSenderNameChange,
   onSignOut,
   onSyncNow,
   senderName,
   showHints,
+  showBookIntro,
   showReflection,
   syncStatus,
 }) {
@@ -201,6 +203,12 @@ export default function SettingsScreen({
             description="登録したしおりと、話したしおりを週ごと・月ごとに振り返ります"
             label="しおりの振り返り"
             onChange={onReflectionChange}
+          />
+          <ToggleSetting
+            checked={showBookIntro}
+            description="アプリを開いたとき、本をタップして始めます"
+            label="起動時の本"
+            onChange={onBookIntroChange}
           />
         </div>
         <p className="feature-setting-helper">OFFにしても、これまでのしおりや設定は消えません。</p>

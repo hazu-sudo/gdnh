@@ -55,6 +55,25 @@ function loadCanvasImage(blob) {
   });
 }
 
+function traceBookmarkCard(context, inset = 0) {
+  const left = 92 + inset;
+  const right = 988 - inset;
+  const top = 96 + inset;
+  const bottom = 1254 - inset;
+  const notch = 1178 - inset;
+  const radius = Math.max(12, 36 - inset);
+  context.beginPath();
+  context.moveTo(left + radius, top);
+  context.lineTo(right - radius, top);
+  context.quadraticCurveTo(right, top, right, top + radius);
+  context.lineTo(right, bottom);
+  context.lineTo(540, notch);
+  context.lineTo(left, bottom);
+  context.lineTo(left, top + radius);
+  context.quadraticCurveTo(left, top, left + radius, top);
+  context.closePath();
+}
+
 async function renderCard({
   attachment,
   createdAt,
@@ -73,13 +92,22 @@ async function renderCard({
 
   context.fillStyle = theme.background;
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = theme.paper;
+
+  context.strokeStyle = theme.bookmarkColor;
+  context.lineWidth = 20;
+  context.lineCap = "round";
   context.beginPath();
-  context.roundRect(92, 96, 896, 1158, 36);
+  context.moveTo(540, 34);
+  context.lineTo(540, 130);
+  context.stroke();
+
+  context.fillStyle = theme.paper;
+  traceBookmarkCard(context);
   context.fill();
   if (theme.frame) {
     context.strokeStyle = hexToRgba(theme.accent, 0.55);
     context.lineWidth = 5;
+    traceBookmarkCard(context, 18);
     context.stroke();
   }
 
@@ -87,12 +115,11 @@ async function renderCard({
 
   context.fillStyle = theme.bookmarkColor;
   context.beginPath();
-  context.moveTo(850, 72);
-  context.lineTo(950, 72);
-  context.lineTo(950, 238);
-  context.lineTo(900, 208);
-  context.lineTo(850, 238);
-  context.closePath();
+  context.arc(540, 132, 25, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = theme.background;
+  context.beginPath();
+  context.arc(540, 132, 13, 0, Math.PI * 2);
   context.fill();
 
   context.textBaseline = "top";
@@ -145,14 +172,14 @@ async function renderCard({
   }
 
   context.fillStyle = hexToRgba(theme.accent, 0.45);
-  context.fillRect(150, 1050, 760, 2);
+  context.fillRect(150, 1028, 760, 2);
   context.fillStyle = theme.muted;
   context.font = '500 32px "Noto Sans JP", sans-serif';
-  context.fillText(formatJapaneseDate(createdAt), 150, 1100);
+  context.fillText(formatJapaneseDate(createdAt), 150, 1076);
   if (showFrom) {
     context.textAlign = "right";
     context.fillStyle = theme.accent;
-    context.fillText(`From ${senderName || "名前なし"}`, 910, 1160);
+    context.fillText(`From ${senderName || "名前なし"}`, 910, 1135);
   }
 
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));

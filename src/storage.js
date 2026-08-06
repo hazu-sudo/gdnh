@@ -20,6 +20,7 @@ const HINTS_INTRO_KEY = "later-open-shiori-hints-intro-v1";
 const SENDER_NAME_KEY = "later-open-shiori-sender-name-v1";
 const HINT_CACHE_KEY = "later-open-shiori-hint-cache-v1";
 const CUSTOM_THEMES_KEY = "later-open-shiori-share-backgrounds-v1";
+const BOOK_INTRO_KEY = "later-open-shiori-book-intro-v1";
 const validFontSizes = new Set(["small", "standard", "large"]);
 const validThemes = new Set(["red", "pink", "blue", "yellow", "orange", "brown", "green", "purple", "mono"]);
 
@@ -141,6 +142,14 @@ export function saveHintIntroSeen() {
   localStorage.setItem(HINTS_INTRO_KEY, "seen");
 }
 
+export function loadBookIntroVisibility() {
+  return localStorage.getItem(BOOK_INTRO_KEY) !== "off";
+}
+
+export function saveBookIntroVisibility(visible) {
+  localStorage.setItem(BOOK_INTRO_KEY, visible ? "on" : "off");
+}
+
 export function loadSenderName() {
   return localStorage.getItem(SENDER_NAME_KEY) || "";
 }
@@ -178,6 +187,7 @@ export function loadSettingsSnapshot() {
     senderName: loadSenderName(),
     hintCache: loadHintCache([]),
     customThemes: readArray(CUSTOM_THEMES_KEY),
+    showBookIntro: loadBookIntroVisibility(),
   };
 }
 
@@ -192,6 +202,7 @@ export function saveSettingsSnapshot(settings) {
   if (Array.isArray(settings.customThemes)) {
     localStorage.setItem(CUSTOM_THEMES_KEY, JSON.stringify(settings.customThemes.slice(0, 20)));
   }
+  saveBookIntroVisibility(settings.showBookIntro !== false);
 }
 
 function readArray(key) {

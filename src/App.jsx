@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import BottomNav from "./components/BottomNav.jsx";
 import AuthScreen from "./components/AuthScreen.jsx";
+import BookCoverScreen from "./components/BookCoverScreen.jsx";
 import SaveScreen from "./screens/SaveScreen.jsx";
 import SearchScreen from "./screens/SearchScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
@@ -13,6 +14,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("save");
   const [prefilledMemo, setPrefilledMemo] = useState("");
   const [attachmentRevision, setAttachmentRevision] = useState(0);
+  const [bookOpened, setBookOpened] = useState(false);
   const sync = useCloudSync();
 
   const {
@@ -22,6 +24,7 @@ export default function App() {
     showHints = false,
     hintIntroSeen = false,
     senderName = "",
+    showBookIntro = true,
   } = sync.settings;
 
   useEffect(() => {
@@ -40,6 +43,10 @@ export default function App() {
 
   if (sync.cloudConfigured && !sync.session) {
     return <AuthScreen />;
+  }
+
+  if (showBookIntro && !bookOpened) {
+    return <BookCoverScreen bookmarks={sync.bookmarks} onOpen={() => setBookOpened(true)} />;
   }
 
   async function deleteBookmark(id) {
@@ -114,12 +121,17 @@ export default function App() {
           onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
           onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
           onHintVisibilityChange={updateHintVisibility}
+          onBookIntroChange={(visible) => {
+            sync.updateSettings({ showBookIntro: visible });
+            if (visible) setBookOpened(true);
+          }}
           onReflectionChange={updateReflectionVisibility}
           onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
           onSignOut={sync.signOut}
           onSyncNow={() => sync.pullCloud({ allowMigration: false })}
           senderName={senderName}
           showHints={showHints}
+          showBookIntro={showBookIntro}
           showReflection={showReflection}
           syncStatus={sync.syncStatus}
         />

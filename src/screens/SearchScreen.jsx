@@ -547,7 +547,7 @@ export default function SearchScreen({
                   </button>
                   <button className="search-choice person-choice" onClick={() => chooseSearchMode("recipient")} type="button">
                     <span className="choice-icon">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v11h-17z" /><path d="m4 8 8 6 8-6" /><path d="m4 18 5.5-5M20 18l-5.5-5" /></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20c.5-4 2.6-6 6.5-6s6 2 6.5 6" /></svg>
                     </span>
                     <strong>話す相手</strong>
                   </button>

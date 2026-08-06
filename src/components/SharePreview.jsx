@@ -5,8 +5,6 @@ import { drawThemeMotifLayer, ThemeMotifLayer } from "./ThemeMotifs.jsx";
 import { getAttachment } from "../attachmentStore.js";
 import {
   applyAppTheme,
-  applyCelebrationColor,
-  CELEBRATION_COLORS,
   DECORATION_OPTIONS,
   DEFAULT_CUSTOM_THEME,
   loadCustomThemes,
@@ -191,10 +189,6 @@ export default function SharePreview({
   const [customThemes, setCustomThemes] = useState(loadCustomThemes);
   const [customDraft, setCustomDraft] = useState(DEFAULT_CUSTOM_THEME);
   const [customName, setCustomName] = useState("");
-  const [eventColors, setEventColors] = useState({
-    birthday: "red",
-    celebration: "orange",
-  });
 
   const availableThemes = useMemo(
     () => SHARE_THEMES.map((theme) => applyAppTheme(theme, appBackgroundColor, appThemeColor)),
@@ -202,14 +196,9 @@ export default function SharePreview({
   );
   const activeTheme = selectedThemeId === "custom"
     ? customDraft
-    : (() => {
-      const selected = availableThemes.find((theme) => theme.id === selectedThemeId)
-        || customThemes.find((theme) => theme.id === selectedThemeId)
-        || availableThemes[0];
-      return selected.id === "birthday" || selected.id === "celebration"
-        ? applyCelebrationColor(selected, eventColors[selected.id])
-        : selected;
-    })();
+    : availableThemes.find((theme) => theme.id === selectedThemeId)
+      || customThemes.find((theme) => theme.id === selectedThemeId)
+      || availableThemes[0];
 
   useEffect(() => {
     let active = true;
@@ -231,10 +220,6 @@ export default function SharePreview({
 
   function updateCustomTheme(key, value) {
     setCustomDraft((current) => ({ ...current, [key]: value }));
-  }
-
-  function updateEventColor(colorId) {
-    setEventColors((current) => ({ ...current, [selectedThemeId]: colorId }));
   }
 
   function storeCustomTheme() {
@@ -361,27 +346,6 @@ export default function SharePreview({
             <span className="theme-selected-mark" aria-hidden="true">✓</span>
           </button>
         </div>
-
-        {(selectedThemeId === "birthday" || selectedThemeId === "celebration") && (
-          <div className="event-color-picker">
-            <strong>背景・アクセントの色</strong>
-            <div aria-label={`${activeTheme.label}の色`} role="group">
-              {CELEBRATION_COLORS.map((color) => (
-                <button
-                  aria-label={color.label}
-                  aria-pressed={eventColors[selectedThemeId] === color.id}
-                  key={color.id}
-                  onClick={() => updateEventColor(color.id)}
-                  style={{ "--swatch-color": color.accent }}
-                  title={color.label}
-                  type="button"
-                >
-                  <span aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {selectedThemeId === "custom" && (
           <div className="custom-background-builder">

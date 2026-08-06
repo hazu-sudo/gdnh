@@ -3253,45 +3253,14 @@ html[data-font-size="large"] .simple-nav.tabs-5 .nav-button { font-size: 0.58rem
   font-size: 0.76rem;
   font-weight: 800;
 }
-.event-color-picker,
 .saved-theme-picker {
   display: grid;
   gap: 0.65rem;
   border-top: 1px solid var(--line);
   padding-top: 0.9rem;
 }
-.event-color-picker > strong,
 .saved-theme-picker > strong {
   font-size: 0.75rem;
-}
-.event-color-picker > div {
-  display: flex;
-  gap: 0.55rem;
-  overflow-x: auto;
-  padding: 0.15rem 0.15rem 0.35rem;
-  scrollbar-width: thin;
-}
-.event-color-picker button {
-  display: grid;
-  flex: 0 0 auto;
-  width: 42px;
-  height: 44px;
-  place-items: center;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: var(--paper);
-  padding: 4px;
-}
-.event-color-picker button > span {
-  width: 27px;
-  height: 27px;
-  border: 1px solid color-mix(in srgb, var(--swatch-color) 60%, #8d837c);
-  border-radius: 50%;
-  background: var(--swatch-color);
-}
-.event-color-picker button[aria-pressed="true"] {
-  border-color: var(--coral-deep);
-  box-shadow: 0 0 0 2px var(--coral-pale);
 }
 .saved-theme-picker > div {
   display: flex;

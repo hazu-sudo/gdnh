@@ -13,8 +13,6 @@ const ellipsePath = (cx, cy, rx, ry) => [
 export const FIXED_THEME_MOTIFS = Object.freeze({
   gentle: "clover",
   thanks: "heart",
-  birthday: "ribbon",
-  celebration: "star",
   spring: "sakura",
   summer: "sunflower",
   autumn: "ginkgo",
@@ -23,11 +21,9 @@ export const FIXED_THEME_MOTIFS = Object.freeze({
 
 const CUSTOM_MOTIF_ALIASES = Object.freeze({
   flower: "flower",
-  star: "star",
   heart: "heart",
   bookmark: "bookmark",
   envelope: "envelope",
-  ribbon: "ribbon",
   clover: "clover",
   snow: "snow",
 });
@@ -42,13 +38,6 @@ const MOTIF_PATHS = Object.freeze({
   ],
   heart: [
     "M 50 88 C 42 78 14 61 14 36 C 14 17 37 10 50 29 C 63 10 86 17 86 36 C 86 61 58 78 50 88 Z",
-  ],
-  ribbon: [
-    "M 50 31 L 72 14 L 94 24 L 77 50 L 94 76 L 72 86 L 50 69 L 28 86 L 6 76 L 23 50 L 6 24 L 28 14 Z",
-    circlePath(50, 50, 12),
-  ],
-  star: [
-    "M 50 8 L 61 37 L 92 39 L 68 59 L 76 90 L 50 72 L 24 90 L 32 59 L 8 39 L 39 37 Z",
   ],
   sakura: [
     ellipsePath(50, 24, 13, 21),
@@ -91,11 +80,11 @@ export function getThemeMotif(theme) {
   if (!theme || theme.decoration === "none") return null;
   return FIXED_THEME_MOTIFS[theme.id]
     || CUSTOM_MOTIF_ALIASES[theme.decoration]
-    || "ribbon";
+    || null;
 }
 
 function MotifSvg({ motif }) {
-  const paths = MOTIF_PATHS[motif] || MOTIF_PATHS.ribbon;
+  const paths = MOTIF_PATHS[motif] || MOTIF_PATHS.clover;
   return (
     <svg aria-hidden="true" focusable="false" viewBox="0 0 100 100">
       {paths.map((path, index) => <path d={path} key={`${motif}-${index}`} />)}
@@ -116,7 +105,7 @@ export function ThemeMotifLayer({ compact = false, theme }) {
 }
 
 function drawMotif(context, motif, x, y, size) {
-  const paths = MOTIF_PATHS[motif] || MOTIF_PATHS.ribbon;
+  const paths = MOTIF_PATHS[motif] || MOTIF_PATHS.clover;
   context.save();
   context.translate(x - size / 2, y - size / 2);
   context.scale(size / 100, size / 100);

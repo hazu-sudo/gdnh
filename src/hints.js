@@ -1,3 +1,61 @@
+export const CONVERSATION_RELATIONS = [
+  { id: "first-meeting", label: "初めて会う人", description: "答えやすい話題から" },
+  { id: "acquaintance", label: "まだあまり親しくない人", description: "少しずつ会話をつなぐ" },
+  { id: "junior", label: "後輩", description: "気軽に話せる空気をつくる" },
+  { id: "senior", label: "先輩", description: "経験やおすすめを聞く" },
+  { id: "coworker", label: "職場の人", description: "仕事の合間の自然な雑談" },
+  { id: "reunion", label: "久しぶりに会う人", description: "近況や前の話の続きを" },
+  { id: "anyone", label: "誰でも使える話題", description: "好みや日常から選ぶ" },
+  { id: "trivia", label: "雑学から探す", description: "小さな知識を会話の入口に" },
+];
+
+export const RELATION_HINTS = {
+  "first-meeting": [
+    { id: "first-arrival", prompt: "今日はここまで、どうやって来たんですか？", followUp: "この辺にはよく来られるんですか？", opener: "初めてだと少し緊張しますね。そういえば…", memo: "ここまでの道のりや、この辺に来ることがあるか聞いてみたい" },
+    { id: "first-place", prompt: "この場所やイベントは、どうやって知ったんですか？", followUp: "参加してみようと思ったきっかけはありますか？", memo: "この場所やイベントを知ったきっかけについて聞いてみたい" },
+    { id: "first-weekend", prompt: "休日は、どんなふうに過ごすことが多いですか？", followUp: "最近やってみて楽しかったことはありますか？", opener: "差し支えなければ、ちょっと聞いてみたいんですけど…", memo: "休日の過ごし方について聞いてみたい" },
+    { id: "first-food", prompt: "この近くで、気になっているお店はありますか？", followUp: "好きな食べ物ってありますか？", memo: "近くのお店や好きな食べ物について聞いてみたい" },
+  ],
+  acquaintance: [
+    { id: "acq-follow", prompt: "この前話していたこと、その後どうなりました？", followUp: "最近はどんな感じですか？", opener: "そういえば、前に話していたことを思い出して…", memo: "前に話していたことの続きを聞いてみたい" },
+    { id: "acq-hobby", prompt: "最近、何かハマっているものありますか？", followUp: "始めたきっかけって何だったんですか？", memo: "最近ハマっているものについて聞いてみたい" },
+    { id: "acq-recommend", prompt: "最近、人におすすめしたくなったものってありますか？", followUp: "どんなところがよかったですか？", memo: "最近おすすめしたくなったものについて聞いてみたい" },
+    { id: "acq-small", prompt: "最近、ちょっと嬉しかったことってありました？", followUp: "それはいいですね。どんな場面だったんですか？", memo: "最近あった小さな嬉しいことについて聞いてみたい" },
+  ],
+  junior: [
+    { id: "junior-settle", prompt: "最近、少し慣れてきた？", followUp: "やっていて面白いと思うことある？", opener: "無理に答えなくて大丈夫なんだけど…", memo: "最近慣れてきたことや面白いことを聞いてみたい" },
+    { id: "junior-help", prompt: "今、困っていることとかない？", followUp: "自分でよければ、一緒に考えるよ。", memo: "困っていることがないか気軽に聞いてみたい" },
+    { id: "junior-off", prompt: "休みの日って、何してることが多い？", followUp: "最近いちばん楽しかったのは何？", memo: "休みの日の過ごし方について聞いてみたい" },
+    { id: "junior-rec", prompt: "最近おすすめのものある？", followUp: "どこが気に入ってる？", memo: "最近のおすすめについて聞いてみたい" },
+  ],
+  senior: [
+    { id: "senior-start", prompt: "これって、最初の頃どうやって慣れましたか？", followUp: "慣れるまでに意識していたことはありますか？", opener: "少し聞いてみたかったんですが…", memo: "最初の頃にどうやって慣れたか聞いてみたい" },
+    { id: "senior-shop", prompt: "最近おすすめのお店とかありますか？", followUp: "そこでよく頼むものはありますか？", memo: "最近おすすめのお店について聞いてみたい" },
+    { id: "senior-memory", prompt: "今までで、特に印象に残っていることってありますか？", followUp: "どんなところが印象に残りましたか？", memo: "これまでで印象に残っていることを聞いてみたい" },
+    { id: "senior-current", prompt: "最近、楽しみにしていることってありますか？", followUp: "始めたきっかけも聞いてみたいです。", memo: "最近楽しみにしていることについて聞いてみたい" },
+  ],
+  coworker: [
+    { id: "work-weather", prompt: "今日はちょっと暑いですね。夏って好きですか？", followUp: "夏になると食べたくなるものってあります？", memo: "季節の好みや夏に食べたいものについて話したい" },
+    { id: "work-lunch", prompt: "お昼って、いつもどこで食べてます？", followUp: "この辺でおすすめのお店ありますか？", memo: "職場の近くのランチやおすすめのお店について聞いてみたい" },
+    { id: "work-after", prompt: "最近、仕事終わりに何かハマってることあります？", followUp: "始めてみて、どんなところがよかったですか？", memo: "仕事終わりにハマっていることについて聞いてみたい" },
+    { id: "work-break", prompt: "休憩するとき、何を飲むことが多いですか？", followUp: "気分を切り替えたいときの定番ってあります？", memo: "休憩中の飲み物や気分転換について聞いてみたい" },
+  ],
+  reunion: [
+    { id: "reunion-new", prompt: "最近、何か新しく始めたことある？", followUp: "始めてみてどうだった？", opener: "久しぶり。そういえば最近は…", memo: "最近新しく始めたことについて聞いてみたい" },
+    { id: "reunion-fun", prompt: "最近いちばん楽しかったことって何？", followUp: "どんなところが楽しかった？", memo: "最近いちばん楽しかったことについて聞いてみたい" },
+    { id: "reunion-change", prompt: "前に会ってから、何か変わったことあった？", followUp: "今はどんな感じ？", memo: "前に会ってから変わったことについて聞いてみたい" },
+    { id: "reunion-next", prompt: "最近、どこか行ってみたいところある？", followUp: "そこでは何をしてみたい？", memo: "最近行ってみたい場所について聞いてみたい" },
+  ],
+  anyone: [
+    { id: "any-food", prompt: "最近食べて、おいしかったものある？", followUp: "自分でも作ったりする？", memo: "最近食べておいしかったものについて聞いてみたい" },
+    { id: "any-weekend", prompt: "次の休み、何をして過ごしたい？", followUp: "家でゆっくりするなら何をする？", memo: "次の休日の過ごし方について話したい" },
+    { id: "any-music", prompt: "最近よく聴いている曲ってある？", followUp: "どんなときに聴きたくなる？", memo: "最近よく聴いている音楽について聞いてみたい" },
+    { id: "any-buy", prompt: "最近買ってよかったものある？", followUp: "使ってみて、どこがよかった？", memo: "最近買ってよかったものについて聞いてみたい" },
+    { id: "any-place", prompt: "今、行ってみたい場所ってある？", followUp: "そこで何をしてみたい？", memo: "今行ってみたい場所について聞いてみたい" },
+    { id: "any-child", prompt: "子どもの頃、何が好きだった？", followUp: "今でも好きだったりする？", memo: "子どもの頃に好きだったものについて聞いてみたい" },
+  ],
+};
+
 export const BUILT_IN_HINTS = [
   {
     id: "otter-kelp",

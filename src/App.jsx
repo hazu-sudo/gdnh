@@ -104,7 +104,9 @@ export default function App() {
           themeColor={colorTheme}
         />
       )}
-      {activeTab === "hints" && showHints && <HintScreen onUseHint={useHintAsBookmark} />}
+      {activeTab === "hints" && showHints && (
+        <HintScreen bookmarks={sync.bookmarks} onUseHint={useHintAsBookmark} />
+      )}
       {activeTab === "reflection" && showReflection && (
         <ReflectionScreen bookmarks={sync.bookmarks} />
       )}

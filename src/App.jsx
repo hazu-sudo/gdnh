@@ -81,69 +81,72 @@ export default function App() {
         </button>
       )}
 
-      {activeTab === "save" && (
-        <SaveScreen
-          bookmarks={sync.bookmarks}
-          cloudConfigured={sync.cloudConfigured}
-          initialMemo={prefilledMemo}
-          onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
-          onInitialMemoConsumed={() => setPrefilledMemo("")}
-          onSave={sync.addBookmark}
-          onShowBookmarks={() => setActiveTab("search")}
-        />
-      )}
-      {activeTab === "search" && (
-        <SearchScreen
-          bookmarks={sync.bookmarks}
-          onDeleteBookmark={deleteBookmark}
-          onUpdateBookmark={sync.updateBookmark}
-          onUpdateStatus={sync.updateStatus}
-          onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
-          senderName={senderName}
-          backgroundColor={colorTheme}
-          themeColor={colorTheme}
-        />
-      )}
-      {activeTab === "hints" && showHints && (
-        <HintScreen bookmarks={sync.bookmarks} onUseHint={useHintAsBookmark} />
-      )}
-      {activeTab === "reflection" && showReflection && (
-        <ReflectionScreen bookmarks={sync.bookmarks} />
-      )}
-      {activeTab === "settings" && (
-        <SettingsScreen
-          accountEmail={sync.user?.email || ""}
-          attachmentRevision={attachmentRevision}
-          colorTheme={colorTheme}
-          cloudConfigured={sync.cloudConfigured}
-          fontSize={fontSize}
-          hintIntroSeen={hintIntroSeen}
-          lastSyncAt={sync.lastSyncAt}
-          onColorThemeChange={(color) => sync.updateSettings({ colorTheme: color })}
-          onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
-          onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
-          onHintVisibilityChange={updateHintVisibility}
-          onBookIntroChange={(visible) => {
-            sync.updateSettings({ showBookIntro: visible });
-            if (visible) setBookOpened(true);
-          }}
-          onReflectionChange={updateReflectionVisibility}
-          onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
-          onSignOut={sync.signOut}
-          onSyncNow={() => sync.pullCloud({ allowMigration: false })}
-          senderName={senderName}
-          showHints={showHints}
-          showBookIntro={showBookIntro}
-          showReflection={showReflection}
-          syncStatus={sync.syncStatus}
-        />
-      )}
       <BottomNav
         activeTab={activeTab}
         onChange={setActiveTab}
         showHints={showHints}
         showReflection={showReflection}
       />
+
+      <div className="main-content">
+        {activeTab === "save" && (
+          <SaveScreen
+            bookmarks={sync.bookmarks}
+            cloudConfigured={sync.cloudConfigured}
+            initialMemo={prefilledMemo}
+            onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
+            onInitialMemoConsumed={() => setPrefilledMemo("")}
+            onSave={sync.addBookmark}
+            onShowBookmarks={() => setActiveTab("search")}
+          />
+        )}
+        {activeTab === "search" && (
+          <SearchScreen
+            bookmarks={sync.bookmarks}
+            onDeleteBookmark={deleteBookmark}
+            onUpdateBookmark={sync.updateBookmark}
+            onUpdateStatus={sync.updateStatus}
+            onAttachmentsChanged={() => setAttachmentRevision((current) => current + 1)}
+            senderName={senderName}
+            backgroundColor={colorTheme}
+            themeColor={colorTheme}
+          />
+        )}
+        {activeTab === "hints" && showHints && (
+          <HintScreen bookmarks={sync.bookmarks} onUseHint={useHintAsBookmark} />
+        )}
+        {activeTab === "reflection" && showReflection && (
+          <ReflectionScreen bookmarks={sync.bookmarks} />
+        )}
+        {activeTab === "settings" && (
+          <SettingsScreen
+            accountEmail={sync.user?.email || ""}
+            attachmentRevision={attachmentRevision}
+            colorTheme={colorTheme}
+            cloudConfigured={sync.cloudConfigured}
+            fontSize={fontSize}
+            hintIntroSeen={hintIntroSeen}
+            lastSyncAt={sync.lastSyncAt}
+            onColorThemeChange={(color) => sync.updateSettings({ colorTheme: color })}
+            onFontSizeChange={(size) => sync.updateSettings({ fontSize: size })}
+            onHintIntroSeen={() => sync.updateSettings({ hintIntroSeen: true })}
+            onHintVisibilityChange={updateHintVisibility}
+            onBookIntroChange={(visible) => {
+              sync.updateSettings({ showBookIntro: visible });
+              if (visible) setBookOpened(true);
+            }}
+            onReflectionChange={updateReflectionVisibility}
+            onSenderNameChange={(name) => sync.updateSettings({ senderName: name })}
+            onSignOut={sync.signOut}
+            onSyncNow={() => sync.pullCloud({ allowMigration: false })}
+            senderName={senderName}
+            showHints={showHints}
+            showBookIntro={showBookIntro}
+            showReflection={showReflection}
+            syncStatus={sync.syncStatus}
+          />
+        )}
+      </div>
 
       {sync.migrationPending && (
         <div className="modal-backdrop">

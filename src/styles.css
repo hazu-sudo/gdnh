@@ -4257,6 +4257,20 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
   display: contents;
 }
 
+.main-content {
+  min-width: 0;
+}
+
+@media (max-width: 1199px) {
+  .main-content .screen {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .main-content .share-screen {
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1199px) {
   .screen {
     width: min(100%, 920px);
@@ -4282,17 +4296,35 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
   }
 
   .app-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
     min-height: 100vh;
-    padding-left: 250px;
+    padding-left: 0;
   }
 
-  .bottom-nav {
+  .main-content {
+    grid-column: 2;
+    grid-row: 1;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    padding: 0 32px;
+  }
+
+  .bottom-nav.simple-nav {
+    position: sticky;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
     top: 0;
     right: auto;
-    bottom: 0;
+    bottom: auto;
     left: 0;
     display: flex;
-    width: 220px;
+    box-sizing: border-box;
+    width: 240px;
+    max-width: 240px;
+    height: 100vh;
     grid-template-columns: none;
     flex-direction: column;
     gap: 0.4rem;
@@ -4343,6 +4375,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
 
   .nav-button {
     display: grid;
+    box-sizing: border-box;
     width: 100%;
     min-height: 52px;
     grid-template-columns: 28px minmax(0, 1fr);
@@ -4378,7 +4411,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
 
   .screen {
     position: relative;
-    width: min(calc(100vw - 300px), 1280px);
+    width: min(100%, 1280px);
     min-height: calc(100vh - 48px);
     margin: 24px auto;
     overflow: visible;

@@ -2876,36 +2876,134 @@ html[data-font-size="large"] .search-choice small { display: none; }
   font-size: 0.62rem;
   line-height: 1.6;
 }
-.past-shiori-hints {
+.hint-context-form {
+  position: relative;
   display: grid;
-  gap: 0.75rem;
-  border-top: 1px solid var(--line);
+  gap: 1.15rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--coral) 32%, var(--line));
+  border-radius: 10px 10px 5px 5px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 29px, rgba(91, 69, 57, 0.018) 29px 30px),
+    var(--paper);
+  box-shadow: var(--shadow);
+  padding: 1.35rem 1.2rem 2rem;
+}
+.hint-context-form::after {
+  position: absolute;
+  top: 0;
+  right: 1.25rem;
+  width: 1.2rem;
+  height: 2.5rem;
+  background: var(--coral);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  content: "";
+}
+.context-relation-summary {
+  display: grid;
+  gap: 0.25rem;
   border-bottom: 1px solid var(--line);
-  padding: 1rem 0;
+  padding: 0 2.5rem 1rem 0;
 }
-.past-shiori-hints > div:first-child { display: grid; gap: 0.25rem; }
-.past-shiori-hints strong { font-size: 0.77rem; }
-.past-shiori-hints small { color: var(--muted); font-size: 0.62rem; line-height: 1.5; }
-.past-shiori-hints > div:last-child {
+.context-relation-summary span { color: var(--muted); font-size: 0.62rem; font-weight: 800; }
+.context-relation-summary strong { color: var(--brown); font-size: 1rem; }
+.hint-context-form .simple-field > span small { color: var(--muted); font-size: 0.62rem; font-weight: 600; }
+.hint-context-form .simple-field textarea { min-height: 6rem; }
+.scene-suggestions,
+.hint-recipient-chips {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.45rem;
   overflow-x: auto;
+  margin-top: -0.55rem;
   padding-bottom: 0.15rem;
+  scrollbar-width: none;
 }
-.past-shiori-hints button {
+.scene-suggestions::-webkit-scrollbar,
+.hint-recipient-chips::-webkit-scrollbar { display: none; }
+.scene-suggestions button,
+.hint-recipient-chips button {
   flex: 0 0 auto;
   min-height: 44px;
-  border: 1px solid color-mix(in srgb, var(--coral) 38%, var(--line));
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 86%, var(--canvas));
   color: var(--brown);
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.6rem 0.8rem;
+}
+.scene-suggestions button.active {
+  border-color: var(--coral);
+  background: var(--coral-soft);
+  color: var(--coral-deep);
+}
+.hint-recipient-chips button {
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--line));
+  background: color-mix(in srgb, var(--blue-soft) 40%, var(--paper));
+}
+.use-past-toggle {
+  display: grid;
+  min-height: 58px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--blue) 38%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--blue-soft) 42%, var(--paper));
+  cursor: pointer;
+  padding: 0.7rem 0.8rem;
+}
+.use-past-toggle input {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: var(--blue);
+}
+.use-past-toggle > span { display: grid; min-width: 0; gap: 0.2rem; }
+.use-past-toggle strong { font-size: 0.72rem; }
+.use-past-toggle small { overflow: hidden; color: var(--muted); font-size: 0.62rem; text-overflow: ellipsis; white-space: nowrap; }
+.context-hint-note {
+  margin: 0;
+  border-left: 3px solid var(--blue);
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1.65;
+  padding-left: 0.7rem;
+}
+.hint-talk-content {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.75;
+}
+.hint-past-suggestion {
+  border-top: 1px dashed color-mix(in srgb, var(--blue) 42%, var(--line));
+  padding-top: 1rem;
+}
+.hint-past-suggestion p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+.hint-edit-context {
+  width: fit-content;
+  min-height: 44px;
+  justify-self: center;
+  border: 0;
+  background: transparent;
+  color: var(--coral-deep);
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 800;
-  padding: 0.6rem 0.85rem;
+  padding: 0.55rem 0.8rem;
 }
 
 html[data-font-size="large"] .relation-picker { grid-template-columns: 1fr; }
+html[data-font-size="large"] .scene-suggestions,
+html[data-font-size="large"] .hint-recipient-chips { flex-wrap: wrap; overflow-x: visible; }
 
 @media (max-width: 410px) {
   .relation-picker { grid-template-columns: 1fr; }

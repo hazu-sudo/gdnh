@@ -125,6 +125,47 @@ export function DateWheel({ date, onCancel, onConfirm }) {
   );
 }
 
+function SaveLivePreview({ date, memo, pendingFile, targetName }) {
+  const [imageUrl, setImageUrl] = useState("");
+
+  useEffect(() => {
+    if (!pendingFile?.type?.startsWith("image/")) {
+      setImageUrl("");
+      return undefined;
+    }
+    const url = URL.createObjectURL(pendingFile);
+    setImageUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [pendingFile]);
+
+  return (
+    <aside className="save-live-preview" aria-label="登録するしおりのプレビュー">
+      <div className="live-preview-heading">
+        <span>PREVIEW</span>
+        <p>入力した内容が、しおりになります</p>
+      </div>
+      <div className="live-bookmark-paper">
+        <span className="live-bookmark-string" aria-hidden="true" />
+        <span className="live-bookmark-hole" aria-hidden="true" />
+        <time dateTime={date}>{formatJapaneseDate(date)}</time>
+        <p className="live-preview-label">誰に話す</p>
+        <h2>{targetName.trim() || "話したい相手"}</h2>
+        <div className="live-preview-rule" />
+        <p className="live-preview-label">ひとことメモ</p>
+        <p className={memo.trim() ? "live-preview-memo" : "live-preview-memo is-empty"}>
+          {memo.trim() || "あとで話したいことが、ここに残ります。"}
+        </p>
+        {pendingFile && (
+          <div className="live-preview-attachment">
+            {imageUrl ? <img alt="添付する写真のプレビュー" src={imageUrl} /> : <span aria-hidden="true">DOC</span>}
+            <small>{pendingFile.name}</small>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 export default function SaveScreen({
   bookmarks,
   cloudConfigured,
@@ -212,17 +253,21 @@ export default function SaveScreen({
         </div>
       </header>
 
-      <section className="save-intro">
-        <p className="eyebrow">NEW SHIORI</p>
-        <h1>あとで話したいことを<br />「しおり」に挟む</h1>
-        <p>話したいことを忘れないように。思いを自由にしおりに残す。</p>
-      </section>
+      <div className="save-book-spread">
+        <div className="save-preview-page">
+          <section className="save-intro">
+            <p className="eyebrow">NEW SHIORI</p>
+            <h1>あとで話したいことを<br />「しおり」に挟む</h1>
+            <p>話したいことを忘れないように。思いを自由にしおりに残す。</p>
+          </section>
+          <SaveLivePreview date={date} memo={memo} pendingFile={pendingFile} targetName={targetName} />
+        </div>
 
-      <form
+        <form
         aria-busy={saving || inserting}
         className={inserting ? "quick-form bookmark-composer is-inserting" : "quick-form bookmark-composer"}
         onSubmit={submit}
-      >
+        >
         <span className="composer-ribbon" aria-hidden="true" />
         <span className="composer-hole" aria-hidden="true" />
         <div className="simple-field">
@@ -325,7 +370,8 @@ export default function SaveScreen({
             <strong>しおりを本に挟んでいます</strong>
           </div>
         )}
-      </form>
+        </form>
+      </div>
 
       {dateOpen && (
         <DateWheel

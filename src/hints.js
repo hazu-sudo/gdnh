@@ -1,11 +1,13 @@
 export const CONVERSATION_RELATIONS = [
-  { id: "first-meeting", label: "初めて会う人", description: "答えやすい話題から" },
-  { id: "acquaintance", label: "まだあまり親しくない人", description: "少しずつ会話をつなぐ" },
-  { id: "junior", label: "後輩", description: "気軽に話せる空気をつくる" },
-  { id: "senior", label: "先輩", description: "経験やおすすめを聞く" },
-  { id: "coworker", label: "職場の人", description: "仕事の合間の自然な雑談" },
-  { id: "reunion", label: "久しぶりに会う人", description: "近況や前の話の続きを" },
-  { id: "anyone", label: "誰でも使える話題", description: "好みや日常から選ぶ" },
+  { id: "first-meeting", label: "初めまして", description: "答えやすい話題から" },
+  { id: "coworker", label: "同僚", description: "仕事の合間の自然な雑談" },
+  { id: "boss", label: "上司", description: "経験やおすすめを聞く" },
+  { id: "subordinate", label: "部下", description: "気軽に話せる空気をつくる" },
+  { id: "parttime-student", label: "バイト先の学生", description: "学校や日常の話をやさしく" },
+  { id: "parttime-part", label: "バイト先のパート", description: "休憩中にも話せる話題" },
+  { id: "school-friend", label: "学校の友達", description: "授業や最近のことから" },
+  { id: "teacher", label: "先生", description: "相談や経験を自然に聞く" },
+  { id: "other", label: "その他", description: "場面に合わせて考える" },
   { id: "trivia", label: "雑学から探す", description: "小さな知識を会話の入口に" },
 ];
 
@@ -55,6 +57,14 @@ export const RELATION_HINTS = {
     { id: "any-child", prompt: "子どもの頃、何が好きだった？", followUp: "今でも好きだったりする？", memo: "子どもの頃に好きだったものについて聞いてみたい" },
   ],
 };
+
+RELATION_HINTS.boss = RELATION_HINTS.senior;
+RELATION_HINTS.subordinate = RELATION_HINTS.junior;
+RELATION_HINTS["parttime-student"] = RELATION_HINTS.junior;
+RELATION_HINTS["parttime-part"] = RELATION_HINTS.coworker;
+RELATION_HINTS["school-friend"] = RELATION_HINTS.anyone;
+RELATION_HINTS.teacher = RELATION_HINTS.senior;
+RELATION_HINTS.other = RELATION_HINTS.anyone;
 
 export const BUILT_IN_HINTS = [
   {

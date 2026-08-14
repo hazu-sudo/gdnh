@@ -11,7 +11,13 @@ const SCENE_SUGGESTIONS = [
   "オンラインで話す",
 ];
 
-const politeRelations = new Set(["first-meeting", "acquaintance", "senior", "coworker"]);
+const politeRelations = new Set([
+  "first-meeting",
+  "coworker",
+  "boss",
+  "parttime-part",
+  "teacher",
+]);
 
 function chooseUnseen(items, seenIds) {
   if (!items.length) return null;

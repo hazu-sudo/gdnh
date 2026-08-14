@@ -4283,7 +4283,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
 
   .app-shell {
     min-height: 100vh;
-    padding-left: 238px;
+    padding-left: 250px;
   }
 
   .bottom-nav {
@@ -4292,7 +4292,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
     bottom: 0;
     left: 0;
     display: flex;
-    width: 238px;
+    width: 220px;
     grid-template-columns: none;
     flex-direction: column;
     gap: 0.4rem;
@@ -4301,7 +4301,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
     background:
       repeating-linear-gradient(0deg, transparent 0 31px, rgba(87, 66, 54, 0.018) 31px 32px),
       color-mix(in srgb, var(--paper) 95%, var(--canvas));
-    box-shadow: 12px 0 34px rgba(62, 47, 40, 0.08);
+    box-shadow: 8px 0 24px rgba(62, 47, 40, 0.065);
     padding: 2rem 1rem;
   }
 
@@ -4378,7 +4378,7 @@ html[data-font-size="large"] .attachment-usage-panel > p { grid-column: auto; }
 
   .screen {
     position: relative;
-    width: min(calc(100vw - 294px), 1280px);
+    width: min(calc(100vw - 300px), 1280px);
     min-height: calc(100vh - 48px);
     margin: 24px auto;
     overflow: visible;

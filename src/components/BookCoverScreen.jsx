@@ -69,8 +69,7 @@ export default function BookCoverScreen({ bookmarks, onOpen }) {
         {bookmarks.length > 0
           ? <p><strong>{bookmarks.length}枚</strong>のしおりが挟まれています</p>
           : <p>話したいことを、最初のしおりに挟んでみましょう</p>}
-        <span className="book-open-copy mobile-open-copy">本をタップして開く</span>
-        <span className="book-open-copy desktop-open-copy">クリックして開く</span>
+        <span>本をタップして開く</span>
       </div>
     </main>
   );

@@ -38,13 +38,6 @@ export default function BottomNav({ activeTab, onChange, showHints, showReflecti
       className={`bottom-nav simple-nav tabs-${visibleTabs.length}`}
       aria-label="メインメニュー"
     >
-      <div className="desktop-nav-brand" aria-hidden="true">
-        <span className="desktop-nav-bookmark" />
-        <div>
-          <strong>あとで開くしおり</strong>
-          <small>YOUR SHIORI BOOK</small>
-        </div>
-      </div>
       {visibleTabs.map((tab) => (
         <button
           aria-current={activeTab === tab.id ? "page" : undefined}

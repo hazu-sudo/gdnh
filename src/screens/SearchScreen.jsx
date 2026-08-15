@@ -44,31 +44,6 @@ function memoPreview(memo) {
   return firstLine.length > 18 ? `${firstLine.slice(0, 18)}…` : firstLine;
 }
 
-function StatusChoiceButtons({ currentStatus, onChange }) {
-  const choices = [
-    { id: "pending", label: "保留" },
-    { id: "resolved", label: "話した" },
-    { id: "sent", label: "送った" },
-    { id: "unresolved", label: "選択解除" },
-  ];
-
-  return (
-    <div className="status-choice-buttons" role="group" aria-label="しおりの状態">
-      {choices.map((choice) => (
-        <button
-          aria-pressed={currentStatus === choice.id}
-          className={currentStatus === choice.id ? `status-choice ${choice.id} active` : `status-choice ${choice.id}`}
-          key={choice.id}
-          onClick={() => onChange(choice.id)}
-          type="button"
-        >
-          {choice.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function DetailView({
   backgroundColor,
   bookmark,
@@ -289,44 +264,44 @@ function DetailView({
         </div>
         <div className="detail-status">
           <span>状態</span>
-          <StatusChoiceButtons currentStatus={currentStatus} onChange={changeStatus} />
-        </div>
-      </section>
-      <aside className="detail-control-page" aria-label="しおりの操作">
-        <div>
-          <p className="eyebrow">SHIORI ACTIONS</p>
-          <h2>{editing ? "しおりを編集する" : "このしおりをどうする？"}</h2>
-          <p>状態を選んだり、内容を編集・共有したりできます。</p>
-        </div>
-        <section className="desktop-status-panel">
-          <h3>状態</h3>
-          <StatusChoiceButtons currentStatus={currentStatus} onChange={changeStatus} />
-        </section>
-        {editing ? (
-          <div className="desktop-detail-actions">
-            <button className="edit-cancel" disabled={saving} onClick={() => requestLeave("detail")} type="button">キャンセル</button>
-            <button className="edit-save" disabled={saving} onClick={() => saveEdit()} type="button">
-              {saving ? "写真・資料を保存しています" : "変更を保存"}
+          <div className="status-choice-buttons" role="group" aria-label="しおりの状態">
+            <button
+              aria-pressed={currentStatus === "pending"}
+              className={currentStatus === "pending" ? "status-choice pending active" : "status-choice pending"}
+              onClick={() => changeStatus("pending")}
+              type="button"
+            >
+              保留
+            </button>
+            <button
+              aria-pressed={currentStatus === "resolved"}
+              className={currentStatus === "resolved" ? "status-choice resolved active" : "status-choice resolved"}
+              onClick={() => changeStatus("resolved")}
+              type="button"
+            >
+              話した
+            </button>
+            <button
+              aria-pressed={currentStatus === "sent"}
+              className={currentStatus === "sent" ? "status-choice sent active" : "status-choice sent"}
+              onClick={() => changeStatus("sent")}
+              type="button"
+            >
+              送った
+            </button>
+            <button
+              aria-pressed={currentStatus === "unresolved"}
+              className={currentStatus === "unresolved" ? "status-choice unresolved active" : "status-choice unresolved"}
+              onClick={() => changeStatus("unresolved")}
+              type="button"
+            >
+              選択解除
             </button>
           </div>
-        ) : (
-          <div className="desktop-detail-actions">
-            <button className="secondary-button" onClick={() => setEditing(true)} type="button">編集する</button>
-            <button className="primary-button" onClick={() => setSharing(true)} type="button">共有する</button>
-          </div>
-        )}
-        <button
-          className="delete-bookmark-button desktop-delete-button"
-          disabled={deletingBookmark || saving}
-          onClick={() => setBookmarkDeleteOpen(true)}
-          type="button"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14" /></svg>
-          このしおりを削除
-        </button>
-      </aside>
+        </div>
+      </section>
       {editing ? (
-        <section className="edit-actions mobile-detail-actions">
+        <section className="edit-actions">
           <button className="edit-cancel" disabled={saving} onClick={() => requestLeave("detail")} type="button">キャンセル</button>
           <button className="edit-save" disabled={saving} onClick={() => saveEdit()} type="button">
             {saving ? "写真・資料を保存しています" : "変更を保存"}
@@ -334,7 +309,7 @@ function DetailView({
         </section>
       ) : null}
       <button
-        className="delete-bookmark-button mobile-delete-button"
+        className="delete-bookmark-button"
         disabled={deletingBookmark || saving}
         onClick={() => setBookmarkDeleteOpen(true)}
         type="button"
@@ -539,30 +514,6 @@ export default function SearchScreen({
             </span>
             <p>画面をタップして、<br />探し方をえらぶ</p>
           </div>
-
-          <section className="desktop-search-choices" aria-label="しおりの探し方">
-            <header>
-              <p className="eyebrow">HOW TO FIND</p>
-              <h2>どちらで探す？</h2>
-              <p>日付からめくるか、話したい相手から開きます。</p>
-            </header>
-            <div>
-              <button className="search-choice calendar-choice" onClick={() => chooseSearchMode("calendar")} type="button">
-                <span className="choice-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 3v5M16 3v5M4 10h16M8 14h3M13 14h3" /></svg>
-                </span>
-                <strong>カレンダー</strong>
-                <small>日付からしおりを開く</small>
-              </button>
-              <button className="search-choice person-choice" onClick={() => chooseSearchMode("recipient")} type="button">
-                <span className="choice-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20c.5-4 2.6-6 6.5-6s6 2 6.5 6" /></svg>
-                </span>
-                <strong>話す相手</strong>
-                <small>人からしおりを開く</small>
-              </button>
-            </div>
-          </section>
 
           {chooserOpen && (
             <div

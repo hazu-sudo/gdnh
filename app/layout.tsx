@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "あとで開くしおり",
+  title: "余韻の栞",
   description: "今すぐ送れない、でも忘れたくない気持ちを、あとで開けるしおりとして残すアプリ。",
   icons: {
     icon: "/favicon.svg",

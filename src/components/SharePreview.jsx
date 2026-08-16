@@ -281,7 +281,7 @@ export default function SharePreview({
 
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare({ files }))) {
-        await navigator.share({ files, title: "あとで開くしおり" });
+        await navigator.share({ files, title: "余韻の栞" });
         setMessage("共有メニューを開きました");
         return;
       }

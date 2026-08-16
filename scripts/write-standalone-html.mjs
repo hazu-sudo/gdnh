@@ -26,7 +26,7 @@ const html = `<!doctype html>
       name="description"
       content="今すぐ送れない、でも忘れたくない気持ちを、あとで開けるしおりとして残すWebアプリ。"
     />
-    <title>あとで開くしおり</title>
+    <title>余韻の栞</title>
     <style>
 ${css}
     </style>

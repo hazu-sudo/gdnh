@@ -33,12 +33,12 @@ export default function BookCoverScreen({ bookmarks, onOpen }) {
   return (
     <main className={opening ? "book-entry-screen is-opening" : "book-entry-screen"}>
       <div className="book-entry-heading">
-        <p className="eyebrow">YOUR SHIORI BOOK</p>
+        <p className="eyebrow">YO-IN NO SHIORI</p>
         <h1>あとで開ける気持ちを、<br />一冊に。</h1>
       </div>
 
       <button
-        aria-label="本を開いて、あとで開くしおりを始める"
+        aria-label="本を開いて、余韻の栞を始める"
         className="closed-book-button"
         onClick={openBook}
         type="button"

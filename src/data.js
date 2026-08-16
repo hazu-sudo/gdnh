@@ -1,4 +1,4 @@
-export const APP_NAME = "あとで開くしおり";
+export const APP_NAME = "余韻の栞";
 export const STORAGE_KEY = "later-open-shiori-bookmarks-v3";
 export const LEGACY_STORAGE_KEYS = [
   "later-open-shiori-bookmarks-v2",
